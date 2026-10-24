@@ -6,7 +6,6 @@ import {
     ArrowUpRight,
     Bell,
     CalendarDays,
-    Check,
     CheckCircle2,
     ChevronRight,
     Clock3,
@@ -20,17 +19,14 @@ import {
     UserRound,
     Users,
     Wallet,
-    ClipboardList,
-    CircleDot,
+    TrendingUp,
 } from 'lucide-react';
-
 import { getIndividualDashboard } from './api/individualDashboardApi';
 import StatusBadge from '@/components/dashboard/StatusBadge';
-import LoadingUI from '@/components/dashboard/LoadingUI';
+import DashboardLoading from '@/components/dashboard/DashboardLoading';
 import LoadingError from '@/components/dashboard/LoadingError';
 
 const ROOT = '/individual/dashboard';
-
 const ROUTES = {
     requests: `${ROOT}/help-requests`,
     donations: `${ROOT}/donations`,
@@ -40,8 +36,7 @@ const ROUTES = {
     notifications: `${ROOT}/notifications`,
     settings: `${ROOT}/settings`,
 };
-
-const THEME = {
+const C = {
     bg: '#0E1219',
     surface: '#151C25',
     raised: '#1A222D',
@@ -53,101 +48,55 @@ const THEME = {
     green: '#82B9A4',
     purple: '#B8A2D5',
 };
-
-function Heading({ eyebrow, title, action, onClick }) {
-    return (
-        <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-                <p className={overline}>{eyebrow}</p>
-                <h2 className="mt-2 font-sans! text-[22px] font-semibold! tracking-[-0.035em] text-[#F1F4F8]! sm:text-[25px]">
-                    {title}
-                </h2>
-            </div>
-            {action && (
-                <button
-                    type="button"
-                    onClick={onClick}
-                    className="inline-flex items-center gap-1.5 pb-1 text-[12px] font-semibold text-[#C9D6E4] hover:text-white"
-                >
-                    {action}
-                    <ArrowUpRight size={15} />
-                </button>
-            )}
-        </div>
-    );
-}
-
-const overline =
-    'text-[10px] font-semibold uppercase tracking-[0.19em] text-[#A4B2C3]';
-
-const fmt = (value) => Number(value || 0).toLocaleString('en-BD');
-
-const dateText = (value) => {
-    if (!value) return 'Not provided';
-
-    const date = new Date(value);
-
-    return Number.isNaN(date.getTime())
+const fmt = (n) => Number(n || 0).toLocaleString('en-BD');
+const formatDate = (v) => {
+    if (!v) return 'Not provided';
+    const d = new Date(v);
+    return Number.isNaN(d.getTime())
         ? 'Not provided'
-        : date.toLocaleDateString('en-BD', {
+        : d.toLocaleDateString('en-BD', {
               day: 'numeric',
               month: 'short',
               year: 'numeric',
           });
 };
-
-const greeting = () => {
-    const hour = new Date().getHours();
-
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-
-    return 'Good evening';
+const greeting = (currentDate) => {
+    const h = currentDate.getHours();
+    return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 };
-
-const daysLeft = (value) => {
-    if (!value) return null;
-
-    const time = new Date(value).getTime();
-
-    if (Number.isNaN(time)) return null;
-
-    return Math.max(0, Math.ceil((time - Date.now()) / 86400000));
-};
-
+const today = (currentDate) =>
+    currentDate.toLocaleDateString('en-BD', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    });
 const eyebrow =
-    'text-[10px] font-semibold uppercase tracking-widest text-[#94A2B2]';
+    'text-[10px] font-semibold! uppercase tracking-[0.17em] text-[#94A2B2]';
 
-/* =========================================================
-   SHARED SECTION HEADING
-========================================================= */
-
-function SectionTitle({ kicker, title, description, action, onAction }) {
+function SectionHeading({ kicker, title, description, action, onAction }) {
     return (
         <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="min-w-0">
-                {kicker && <p className={eyebrow}>{kicker}</p>}
-
-                <h2 className="mt-1.5 font-sans! text-[20px]! font-semibold! leading-tight! tracking-tight! text-[#EEF1F5]!">
+                <p className={eyebrow}>{kicker}</p>
+                <h2 className="mt-2 font-sans! text-[21px]! font-semibold! tracking-[-0.035em] text-[#EEF1F5]! sm:text-[23px]!">
                     {title}
                 </h2>
-
                 {description && (
-                    <p className="mt-2 text-[12px] leading-5 text-[#94A2B2]">
+                    <p className="mt-1.5 text-[12px] leading-5 text-[#94A2B2]">
                         {description}
                     </p>
                 )}
             </div>
-
             {action && (
                 <button
                     type="button"
                     onClick={onAction}
-                    className="group inline-flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#B8C5D3] transition hover:text-[#D9B47B]"
+                    className="group inline-flex items-center gap-1.5 text-[12px] font-medium! text-[#CBD5E1] hover:text-[#D9B47B]"
                 >
                     {action}
                     <ArrowUpRight
-                        size={14}
+                        size={15}
                         className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                     />
                 </button>
@@ -156,318 +105,229 @@ function SectionTitle({ kicker, title, description, action, onAction }) {
     );
 }
 
-/* =========================================================
-   TOP STATISTICS
-========================================================= */
-
-function Metric({ icon: Icon, label, value, detail, color, onClick }) {
+function Stat({ icon: Icon, label, value, note, color, onClick }) {
     return (
         <button
             type="button"
             onClick={onClick}
-            className="group relative min-w-0 p-4 text-left transition-colors hover:bg-[#202A36] sm:p-5"
+            className="group relative flex min-h-37 min-w-0 flex-col overflow-hidden border-b border-[#34404D]/60 p-4 text-left transition-colors duration-200 hover:bg-[#24313D] sm:min-h-42 sm:p-5 xl:border-b-0 xl:border-r xl:last:border-r-0"
+            style={{
+                backgroundImage: `linear-gradient(145deg, ${color}12, transparent 68%)`,
+            }}
         >
-            <div className="flex items-center gap-2">
-                <Icon size={16} style={{ color }} className="shrink-0" />
-
-                <span className="min-w-0 truncate text-[11px] text-[#AAB6C5]">
-                    {label}
-                </span>
-            </div>
-
-            <p className="mt-3 text-[27px] font-semibold leading-none tracking-tight text-[#EEF1F5]">
-                {value}
-            </p>
-
-            <p className="mt-2 text-[11px] text-[#94A2B2]">{detail}</p>
-
-            <ArrowUpRight
-                size={14}
-                className="absolute right-4 top-4 text-[#64748B] opacity-0 transition group-hover:opacity-100"
+            <span
+                className="absolute inset-x-0 top-0 h-0.5 opacity-80"
+                style={{ backgroundColor: color }}
             />
+            <span className="flex w-full items-start justify-between gap-2">
+                <span
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md"
+                    style={{ backgroundColor: `${color}20`, color }}
+                >
+                    <Icon size={18} strokeWidth={1.8} />
+                </span>
+                <ArrowUpRight
+                    size={15}
+                    className="text-[#8394A6] opacity-60 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100"
+                />
+            </span>
+            <span className="mt-4 block text-[11px] font-medium! text-[#B2BECC]">
+                {label}
+            </span>
+            <span className="mt-1.5 block break-words text-[26px] font-semibold! leading-none tracking-[-0.04em] text-[#EEF1F5]! sm:text-[29px]">
+                {value}
+            </span>
+            <span className="mt-auto block pt-3 text-[11px] text-[#94A2B2]">
+                {note}
+            </span>
         </button>
     );
 }
 
-/* =========================================================
-   ANALYTICS — ACTIVITY DISTRIBUTION
-
-   Compares activity counts only.
-   Monetary totals and volunteer hours remain separate.
-========================================================= */
-
-function ActivityDonut({ donations, volunteering }) {
-    const total = donations + volunteering;
-
-    const donationShare = total ? (donations / total) * 100 : 0;
-
-    const volunteerShare = total ? (volunteering / total) * 100 : 0;
-
-    const radius = 65;
-    const circumference = 2 * Math.PI * radius;
-
-    const donationLength = (donationShare / 100) * circumference;
-
-    const volunteerLength = (volunteerShare / 100) * circumference;
-
+function ImpactChart({ donationCount, volunteerCount }) {
+    const total = donationCount + volunteerCount;
+    const ratio = total ? donationCount / total : 0;
+    const circumference = 2 * Math.PI * 62;
     return (
-        <div className="relative mx-auto h-[188px] w-[188px] shrink-0">
-            <svg
-                viewBox="0 0 188 188"
-                className="h-full w-full"
-                role="img"
-                aria-label={`${donations} donations and ${volunteering} volunteer activities`}
-            >
-                <circle
-                    cx="94"
-                    cy="94"
-                    r={radius}
-                    fill="none"
-                    stroke="#29323E"
-                    strokeWidth="13"
-                />
-
-                {total > 0 && (
-                    <>
-                        <circle
-                            cx="94"
-                            cy="94"
-                            r={radius}
-                            fill="none"
-                            stroke={THEME.amber}
-                            strokeWidth="13"
-                            strokeDasharray={`${donationLength} ${circumference - donationLength}`}
-                            strokeDashoffset="0"
-                            transform="rotate(-90 94 94)"
-                        />
-
-                        <circle
-                            cx="94"
-                            cy="94"
-                            r={radius}
-                            fill="none"
-                            stroke={THEME.green}
-                            strokeWidth="13"
-                            strokeDasharray={`${volunteerLength} ${circumference - volunteerLength}`}
-                            strokeDashoffset={-donationLength}
-                            transform="rotate(-90 94 94)"
-                        />
-                    </>
-                )}
-            </svg>
-
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[37px] font-semibold leading-none tracking-tighter text-[#EEF1F5]">
-                    {fmt(total)}
-                </span>
-
-                <span className="mt-2 text-[11px] text-[#94A2B2]">
-                    Acts of support
-                </span>
+        <div className="flex flex-col items-center gap-5 2xl:flex-row 2xl:gap-5">
+            <div className="relative h-43.5 w-43.5 shrink-0">
+                <svg
+                    viewBox="0 0 180 180"
+                    className="h-full w-full"
+                    role="img"
+                    aria-label={`${donationCount} donations and ${volunteerCount} volunteer activities`}
+                >
+                    <circle
+                        cx="90"
+                        cy="90"
+                        r="62"
+                        fill="none"
+                        stroke="#29323E"
+                        strokeWidth="13"
+                    />
+                    {total > 0 && (
+                        <>
+                            <circle
+                                cx="90"
+                                cy="90"
+                                r="62"
+                                fill="none"
+                                stroke={C.green}
+                                strokeWidth="13"
+                                strokeDasharray={`${circumference} 0`}
+                                transform="rotate(-90 90 90)"
+                            />
+                            <circle
+                                cx="90"
+                                cy="90"
+                                r="62"
+                                fill="none"
+                                stroke={C.amber}
+                                strokeWidth="13"
+                                strokeDasharray={`${ratio * circumference} ${circumference}`}
+                                transform="rotate(-90 90 90)"
+                            />
+                        </>
+                    )}
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <strong className="text-[36px] leading-none text-[#EEF1F5]!">
+                        {fmt(total)}
+                    </strong>
+                    <span className="mt-2 text-[11px] text-[#94A2B2]">
+                        Total activities
+                    </span>
+                </div>
+            </div>
+            <div className="w-full flex-1 space-y-5">
+                {[
+                    {
+                        label: 'Donations',
+                        count: donationCount,
+                        color: C.amber,
+                    },
+                    {
+                        label: 'Volunteering',
+                        count: volunteerCount,
+                        color: C.green,
+                    },
+                ].map((item) => {
+                    const pct = total
+                        ? Math.round((item.count / total) * 100)
+                        : 0;
+                    return (
+                        <div key={item.label}>
+                            <div className="flex justify-between gap-3 text-[12px]">
+                                <span className="flex items-center gap-2 text-[#C6D0DC]">
+                                    <span
+                                        className="h-2 w-2"
+                                        style={{ background: item.color }}
+                                    />
+                                    {item.label}
+                                </span>
+                                <strong className="text-[#EEF1F5]!">
+                                    {pct}%
+                                </strong>
+                            </div>
+                            <div className="mt-2 h-1.5 bg-[#2A3542]">
+                                <div
+                                    className="h-full"
+                                    style={{
+                                        width: `${pct}%`,
+                                        background: item.color,
+                                    }}
+                                />
+                            </div>
+                            <p className="mt-1.5 text-[11px] text-[#8797A8]">
+                                {fmt(item.count)} recorded{' '}
+                                {item.count === 1 ? 'activity' : 'activities'}
+                            </p>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
 }
 
-/* =========================================================
-   CONTRIBUTION OVERVIEW — REDESIGNED
-========================================================= */
-
-function ContributionOverview({ donation, volunteer, onNavigate }) {
+function ImpactOverview({ donation, volunteer, go }) {
     const donationCount = Math.max(0, Number(donation.donationCount) || 0);
-
     const volunteerCount = Math.max(0, Number(volunteer.activitiesCount) || 0);
-
-    const totalActs = donationCount + volunteerCount;
-
-    const breakdown = [
-        {
-            label: 'Donations',
-            value: donationCount,
-            color: THEME.amber,
-            route: 'donations',
-        },
-        {
-            label: 'Volunteering',
-            value: volunteerCount,
-            color: THEME.green,
-            route: 'volunteer',
-        },
-    ];
-
     return (
-        <section>
-            <SectionTitle
+        <section className="border-t border-[#344353] pt-8 min-[1025px]:pt-20">
+            <SectionHeading
                 kicker="Contribution overview"
                 title="Your community impact"
-                description="A closer look at the ways you've contributed."
+                description="A clear picture of the ways you've contributed."
+                action="View donations"
+                onAction={() => go('donations')}
             />
-
-            <div className="mt-5 overflow-hidden border border-[#29323E] bg-[#151C25]">
-                <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-                    {/* MAIN ANALYTICS */}
-
-                    <div className="p-5 sm:p-7">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div>
-                                <p className="text-[13px] font-semibold text-[#EEF1F5]">
-                                    Participation overview
-                                </p>
-
-                                <p className="mt-1 text-[11px] text-[#94A2B2]">
-                                    Breakdown of recorded activities
-                                </p>
-                            </div>
-
-                            <span className="border border-[#34404E] px-2.5 py-1 text-[10px] text-[#AAB6C5]">
-                                All time
-                            </span>
-                        </div>
-
-                        <div className="mt-5 flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
-                            <ActivityDonut
-                                donations={donationCount}
-                                volunteering={volunteerCount}
-                            />
-
-                            <div className="w-full min-w-0 flex-1 space-y-4">
-                                {breakdown.map((item) => {
-                                    const percentage = totalActs
-                                        ? Math.round(
-                                              (item.value / totalActs) * 100,
-                                          )
-                                        : 0;
-
-                                    return (
-                                        <button
-                                            key={item.label}
-                                            type="button"
-                                            onClick={() =>
-                                                onNavigate(item.route)
-                                            }
-                                            className="group block w-full text-left"
-                                        >
-                                            <div className="flex items-center justify-between gap-3">
-                                                <span className="flex items-center gap-2 text-[12px] text-[#B8C5D3]">
-                                                    <span
-                                                        className="h-2.5 w-2.5 shrink-0"
-                                                        style={{
-                                                            backgroundColor:
-                                                                item.color,
-                                                        }}
-                                                    />
-
-                                                    {item.label}
-                                                </span>
-
-                                                <span className="text-[13px] font-semibold text-[#EEF1F5]">
-                                                    {percentage}%
-                                                </span>
-                                            </div>
-
-                                            <div className="mt-2 h-1.5 bg-[#29323E]">
-                                                <div
-                                                    className="h-full"
-                                                    style={{
-                                                        width: `${percentage}%`,
-                                                        backgroundColor:
-                                                            item.color,
-                                                    }}
-                                                />
-                                            </div>
-
-                                            <p className="mt-1.5 text-[10px] text-[#94A2B2]">
-                                                {fmt(item.value)} recorded
-                                                {item.value === 1
-                                                    ? ' activity'
-                                                    : ' activities'}
-                                            </p>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
+            <div className="mt-6 grid overflow-hidden bg-transparent xl:grid-cols-[minmax(0,1.15fr)_minmax(210px,0.85fr)] border border-[#29323E]">
+                <div className="bg-[#1B2934] p-6 sm:p-7">
+                    <div className="mb-6 flex items-center justify-between gap-3">
+                        <h3 className="text-[13px] font-semibold! text-[#E8EDF3]!">
+                            How you contribute
+                        </h3>
+                        <span className="border border-[#35404C] px-2.5 py-1 text-[10px] text-[#94A2B2]">
+                            All time
+                        </span>
                     </div>
-
-                    {/* FINANCIAL / TIME SUMMARY */}
-
-                    <div className="grid grid-cols-2 border-t border-[#29323E] bg-[#1A222D] lg:grid-cols-1 lg:border-l lg:border-t-0">
-                        <button
-                            type="button"
-                            onClick={() => onNavigate('donations')}
-                            className="group min-w-0 p-5 text-left transition hover:bg-[#202B37] sm:p-6"
-                        >
-                            <div className="flex items-center justify-between">
-                                <span className="flex h-9 w-9 items-center justify-center bg-[#3C3328] text-[#D9B47B]">
-                                    <Wallet size={18} />
-                                </span>
-
-                                <ArrowUpRight
-                                    size={15}
-                                    className="text-[#8792A1] group-hover:text-[#D9B47B]"
-                                />
-                            </div>
-
-                            <p className="mt-4 text-[11px] text-[#AAB6C5]">
-                                Total contributed
-                            </p>
-
-                            <p className="mt-1 text-[25px] font-semibold tracking-tight text-[#D9B47B]">
-                                ৳{fmt(donation.totalDonated)}
-                            </p>
-
-                            <p className="mt-1 text-[11px] text-[#94A2B2]">
-                                Across {fmt(donationCount)} donations
-                            </p>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => onNavigate('volunteer')}
-                            className="group min-w-0 border-l border-[#29323E] p-5 text-left transition hover:bg-[#202B37] sm:p-6 lg:border-l-0 lg:border-t"
-                        >
-                            <div className="flex items-center justify-between">
-                                <span className="flex h-9 w-9 items-center justify-center bg-[#273C37] text-[#82B9A4]">
-                                    <Clock3 size={18} />
-                                </span>
-
-                                <ArrowUpRight
-                                    size={15}
-                                    className="text-[#8792A1] group-hover:text-[#82B9A4]"
-                                />
-                            </div>
-
-                            <p className="mt-4 text-[11px] text-[#AAB6C5]">
-                                Time volunteered
-                            </p>
-
-                            <p className="mt-1 text-[25px] font-semibold tracking-tight text-[#82B9A4]">
-                                {fmt(volunteer.totalHours)}
-                                <span className="ml-1 text-[13px] font-normal">
-                                    hours
-                                </span>
-                            </p>
-
-                            <p className="mt-1 text-[11px] text-[#94A2B2]">
-                                {fmt(volunteerCount)} volunteer activities
-                            </p>
-                        </button>
-                    </div>
+                    <ImpactChart
+                        donationCount={donationCount}
+                        volunteerCount={volunteerCount}
+                    />
                 </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#29323E] px-5 py-3 sm:px-7">
-                    <span className="flex items-center gap-2 text-[11px] text-[#94A2B2]">
-                        <CircleDot size={13} className="text-[#82B9A4]" />
-                        Based on your recorded contributions
-                    </span>
-
+                <div className="grid grid-cols-2 bg-transparent xl:grid-cols-1 xl:border-l xl:border-[#29323E]">
                     <button
                         type="button"
-                        onClick={() => onNavigate('donations')}
-                        className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#D9B47B] hover:text-white"
+                        onClick={() => go('donations')}
+                        className="group flex flex-col justify-between p-5 text-left hover:bg-[#222E3B] sm:p-6"
                     >
-                        View contributions
-                        <ArrowRight size={13} />
+                        <span className="flex items-center justify-between">
+                            <span className="flex h-9 w-9 items-center justify-center bg-[#3B3329] text-[#D9B47B]">
+                                <Wallet size={18} />
+                            </span>
+                            <ArrowUpRight
+                                size={15}
+                                className="text-[#8492A3] group-hover:text-white"
+                            />
+                        </span>
+                        <span className="mt-5 block text-[11px] text-[#AAB6C5]">
+                            Financial contributions
+                        </span>
+                        <strong className="mt-1 block text-[25px] tracking-tight text-[#D9B47B]">
+                            ৳{fmt(donation.totalDonated)}
+                        </strong>
+                        <span className="mt-1 text-[11px] text-[#94A2B2]">
+                            Across {fmt(donationCount)} donations
+                        </span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => go('volunteer')}
+                        className="group flex flex-col justify-between border-l border-[#29323E] p-5 text-left hover:bg-[#222E3B] sm:p-6 xl:border-l-0 xl:border-t"
+                    >
+                        <span className="flex items-center justify-between">
+                            <span className="flex h-9 w-9 items-center justify-center bg-[#273C37] text-[#82B9A4]">
+                                <Clock3 size={18} />
+                            </span>
+                            <ArrowUpRight
+                                size={15}
+                                className="text-[#8492A3] group-hover:text-white"
+                            />
+                        </span>
+                        <span className="mt-5 block text-[11px] text-[#AAB6C5]">
+                            Time volunteered
+                        </span>
+                        <strong className="mt-1 block text-[25px] tracking-tight text-[#82B9A4]">
+                            {fmt(volunteer.totalHours)}{' '}
+                            <span className="text-[13px] font-normal">
+                                hours
+                            </span>
+                        </strong>
+                        <span className="mt-1 text-[11px] text-[#94A2B2]">
+                            {fmt(volunteerCount)} activities
+                        </span>
                     </button>
                 </div>
             </div>
@@ -475,1095 +335,863 @@ function ContributionOverview({ donation, volunteer, onNavigate }) {
     );
 }
 
-/* =========================================================
-   HELP REQUEST STATUS JOURNEY
-========================================================= */
-
-function SupportJourney({ pending, verified, completed }) {
+function SupportOverview({ requests, pending, verified, completed, go }) {
+    const latest = requests[0];
     const stages = [
         {
-            label: 'Pending review',
+            name: 'Pending review',
             value: pending,
-            color: THEME.amber,
+            color: C.amber,
             icon: Clock3,
-            description: 'Awaiting review',
+            detail: 'Awaiting review',
         },
         {
-            label: 'Verified',
+            name: 'Verified',
             value: verified,
-            color: THEME.blue,
+            color: C.blue,
             icon: ShieldCheck,
-            description: 'Review completed',
+            detail: 'Review completed',
         },
         {
-            label: 'Completed',
+            name: 'Completed',
             value: completed,
-            color: THEME.green,
+            color: C.green,
             icon: CheckCircle2,
-            description: 'Support delivered',
+            detail: 'Support delivered',
         },
     ];
-
-    return (
-        <div className="relative grid grid-cols-3 gap-2 sm:gap-5">
-            <div className="pointer-events-none absolute left-[16.66%] right-[16.66%] top-5 h-px bg-[#34404E]" />
-
-            {stages.map((stage) => {
-                const Icon = stage.icon;
-
-                return (
-                    <div key={stage.label} className="relative min-w-0">
-                        <div
-                            className="relative z-10 flex h-10 w-10 items-center justify-center border border-[#34404E] bg-[#1A222D]"
-                            style={{ color: stage.color }}
-                        >
-                            <Icon size={18} />
-                        </div>
-
-                        <p className="mt-4 text-[25px] font-semibold leading-none text-[#EEF1F5]">
-                            {fmt(stage.value)}
-                        </p>
-
-                        <p className="mt-2 text-[12px] font-medium text-[#E0E6ED]">
-                            {stage.label}
-                        </p>
-
-                        <p className="mt-1 text-[10px] leading-4 text-[#94A2B2]">
-                            {stage.description}
-                        </p>
-                    </div>
-                );
-            })}
-        </div>
-    );
-}
-
-/* =========================================================
-   REQUEST TRACK
-========================================================= */
-
-function RequestTrack({ status }) {
-    const value = String(status || '').toLowerCase();
-
-    if (value === 'rejected') {
-        return (
-            <p className="mt-4 border-l-2 border-[#D29BA5] pl-3 text-[11px] text-[#D9ADB5]">
-                Request rejected. View your request for details.
-            </p>
-        );
-    }
-
-    const stage =
-        value === 'completed'
-            ? 2
-            : ['verified', 'approved', 'in_progress', 'in progress'].includes(
-                    value,
-                )
-              ? 1
-              : 0;
-
-    return (
-        <div className="mt-4 grid grid-cols-3 gap-2">
-            {['Submitted', 'Reviewed', 'Completed'].map((label, index) => (
-                <div key={label}>
-                    <div
-                        className={`h-1 ${
-                            index <= stage ? 'bg-[#82B9A4]' : 'bg-[#34404E]'
-                        }`}
-                    />
-
-                    <p
-                        className={`mt-1.5 text-[10px] ${
-                            index === stage
-                                ? 'font-semibold text-[#EEF1F5]'
-                                : 'text-[#94A2B2]'
-                        }`}
-                    >
-                        {index < stage ? '✓ ' : ''}
-                        {label}
-                    </p>
-                </div>
-            ))}
-        </div>
-    );
-}
-
-/* =========================================================
-   YOUR SUPPORT — REDESIGNED
-========================================================= */
-
-function SupportOverview({ pending, verified, completed, latest, onNavigate }) {
     return (
         <section>
-            <SectionTitle
+            <SectionHeading
                 kicker="Your support"
                 title="Help requests"
-                description="Follow your requests from submission to resolution."
-                action="View all"
-                onAction={() => onNavigate('requests')}
+                description="Track your requests from submission to resolution."
+                action="View all requests"
+                onAction={() => go('requests')}
             />
-
-            <div className="mt-5 border-t border-[#29323E] pt-6">
-                <SupportJourney
-                    pending={pending}
-                    verified={verified}
-                    completed={completed}
-                />
+            <div className="mt-6 grid grid-cols-1 border border-[#35404D] bg-transparent sm:grid-cols-3">
+                {stages.map(({ name, value, color, icon: Icon, detail }) => (
+                    <div
+                        key={name}
+                        className="relative flex items-center gap-4 border-b border-[#35404D]/60 px-4 py-5 last:border-b-0 sm:block sm:border-b-0 sm:border-r sm:last:border-r-0 sm:px-5 sm:py-5"
+                    >
+                        <div
+                            className="flex h-10 w-10 shrink-0 items-center justify-center"
+                            style={{ background: `${color}1F`, color }}
+                        >
+                            <Icon size={19} />
+                        </div>
+                        <div className="min-w-0 sm:mt-4">
+                            <p className="text-[26px] font-semibold! leading-none text-[#EEF1F5]!">
+                                {fmt(value)}
+                            </p>
+                            <p className="mt-2 text-[12px] font-medium! text-[#DCE4EC]">
+                                {name}
+                            </p>
+                            <p className="mt-1 text-[11px] text-[#8F9EAE]">
+                                {detail}
+                            </p>
+                        </div>
+                    </div>
+                ))}
             </div>
 
-            <div className="mt-6 border-t border-[#29323E] pt-5">
+            <div className="mt-3  flex flex-col gap-4 bg-transparent px-1 py-5 sm:flex-row sm:items-center sm:justify-between">
                 {latest ? (
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-3">
-                                <p className={eyebrow}>Latest request</p>
-
-                                <StatusBadge status={latest.status} />
-                            </div>
-
-                            <h3 className="mt-2 text-[15px] font-semibold text-[#EEF1F5]">
-                                {latest.title || 'Help request'}
-                            </h3>
-
-                            <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[#94A2B2]">
-                                {latest.category && (
-                                    <span>{latest.category}</span>
-                                )}
-
-                                {latest.submittedDate && (
-                                    <span>
-                                        Submitted{' '}
-                                        {dateText(latest.submittedDate)}
-                                    </span>
-                                )}
-                            </div>
-
-                            {latest.notes && (
-                                <p className="mt-3 text-[12px] leading-5 text-[#AAB6C5]">
-                                    {latest.notes}
-                                </p>
-                            )}
-
-                            <RequestTrack status={latest.status} />
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className={eyebrow}>Latest request</span>
+                            <StatusBadge status={latest.status} />
                         </div>
-
-                        <button
-                            type="button"
-                            onClick={() => onNavigate('requests')}
-                            className="inline-flex shrink-0 items-center gap-2 text-[12px] font-semibold text-[#D9B47B] hover:text-white"
-                        >
-                            View request
-                            <ArrowUpRight size={14} />
-                        </button>
+                        <h3 className="mt-2 text-[13px] font-semibold! text-[#EEF1F5]!">
+                            {latest.title || 'Help request'}
+                        </h3>
+                        <p className="mt-1 text-[11px] text-[#94A2B2]">
+                            {[
+                                latest.category,
+                                latest.submittedDate &&
+                                    `Submitted ${formatDate(latest.submittedDate)}`,
+                            ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                        </p>
+                        {latest.notes && (
+                            <p className="mt-2 text-[12px] text-[#AAB6C5]">
+                                {latest.notes}
+                            </p>
+                        )}
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex min-w-0 items-start gap-3">
-                            <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#223447] text-[#8FB9DC]">
-                                <HeartHandshake size={20} />
-                            </div>
-
-                            <div>
-                                <h3 className="text-[13px] font-semibold text-[#EEF1F5]">
-                                    No support requests yet
-                                </h3>
-
-                                <p className="mt-1 text-[12px] leading-5 text-[#94A2B2]">
-                                    When you need assistance, you can submit a
-                                    request here.
-                                </p>
-                            </div>
+                    <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#263A4C] text-[#8FB9DC]">
+                            <HeartHandshake size={19} />
+                        </span>
+                        <div>
+                            <p className="text-[13px] font-medium! text-[#EEF1F5]!">
+                                No support requests yet
+                            </p>
+                            <p className="mt-1 text-[11px] text-[#94A2B2]">
+                                Need assistance? You can submit a request.
+                            </p>
                         </div>
-
-                        <button
-                            type="button"
-                            onClick={() => onNavigate('requests')}
-                            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 bg-[#D9B47B] px-4 text-[12px] font-semibold text-[#151C25] transition hover:bg-[#E8C994]"
-                        >
-                            <Plus size={15} />
-                            Create request
-                        </button>
                     </div>
                 )}
+                <button
+                    type="button"
+                    onClick={() => go('requests')}
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 bg-[#D9B47B] px-4 text-[12px] font-semibold! text-[#151C25] hover:bg-[#E8C994]"
+                >
+                    {latest ? 'View request' : 'Create request'}{' '}
+                    {latest ? <ArrowUpRight size={14} /> : <Plus size={14} />}
+                </button>
             </div>
         </section>
     );
 }
 
-/* =========================================================
-   QUICK ACCESS
-========================================================= */
-
-function NavAction({ icon: Icon, title, detail, tint, onClick }) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="group flex w-full items-center gap-3 border-b border-[#29323E] py-3 text-left transition-colors last:border-b-0 hover:bg-[#202A36]"
-        >
-            <span
-                className={`flex h-9 w-9 shrink-0 items-center justify-center ${tint}`}
-            >
-                <Icon size={17} />
-            </span>
-
-            <span className="min-w-0 flex-1">
-                <span className="block text-[12px] font-semibold text-[#EEF1F5]">
-                    {title}
-                </span>
-
-                <span className="mt-0.5 block text-[10px] leading-4 text-[#94A2B2]">
-                    {detail}
-                </span>
-            </span>
-
-            <ChevronRight
-                size={15}
-                className="shrink-0 text-[#8792A1] transition group-hover:translate-x-0.5 group-hover:text-white"
-            />
-        </button>
-    );
-}
-
-/* =========================================================
-   RECENT ACTIVITY
-========================================================= */
-
 function RecentActivity({ activities }) {
     return (
         <section>
-            <SectionTitle kicker="Your journey" title="Recent activity" />
-
-            <div className="mt-4 border-t border-[#29323E]">
+            <SectionHeading kicker="Your journey" title="Recent activity" />
+            <div className="mt-5 bg-transparent">
                 {activities.length ? (
                     activities.slice(0, 5).map((item, index) => (
                         <div
-                            key={item.id || `activity-${index}`}
-                            className="flex items-center gap-3 border-b border-[#29323E] py-3.5 transition hover:bg-[#1A222D] sm:px-2"
+                            key={item.id || index}
+                            className="flex items-center gap-3 border-b border-[#29323E]/70 py-4"
                         >
                             <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#223447] text-[#8FB9DC]">
                                 <Activity size={16} />
                             </span>
-
                             <div className="min-w-0 flex-1">
-                                <p className="truncate text-[12px] font-medium text-[#EEF1F5]">
+                                <p className="truncate text-[12px] font-medium! text-[#E8EDF3]!">
                                     {item.title ||
                                         item.description ||
                                         item.action ||
                                         'Activity update'}
                                 </p>
-
-                                {item.description &&
-                                    item.title &&
-                                    item.description !== item.title && (
+                                {item.title &&
+                                    item.description &&
+                                    item.title !== item.description && (
                                         <p className="mt-1 truncate text-[11px] text-[#94A2B2]">
                                             {item.description}
                                         </p>
                                     )}
                             </div>
-
-                            <div className="flex shrink-0 items-center gap-2">
-                                {item.date && (
-                                    <span className="hidden text-[10px] text-[#8792A1] sm:inline">
-                                        {dateText(item.date)}
-                                    </span>
-                                )}
-
-                                <Check size={14} className="text-[#82B9A4]" />
-                            </div>
+                            <span className="hidden shrink-0 text-[10px] text-[#94A2B2] sm:block">
+                                {item.date && formatDate(item.date)}
+                            </span>
+                            <CheckCircle2
+                                size={15}
+                                className="shrink-0 text-[#82B9A4]"
+                            />
                         </div>
                     ))
                 ) : (
-                    <div className="py-6">
-                        <p className="text-[12px] text-[#94A2B2]">
-                            Your recent activity will appear here.
-                        </p>
-                    </div>
+                    <p className="py-6 text-[12px] text-[#94A2B2]">
+                        Your recent activity will appear here.
+                    </p>
                 )}
             </div>
         </section>
     );
 }
 
-/* =========================================================
-   SIDEBAR REQUEST SUMMARY
-========================================================= */
-
-function RequestSummary({ total, pending, verified, completed, onNavigate }) {
+function QuickAccess({ go }) {
     const items = [
         {
-            label: 'Pending',
-            value: pending,
-            color: THEME.amber,
+            label: 'Help requests',
+            detail: 'Manage your requests',
+            icon: HeartHandshake,
+            color: C.blue,
+            key: 'requests',
         },
         {
-            label: 'Verified',
-            value: verified,
-            color: THEME.blue,
+            label: 'Donations',
+            detail: 'Your giving history',
+            icon: HandCoins,
+            color: C.green,
+            key: 'donations',
         },
         {
-            label: 'Completed',
-            value: completed,
-            color: THEME.green,
+            label: 'Volunteer activities',
+            detail: 'Your involvement',
+            icon: Users,
+            color: C.purple,
+            key: 'volunteer',
+        },
+        {
+            label: 'Campaigns',
+            detail: 'Discover initiatives',
+            icon: Megaphone,
+            color: C.amber,
+            key: 'campaigns',
         },
     ];
-
     return (
-        <section className="border-t border-[#29323E] pt-5">
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className={eyebrow}>Request overview</p>
-
-                    <h3 className="mt-1.5 text-[16px] font-semibold text-[#EEF1F5]">
-                        Request summary
-                    </h3>
-                </div>
-
-                <ClipboardList size={19} className="text-[#8FB9DC]" />
+        <section>
+            <SectionHeading kicker="Your workspace" title="Quick access" />
+            <div className="mt-5 bg-transparent">
+                {items.map(({ label, detail, icon: Icon, color, key }) => (
+                    <button
+                        key={key}
+                        type="button"
+                        onClick={() => go(key)}
+                        className="group flex w-full items-center gap-3 border-b border-[#35404D]/60 px-1 py-3.5 text-left transition-colors last:border-b-0 hover:bg-[#263545]"
+                    >
+                        <span
+                            className="flex h-10 w-10 shrink-0 items-center justify-center"
+                            style={{ background: `${color}1B`, color }}
+                        >
+                            <Icon size={18} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                            <span className="block text-[12px] font-semibold! text-[#EEF1F5]!">
+                                {label}
+                            </span>
+                            <span className="mt-0.5 block text-[11px] text-[#94A2B2]">
+                                {detail}
+                            </span>
+                        </span>
+                        <ChevronRight
+                            size={16}
+                            className="text-[#758496] group-hover:translate-x-0.5 group-hover:text-white"
+                        />
+                    </button>
+                ))}
             </div>
+        </section>
+    );
+}
 
-            <div className="mt-5 flex items-end justify-between">
+function RequestSummary({ total, pending, verified, completed, go }) {
+    const parts = [
+        { name: 'Pending', n: pending, color: C.amber },
+        { name: 'Verified', n: verified, color: C.blue },
+        { name: 'Completed', n: completed, color: C.green },
+    ];
+    return (
+        <section>
+            <p className={eyebrow}>Request overview</p>
+            <div className="mt-3 flex items-end justify-between">
                 <div>
                     <p className="text-[11px] text-[#94A2B2]">
                         Total submitted
                     </p>
-
-                    <p className="mt-1 text-[28px] font-semibold leading-none text-[#EEF1F5]">
+                    <strong className="mt-1 block text-[31px] leading-none text-[#EEF1F5]!">
                         {fmt(total)}
-                    </p>
+                    </strong>
                 </div>
-
                 <span className="text-[11px] text-[#94A2B2]">All time</span>
             </div>
-
-            <div className="mt-5 flex h-2 overflow-hidden bg-[#29323E]">
-                {items.map((item) => (
-                    <div
-                        key={item.label}
+            <div className="mt-5 flex h-2 bg-[#354454]">
+                {parts.map((p) => (
+                    <span
+                        key={p.name}
                         style={{
-                            width: `${total ? (item.value / total) * 100 : 0}%`,
-                            backgroundColor: item.color,
+                            width: `${total ? (p.n / total) * 100 : 0}%`,
+                            background: p.color,
                         }}
                     />
                 ))}
             </div>
-
             <div className="mt-4 space-y-3">
-                {items.map((item) => (
+                {parts.map((p) => (
                     <div
-                        key={item.label}
-                        className="flex items-center justify-between text-[11px]"
+                        key={p.name}
+                        className="flex items-center justify-between text-[12px]"
                     >
-                        <span className="flex items-center gap-2 text-[#AAB6C5]">
+                        <span className="flex items-center gap-2 text-[#B0BECD]">
                             <span
                                 className="h-2 w-2"
-                                style={{
-                                    backgroundColor: item.color,
-                                }}
+                                style={{ background: p.color }}
                             />
-                            {item.label}
+                            {p.name}
                         </span>
-
-                        <span className="font-semibold text-[#EEF1F5]">
-                            {fmt(item.value)}
-                        </span>
+                        <strong className="text-[#EEF1F5]!">{fmt(p.n)}</strong>
                     </div>
                 ))}
             </div>
-
             <button
                 type="button"
-                onClick={() => onNavigate('requests')}
-                className="mt-5 inline-flex items-center gap-2 text-[11px] font-semibold text-[#D9B47B] hover:text-white"
+                onClick={() => go('requests')}
+                className="mt-5 flex items-center gap-2 text-[12px] font-medium! text-[#D9B47B] hover:text-white"
             >
-                Manage requests
-                <ArrowRight size={14} />
+                Manage requests <ArrowRight size={14} />
             </button>
         </section>
     );
 }
 
-/* =========================================================
-   INDIVIDUAL DASHBOARD
-========================================================= */
+function PersonalPulse({
+    go,
+    donationCount,
+    volunteerCount,
+    totalDonated,
+    activities,
+}) {
+    const total = donationCount + volunteerCount;
+    const recent = activities.length;
+    return (
+        <section>
+            <div className="flex items-center justify-between gap-3">
+                <div>
+                    <p className={eyebrow}>Your involvement</p>
+                    <h3 className="mt-2 text-[17px] font-semibold! tracking-tight text-[#EEF1F5]!">
+                        A record of giving
+                    </h3>
+                </div>
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2D343C] text-[#D9B47B]">
+                    <TrendingUp size={17} />
+                </span>
+            </div>
+            <div className="mt-5 py-3">
+                <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-[12px] text-[#AAB6C5]">
+                        Recorded contributions
+                    </span>
+                    <span className="text-[25px] font-semibold! leading-none text-[#F0F3F7]">
+                        {fmt(total)}
+                    </span>
+                </div>
+                <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-[#334353]">
+                    {total > 0 && (
+                        <>
+                            <span
+                                className="bg-[#D9B47B]"
+                                style={{
+                                    width: `${(donationCount / total) * 100}%`,
+                                }}
+                            />
+                            <span
+                                className="bg-[#82B9A4]"
+                                style={{
+                                    width: `${(volunteerCount / total) * 100}%`,
+                                }}
+                            />
+                        </>
+                    )}
+                </div>
+                <div className="mt-3 flex flex-wrap justify-between gap-3 text-[11px] text-[#AAB6C5]">
+                    <span className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-[#D9B47B]" />
+                        {fmt(donationCount)} donations
+                    </span>
+                    <span className="flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-[#82B9A4]" />
+                        {fmt(volunteerCount)} activities
+                    </span>
+                </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+                <div className="pr-3">
+                    <p className="text-[10px] text-[#94A2B2]">Total given</p>
+                    <p className="mt-1.5 text-[19px] font-semibold! text-[#D9B47B]">
+                        ৳{fmt(totalDonated)}
+                    </p>
+                </div>
+                <div className="pl-1">
+                    <p className="text-[10px] text-[#94A2B2]">
+                        Activity updates
+                    </p>
+                    <p className="mt-1.5 text-[19px] font-semibold! text-[#E0E6ED]">
+                        {fmt(recent)}
+                    </p>
+                </div>
+            </div>
+            <button
+                type="button"
+                onClick={() => go('volunteer')}
+                className="group mt-5 inline-flex items-center gap-2 text-[12px] font-medium! text-[#C5D4E1] hover:text-[#EEF1F5]!"
+            >
+                Explore ways to participate{' '}
+                <ArrowUpRight
+                    size={15}
+                    className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+            </button>
+        </section>
+    );
+}
 
 export default function IndividualDashboard() {
     const navigate = useNavigate();
-
+    const [currentDate] = useState(() => new Date());
     const [attempt, setAttempt] = useState(0);
-
     const [result, setResult] = useState({
         loading: true,
         error: '',
         data: null,
     });
-
     useEffect(() => {
         let mounted = true;
-
         getIndividualDashboard()
             .then((data) => {
-                if (mounted) {
-                    setResult({
-                        loading: false,
-                        error: '',
-                        data,
-                    });
-                }
+                if (mounted) setResult({ loading: false, error: '', data });
             })
             .catch((error) => {
-                if (mounted) {
+                if (mounted)
                     setResult({
                         loading: false,
                         error:
                             error?.message || 'Unable to load your dashboard.',
                         data: null,
                     });
-                }
             });
-
         return () => {
             mounted = false;
         };
     }, [attempt]);
-
     const retry = () => {
-        setResult({
-            loading: true,
-            error: '',
-            data: null,
-        });
-
-        setAttempt((number) => number + 1);
+        setResult({ loading: true, error: '', data: null });
+        setAttempt((n) => n + 1);
     };
-
-    if (result.loading) {
+    if (result.loading)
         return (
-            <LoadingUI
-                variant="page"
+            <DashboardLoading
+                type="individual"
                 title="Loading dashboard..."
                 description="Retrieving your contributions and community activity."
             />
         );
-    }
-
-    if (result.error) {
+    if (result.error)
         return (
             <div className="p-4 sm:p-7">
                 <LoadingError
                     title="Unable to load dashboard"
                     message={result.error}
                 />
-
                 <button
                     type="button"
                     onClick={retry}
-                    className="mt-4 inline-flex min-h-10 items-center gap-2 border border-[#343E4B] bg-[#151C25] px-5 text-[13px] font-medium text-[#EEF1F5] hover:bg-[#202A36]"
+                    className="mt-4 border border-[#343E4B] bg-[#151C25] px-5 py-3 text-[12px] text-[#EEF1F5]! hover:bg-[#202A36]"
                 >
-                    Try again
-                    <ArrowRight size={15} />
+                    Try again <ArrowRight size={14} className="inline" />
                 </button>
             </div>
         );
-    }
 
     const data = result.data || {};
-
     const user = data.user || { name: 'User' };
     const donation = data.donationSummary || {};
     const volunteer = data.volunteerSummary || {};
-
     const requests = Array.isArray(data.helpRequests) ? data.helpRequests : [];
-
     const campaigns = Array.isArray(data.activeCampaigns)
         ? data.activeCampaigns
         : [];
-
     const activities = Array.isArray(data.activity) ? data.activity : [];
-
+    const campaign = campaigns[0];
     const firstName =
         String(user.name || 'User')
             .trim()
             .split(/\s+/)[0] || 'User';
-
-    const latest = requests[0] || null;
-    const campaign = campaigns[0] || null;
-
     const pending = requests.filter(
-        (item) => String(item.status || '').toLowerCase() === 'pending',
+        (r) => String(r.status || '').toLowerCase() === 'pending',
     ).length;
-
     const verified = requests.filter(
-        (item) => String(item.status || '').toLowerCase() === 'verified',
+        (r) => String(r.status || '').toLowerCase() === 'verified',
     ).length;
-
     const completed = requests.filter(
-        (item) => String(item.status || '').toLowerCase() === 'completed',
+        (r) => String(r.status || '').toLowerCase() === 'completed',
     ).length;
-
+    const supportCount =
+        Number(donation.donationCount || 0) +
+        Number(volunteer.activitiesCount || 0);
     const progress = Math.max(
         0,
         Math.min(100, Number(campaign?.progress) || 0),
     );
-
-    const remaining = daysLeft(campaign?.deadline);
-
-    const supportCount =
-        Number(donation.donationCount || 0) +
-        Number(volunteer.activitiesCount || 0);
-
-    const go = (key) => navigate(ROUTES[key]);
+    const deadlineTime = campaign?.deadline
+        ? new Date(campaign.deadline).getTime()
+        : NaN;
+    const remaining = Number.isNaN(deadlineTime)
+        ? null
+        : Math.max(
+              0,
+              Math.ceil((deadlineTime - currentDate.getTime()) / 86400000),
+          );
+    const go = (key) => {
+        if (ROUTES[key]) navigate(ROUTES[key]);
+    };
 
     return (
-        <div className="min-h-full text-[#E0E6ED]">
-            <div className="mx-auto max-w-382.5">
-                {/* =====================================
-                    WELCOME HEADER
-                ===================================== */}
-
-                <section className="overflow-hidden border border-[#29323E] bg-[#151C25]">
-                    <div className="grid lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_350px]">
-                        <div className="flex flex-col items-start px-6 py-7 sm:px-9 sm:py-9 lg:px-10 lg:py-10">
-                            <div className="flex items-center gap-3">
+        <div className="min-h-full min-w-0 overflow-x-hidden text-[#E0E6ED]">
+            <div className="mx-auto w-full max-w-382.5">
+                <section className="overflow-hidden border border-[#29323E]">
+                    <div className="grid lg:grid-cols-[minmax(0,1fr)_290px] xl:grid-cols-[minmax(0,1fr)_330px]">
+                        <div className="flex flex-col items-start justify-center px-6 py-8 sm:px-9 sm:py-10 lg:px-10 lg:py-11">
+                            <p className="flex items-center gap-3 text-[10px] font-semibold! uppercase tracking-[0.16em] text-[#9FAFC0]">
                                 <span className="h-0.5 w-7 bg-[#D9B47B]" />
-
-                                <p className={eyebrow}>
-                                    Your space at Stand For People
-                                </p>
-                            </div>
-
-                            <h1 className="mt-5 font-['Fraunces']! text-[33px]! font-semibold! leading-[1.15]! tracking-[-0.035em]! text-[#EEF1F5]! sm:text-[42px]!">
-                                {greeting()},{' '}
+                                Your space at Stand For People
+                            </p>
+                            <h1 className="mt-5 font-['Fraunces']! text-[32px]! font-semibold! leading-[1.17]! tracking-[-0.035em]! text-[#EEF1F5]! sm:text-[41px]!">
+                                {greeting(currentDate)},{' '}
                                 <span className="text-[#D9B47B]">
                                     {firstName}.
                                 </span>
                             </h1>
-
-                            <p className="mt-3 max-w-140 text-[13px] leading-6 text-[#AAB6C5]">
+                            <p className="mt-3 max-w-135 text-[13px] leading-6 text-[#AAB6C5]">
                                 Your contributions, support requests and the
                                 causes you care about — together in one place.
                             </p>
-
                             <div className="mt-6 flex flex-wrap gap-3">
                                 <button
                                     type="button"
                                     onClick={() => go('requests')}
-                                    className="inline-flex min-h-10 items-center justify-center gap-2 bg-[#D9B47B] px-4 py-2.5 text-[12px] font-semibold text-[#151C25] transition hover:bg-[#E8C994]"
+                                    className="inline-flex min-h-10 items-center gap-2 bg-[#D9B47B] px-4 text-[12px] font-semibold! text-[#151C25] hover:bg-[#E8C994]"
                                 >
                                     <Plus size={15} />
-                                    Request support
-                                    <ArrowUpRight size={14} />
+                                    Request support <ArrowUpRight size={14} />
                                 </button>
-
                                 <button
                                     type="button"
                                     onClick={() => go('campaigns')}
-                                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#343E4B] px-4 py-2.5 text-[12px] font-semibold text-[#E0E6ED] transition hover:bg-[#202A36]"
+                                    className="inline-flex min-h-10 items-center gap-2 border border-[#3A4654] px-4 text-[12px] font-semibold! text-[#E0E6ED] hover:bg-[#202A36]"
                                 >
-                                    Explore causes
-                                    <ArrowUpRight size={14} />
+                                    Explore causes <ArrowUpRight size={14} />
                                 </button>
                             </div>
                         </div>
 
-                        {/* HERO MEMBERSHIP */}
-
-                        {/* <div className="flex flex-col justify-between border-t border-[#29323E] bg-[#1B2938] px-6 py-6 sm:px-7 lg:border-l lg:border-t-0">
-                            <div className="flex items-center justify-between">
-                                <p className={eyebrow}>Your membership</p>
+                        <div className="relative flex flex-col justify-between overflow-hidden border-t border-[#354453] bg-[#243646] px-6 py-6 sm:px-7 lg:border-l lg:border-t-0">
+                            {/* Header */}
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-[10px] font-semibold! uppercase tracking-[0.16em] text-[#9FB6C9]">
+                                    Your membership
+                                </p>
 
                                 <ShieldCheck
-                                    size={18}
-                                    className="text-[#8FB9DC]"
+                                    size={17}
+                                    className="text-[#A8C1D6]"
                                 />
                             </div>
 
-                            <div className="my-6">
-                                <p className="text-[36px] font-semibold leading-none tracking-tight text-[#EEF1F5]">
-                                    {fmt(supportCount)}
-                                </p>
-
-                                <p className="mt-2 text-[13px] font-medium text-[#E0E6ED]">
-                                    Acts of support
-                                </p>
-
-                                <p className="mt-2 text-[12px] leading-5 text-[#94A2B2]">
-                                    Donations and volunteer activities in your
-                                    community.
-                                </p>
-                            </div>
-
+                            {/* Profile */}
                             <button
                                 type="button"
-                                onClick={() => go('volunteer')}
-                                className="inline-flex items-center gap-2 border-t border-[#344353] pt-3 text-[12px] font-medium text-[#D9B47B] hover:text-white"
+                                onClick={() => go('profile')}
+                                className="group my-6 flex w-full items-center gap-3.5 text-left"
                             >
-                                <HeartHandshake size={15} />
-                                Explore your involvement
-                                <ArrowUpRight size={14} />
-                            </button>
-                        </div> */}
-
-                        <div className="relative flex min-h-[200px] flex-col justify-between overflow-hidden border-t border-[#344353] bg-[#222F3D] px-7 py-7 lg:min-h-0 lg:border-l lg:border-t-0">
-                            <div
-                                className="pointer-events-none absolute -right-20 -top-28 h-64 w-64 rounded-full border-[40px] border-[#34465A]/60"
-                                aria-hidden="true"
-                            />
-                            <div
-                                className="pointer-events-none absolute -bottom-20 -left-12 h-48 w-48 rounded-full border-[28px] border-[#3B4A59]/40"
-                                aria-hidden="true"
-                            />
-                            <div className="relative flex items-center justify-between gap-3">
-                                <p className={overline}>Your membership</p>
-                                <ShieldCheck
-                                    size={18}
-                                    className="text-[#B5C8D9]"
-                                />
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => go(ROUTES.profile)}
-                                className="group relative mt-8 flex items-center gap-4 text-left"
-                            >
-                                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#5B7186] bg-[#35495E] text-[22px] font-semibold text-[#F4F6F8]">
-                                    {firstName.charAt(0).toUpperCase()}
+                                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[#597087] bg-[#354A5F] text-[18px] font-semibold! text-[#EEF1F5]!">
+                                    {firstName[0].toUpperCase()}
                                 </span>
+
                                 <span className="min-w-0 flex-1">
-                                    <span className="block truncate text-[15px] font-semibold text-[#F1F4F7]">
+                                    <span className="block truncate text-[15px] font-semibold! text-[#EEF1F5]!">
                                         {user.name || 'User'}
                                     </span>
-                                    <span className="mt-1 block text-[12px] text-[#B0BFCF]">
+
+                                    <span className="mt-1 block text-[11px] text-[#B2C0CE]">
                                         Community member
                                     </span>
                                 </span>
-                                <ArrowUpRight
-                                    size={17}
-                                    className="text-[#B4C3D3] group-hover:text-white"
-                                />
+
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center text-[#A9BACB] transition group-hover:translate-x-0.5 group-hover:text-white">
+                                    <ArrowUpRight size={17} />
+                                </span>
                             </button>
-                            <div className="relative mt-7 flex flex-wrap gap-x-5 gap-y-2 border-t border-[#455567] pt-4 text-[11px] text-[#B4C3D2]">
+
+                            {/* Compact membership metadata */}
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-[#AFC0D0]">
                                 <span className="inline-flex items-center gap-1.5">
-                                    <MapPin size={13} />
+                                    <MapPin
+                                        size={13}
+                                        className="text-[#8FA8BD]"
+                                    />
                                     {user.district || 'Location not provided'}
                                 </span>
+
                                 <span className="inline-flex items-center gap-1.5">
-                                    <CalendarDays size={13} />
-                                    {dateText(user.memberSince)}
+                                    <CalendarDays
+                                        size={13}
+                                        className="text-[#8FA8BD]"
+                                    />
+                                    Joined {formatDate(user.memberSince)}
+                                </span>
+                            </div>
+
+                            {/* Current date */}
+                            <div className="mt-4 flex items-center justify-between gap-3 bg-[#2B4052] px-3.5 py-3">
+                                <span className="text-[10px] font-medium! uppercase tracking-[0.1em] text-[#A8BCCD]">
+                                    Today
+                                </span>
+
+                                <span className="text-right text-[11px] font-semibold! text-[#E8EDF3]!">
+                                    {today(currentDate)}
                                 </span>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                {/* =====================================
-                    MAIN GRID
-                ===================================== */}
-
-                <div className="mt-6 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_350px] xl:gap-8">
-                    <main className="min-w-0 space-y-10">
-                        {/* TOP STATISTICS */}
-
+                <div className="mt-7 grid min-w-0 grid-cols-1 items-start gap-y-9 sm:mt-9 sm:gap-y-11 min-[1025px]:grid-cols-[minmax(0,1fr)_270px] min-[1025px]:items-stretch min-[1025px]:gap-x-6 min-[1025px]:gap-y-0 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-x-8 2xl:grid-cols-[minmax(0,1fr)_330px]">
+                    <main className="contents min-[1025px]:block min-[1025px]:min-w-0 min-[1025px]:space-y-12 xl:space-y-14">
                         <section
                             aria-label="Your contribution statistics"
-                            className="grid grid-cols-2 divide-x divide-y divide-[#29323E] border border-[#29323E] bg-[#1A222D] md:grid-cols-4 md:divide-y-0"
+                            className="order-1 grid min-w-0 grid-cols-2 overflow-hidden border border-[#34404D] bg-[#19232E] [&>button:nth-child(odd)]:border-r [&>button:nth-child(odd)]:border-r-[#34404D]/60 xl:grid-cols-4 xl:[&>button:nth-child(odd)]:border-r-0"
                         >
-                            <Metric
+                            <Stat
                                 icon={Wallet}
                                 label="Total donated"
                                 value={`৳${fmt(donation.totalDonated)}`}
-                                detail={`${fmt(donation.donationCount)} donations`}
-                                color={THEME.amber}
+                                note={`${fmt(donation.donationCount)} donations`}
+                                color={C.amber}
                                 onClick={() => go('donations')}
                             />
-
-                            <Metric
+                            <Stat
                                 icon={Clock3}
                                 label="Volunteer hours"
                                 value={fmt(volunteer.totalHours)}
-                                detail={`${fmt(volunteer.activitiesCount)} activities`}
-                                color={THEME.green}
+                                note={`${fmt(volunteer.activitiesCount)} activities`}
+                                color={C.green}
                                 onClick={() => go('volunteer')}
                             />
-
-                            <Metric
+                            <Stat
                                 icon={HeartHandshake}
                                 label="Acts of support"
                                 value={fmt(supportCount)}
-                                detail="Giving and volunteering"
-                                color={THEME.purple}
+                                note="Giving & volunteering"
+                                color={C.purple}
                                 onClick={() => go('volunteer')}
                             />
-
-                            <Metric
+                            <Stat
                                 icon={Users}
                                 label="Help requests"
                                 value={fmt(requests.length)}
-                                detail={`${pending} awaiting review`}
-                                color={THEME.blue}
+                                note={`${pending} awaiting review`}
+                                color={C.blue}
                                 onClick={() => go('requests')}
                             />
                         </section>
-
-                        {/* FEATURED CAMPAIGN */}
-
-                        <section>
-                            <Heading
-                                eyebrow="Discover a cause"
-                                title="Featured campaign"
-                                action="Browse campaigns"
-                                onClick={() => go(ROUTES.campaigns)}
-                            />
-                            <div className="mt-5 overflow-hidden border border-[#344150] bg-[#1D2935]">
-                                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_385px]">
-                                    <div className="flex min-h-[250px] flex-col justify-between px-6 py-7 sm:px-8 sm:py-9">
-                                        <div>
-                                            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#D7B783]">
-                                                <Megaphone size={15} />
-                                                {campaign?.category ||
-                                                    'Community initiative'}
-                                            </span>
-                                            <h3 className="mt-5 max-w-2xl font-['Fraunces'] text-[25px] font-semibold leading-[1.28] tracking-[-0.025em] text-[#F3F5F7]! sm:text-[30px]">
-                                                {campaign?.title ||
-                                                    'Help build stronger communities.'}
-                                            </h3>
-                                            <p className="mt-4 max-w-xl text-[13px] leading-6 text-[#ADBDCD]">
-                                                {campaign
-                                                    ? 'Help this community initiative reach more people with practical support.'
-                                                    : 'Discover active campaigns and find a cause you would like to support.'}
-                                            </p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => go(ROUTES.campaigns)}
-                                            className="mt-7 inline-flex w-fit items-center gap-2 text-[12px] font-semibold text-[#E7C38F] hover:text-[#FFE0B2]"
-                                        >
-                                            Explore campaign{' '}
-                                            <ArrowRight size={15} />
-                                        </button>
-                                    </div>
-
-                                    <div className="flex flex-col justify-between border-t border-[#344353] bg-[#263544] px-6 py-7 lg:border-l lg:border-t-0">
-                                        <div>
-                                            <p className={overline}>
-                                                Campaign funding
-                                            </p>
-                                            <p className="mt-5 text-[28px] font-semibold tracking-[-0.045em] text-[#F5F6F8]">
-                                                ৳{fmt(campaign?.raised)}
-                                            </p>
-                                            <p className="mt-1 text-[12px] text-[#B2C0CF]">
-                                                of ৳{fmt(campaign?.goal)} goal
-                                            </p>
-                                        </div>
-                                        <div className="mt-10">
-                                            <div className="flex items-center justify-between gap-3 text-[12px] text-[#C4D0DC]">
-                                                <span>Progress</span>
-                                                <strong className="text-[#F0F3F7]">
-                                                    {progress}%
-                                                </strong>
-                                            </div>
-                                            <div className="mt-3 h-1.5 bg-[#465667]">
-                                                <div
-                                                    className="h-full bg-[#D9B783]"
-                                                    style={{
-                                                        width: `${progress}%`,
-                                                    }}
-                                                />
-                                            </div>
-                                            {remaining !== null && (
-                                                <p className="mt-3 flex items-center gap-1.5 text-[11px] text-[#AFC0D0]">
-                                                    <Clock3 size={13} />
-                                                    {remaining === 0
-                                                        ? 'Deadline reached'
-                                                        : `${remaining} days remaining`}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* <section>
-                            <SectionTitle
+                        <section className="order-3 min-w-0">
+                            <SectionHeading
                                 kicker="Discover a cause"
                                 title="Featured campaign"
                                 action="Browse campaigns"
                                 onAction={() => go('campaigns')}
                             />
-
-                            <div className="mt-4 overflow-hidden border border-[#29323E] bg-[#1A222D]">
-                                <div className="grid sm:grid-cols-[minmax(0,1fr)_205px]">
-                                    <div className="flex min-w-0 flex-col items-start justify-between p-5 sm:p-6">
-                                        <div className="min-w-0">
-                                            <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-[#D9B47B]">
-                                                <Megaphone size={14} />
-                                                {campaign?.category ||
-                                                    'Community initiative'}
-                                            </p>
-
-                                            <h3 className="mt-4 font-['Fraunces']! text-[22px]! font-semibold! leading-[1.3]! text-[#EEF1F5]!">
-                                                {campaign?.title ||
-                                                    'Discover a community cause to support'}
-                                            </h3>
-
-                                            <p className="mt-2 text-[12px] leading-5 text-[#AAB6C5]">
-                                                {campaign
-                                                    ? 'Help this initiative reach its funding goal and support people in need.'
-                                                    : 'Explore humanitarian initiatives and choose a cause that matters to you.'}
-                                            </p>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => go('campaigns')}
-                                            className="group mt-5 inline-flex items-center gap-2 text-[12px] font-semibold text-[#D9B47B] hover:text-white"
-                                        >
-                                            Explore campaign
-                                            <ArrowRight
-                                                size={14}
-                                                className="transition-transform group-hover:translate-x-1"
-                                            />
-                                        </button>
+                            <div className="mt-6 grid overflow-hidden bg-[#1B2833] lg:grid-cols-[minmax(0,1fr)_175px] xl:grid-cols-[minmax(0,1fr)_215px] 2xl:grid-cols-[minmax(0,1fr)_245px]">
+                                <div className="relative flex min-h-65 flex-col justify-between p-6 sm:p-8">
+                                    <div>
+                                        <p className="flex items-center gap-2 text-[11px] font-semibold! uppercase tracking-[0.12em] text-[#D9B47B]">
+                                            <Megaphone size={15} />
+                                            {campaign?.category ||
+                                                'Community initiative'}
+                                        </p>
+                                        <h3 className="mt-5 font-['Fraunces']! text-[23px]! font-semibold! leading-[1.35]! text-[#F1F4F8]! sm:text-[27px]!">
+                                            {campaign?.title ||
+                                                'Discover a community cause to support'}
+                                        </h3>
+                                        <p className="mt-3 text-[12px] leading-6 text-[#AAB9C8]">
+                                            {campaign
+                                                ? 'Help this community initiative reach more people with practical support.'
+                                                : 'Explore humanitarian initiatives and choose a cause that matters to you.'}
+                                        </p>
                                     </div>
-
-                                    <div className="flex flex-col justify-between border-t border-[#34404E] bg-[#202F3E] p-5 sm:border-l sm:border-t-0">
-                                        <div>
-                                            <p className={eyebrow}>
-                                                Funding raised
-                                            </p>
-
-                                            <p className="mt-4 text-[25px] font-semibold tracking-tight text-[#EEF1F5]">
-                                                ৳{fmt(campaign?.raised)}
-                                            </p>
-
-                                            <p className="mt-1 text-[11px] text-[#AAB6C5]">
-                                                of ৳{fmt(campaign?.goal)}
-                                            </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => go('campaigns')}
+                                        className="mt-7 inline-flex w-fit items-center gap-2 text-[12px] font-semibold! text-[#D9B47B] hover:text-white"
+                                    >
+                                        Explore campaign{' '}
+                                        <ArrowRight size={15} />
+                                    </button>
+                                </div>
+                                <div className="flex flex-col justify-between border-t border-[#354353] bg-[#283C4C] p-6 lg:border-l lg:border-t-0 sm:p-7">
+                                    <div>
+                                        <p className={eyebrow}>
+                                            Campaign funding
+                                        </p>
+                                        <p className="mt-5 text-[29px] font-semibold! tracking-tight text-[#F1F4F8]">
+                                            ৳{fmt(campaign?.raised)}
+                                        </p>
+                                        <p className="mt-1 text-[12px] text-[#AAB9C8]">
+                                            of ৳{fmt(campaign?.goal)} goal
+                                        </p>
+                                    </div>
+                                    <div className="mt-10">
+                                        <div className="flex justify-between text-[12px] text-[#C0CEDC]">
+                                            <span>Funding progress</span>
+                                            <strong className="text-[#EEF1F5]!">
+                                                {progress}%
+                                            </strong>
                                         </div>
-
-                                        <div className="mt-6">
-                                            <div className="flex justify-between text-[11px]">
-                                                <span className="text-[#AAB6C5]">
-                                                    Progress
-                                                </span>
-
-                                                <span className="font-semibold text-[#EEF1F5]">
-                                                    {progress}%
-                                                </span>
-                                            </div>
-
+                                        <div
+                                            className="mt-3 h-1.5 bg-[#47596B]"
+                                            role="progressbar"
+                                            aria-label="Campaign funding progress"
+                                            aria-valuenow={progress}
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                        >
                                             <div
-                                                className="mt-2 h-1.5 bg-[#344353]"
-                                                role="progressbar"
-                                                aria-label="Campaign funding progress"
-                                                aria-valuenow={progress}
-                                                aria-valuemin={0}
-                                                aria-valuemax={100}
-                                            >
-                                                <div
-                                                    className="h-full bg-[#D9B47B]"
-                                                    style={{
-                                                        width: `${progress}%`,
-                                                    }}
-                                                />
-                                            </div>
-
-                                            {remaining !== null && (
-                                                <p className="mt-3 flex items-center gap-1.5 text-[10px] text-[#AAB6C5]">
-                                                    <Clock3 size={12} />
-
-                                                    {remaining === 0
-                                                        ? 'Deadline reached'
-                                                        : `${remaining} days remaining`}
-                                                </p>
-                                            )}
+                                                className="h-full bg-[#D9B47B]"
+                                                style={{
+                                                    width: `${progress}%`,
+                                                }}
+                                            />
                                         </div>
+                                        {remaining !== null && (
+                                            <p className="mt-3 flex items-center gap-1.5 text-[11px] text-[#AAB9C8]">
+                                                <Clock3 size={13} />
+                                                {remaining === 0
+                                                    ? 'Deadline reached'
+                                                    : `${remaining} days remaining`}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-                        </section> */}
-
-                        {/* YOUR SUPPORT */}
-
-                        <SupportOverview
-                            pending={pending}
-                            verified={verified}
-                            completed={completed}
-                            latest={latest}
-                            onNavigate={go}
-                        />
-
-                        {/* CONTRIBUTION OVERVIEW */}
-
-                        <ContributionOverview
-                            donation={donation}
-                            volunteer={volunteer}
-                            onNavigate={go}
-                        />
-
-                        {/* RECENT ACTIVITY */}
-
-                        <RecentActivity activities={activities} />
+                        </section>
+                        <div className="order-4 min-w-0">
+                            <SupportOverview
+                                requests={requests}
+                                pending={pending}
+                                verified={verified}
+                                completed={completed}
+                                go={go}
+                            />
+                        </div>
+                        <div className="order-6 min-w-0">
+                            <ImpactOverview
+                                donation={donation}
+                                volunteer={volunteer}
+                                go={go}
+                            />
+                        </div>
+                        <div className="order-8 min-w-0">
+                            <RecentActivity activities={activities} />
+                        </div>
                     </main>
 
-                    {/* =====================================
-                        RIGHT SIDEBAR
-                    ===================================== */}
+                    <aside className="contents min-[1025px]:flex min-[1025px]:min-w-0 min-[1025px]:flex-col min-[1025px]:justify-between min-[1025px]:border-l-2 min-[1025px]:border-[#405366] min-[1025px]:bg-[#1B2732]">
+                        <section className="contents min-[1025px]:flex min-[1025px]:flex-col min-[1025px]:gap-12">
+                            <div className="order-2 min-w-0 bg-[#1B2732] px-5 py-6 sm:px-7 sm:py-7 min-[1025px]:border-b min-[1025px]:border-[#344353]/60 min-[1025px]:px-5 min-[1025px]:py-7">
+                                <QuickAccess go={go} />
+                            </div>
 
-                    <aside className="min-w-0 space-y-7">
-                        {/* QUICK ACCESS */}
-
-                        <section>
-                            <SectionTitle
-                                kicker="Your workspace"
-                                title="Quick access"
-                            />
-
-                            <div className="mt-4 border-t border-[#29323E]">
-                                <NavAction
-                                    icon={HeartHandshake}
-                                    title="Help requests"
-                                    detail="Manage support requests"
-                                    tint="bg-[#253C50] text-[#8FB9DC]"
-                                    onClick={() => go('requests')}
-                                />
-
-                                <NavAction
-                                    icon={HandCoins}
-                                    title="Donations"
-                                    detail="Your giving and contributions"
-                                    tint="bg-[#273C37] text-[#82B9A4]"
-                                    onClick={() => go('donations')}
-                                />
-
-                                <NavAction
-                                    icon={Users}
-                                    title="Volunteer activities"
-                                    detail="Your time and involvement"
-                                    tint="bg-[#393047] text-[#B8A2D5]"
-                                    onClick={() => go('volunteer')}
-                                />
-
-                                <NavAction
-                                    icon={Megaphone}
-                                    title="Campaigns"
-                                    detail="Explore humanitarian initiatives"
-                                    tint="bg-[#403526] text-[#D9B47B]"
-                                    onClick={() => go('campaigns')}
+                            <div className="order-7 min-w-0 bg-[#1B2732] px-5 py-7 sm:px-7 min-[1025px]:border-b min-[1025px]:border-[#344353]/60 min-[1025px]:px-5 min-[1025px]:pb-10">
+                                <PersonalPulse
+                                    go={go}
+                                    volunteerCount={Number(
+                                        volunteer.activitiesCount || 0,
+                                    )}
+                                    donationCount={Number(
+                                        donation.donationCount || 0,
+                                    )}
+                                    totalDonated={donation.totalDonated}
+                                    activities={activities}
                                 />
                             </div>
 
-                            <div className="mt-4 grid grid-cols-2 gap-2">
+                            <div className="order-5 min-w-0 bg-[#1B2732] px-5 py-7 sm:px-7 min-[1025px]:border-b min-[1025px]:border-[#344353]/60 min-[1025px]:px-5 min-[1025px]:pb-10">
+                                <RequestSummary
+                                    total={requests.length}
+                                    pending={pending}
+                                    verified={verified}
+                                    completed={completed}
+                                    go={go}
+                                />
+                            </div>
+                        </section>
+
+                        <section className="order-9 min-w-0 bg-[#1B2732] px-5 py-7 sm:px-7 min-[1025px]:border-t min-[1025px]:border-[#29323E] min-[1025px]:px-5 min-[1025px]:py-8">
+                            <div className="mb-5 flex items-center justify-between gap-3">
+                                <div>
+                                    <p className={eyebrow}>Your account</p>
+                                    <h3 className="mt-2 text-[15px] font-semibold! text-[#EEF1F5]!">
+                                        Workspace tools
+                                    </h3>
+                                </div>
+
+                                <Settings2
+                                    size={17}
+                                    className="text-[#8FB9DC]"
+                                />
+                            </div>
+
+                            <div className="flex flex-col">
+                                <button
+                                    type="button"
+                                    onClick={() => go('profile')}
+                                    className="group flex w-full items-center gap-3 py-3.5 text-left transition-colors hover:bg-[#243646]"
+                                >
+                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#293C4D] text-[#8FB9DC]">
+                                        <UserRound size={17} />
+                                    </span>
+
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block text-[12px] font-semibold! text-[#EEF1F5]!">
+                                            My profile
+                                        </span>
+                                        <span className="mt-1 block text-[10px] text-[#94A2B2]">
+                                            Personal information
+                                        </span>
+                                    </span>
+
+                                    <ArrowUpRight
+                                        size={15}
+                                        className="shrink-0 text-[#8798AA] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                                    />
+                                </button>
+
+                                <div className="h-px bg-[#29323E]/70" />
+
                                 <button
                                     type="button"
                                     onClick={() => go('notifications')}
-                                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#29323E] text-[11px] text-[#B8C5D3] hover:bg-[#1A222D]"
+                                    className="group flex w-full items-center gap-3 py-3.5 text-left transition-colors hover:bg-[#243646]"
                                 >
-                                    <Bell size={14} />
-                                    Notifications
+                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#293C4D] text-[#8FB9DC]">
+                                        <Bell size={17} />
+                                    </span>
+
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block text-[12px] font-semibold! text-[#EEF1F5]!">
+                                            Notifications
+                                        </span>
+                                        <span className="mt-1 block text-[10px] text-[#94A2B2]">
+                                            Updates and alerts
+                                        </span>
+                                    </span>
+
+                                    <ArrowUpRight
+                                        size={15}
+                                        className="shrink-0 text-[#8798AA] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                                    />
                                 </button>
+
+                                <div className="h-px bg-[#29323E]/70" />
 
                                 <button
                                     type="button"
                                     onClick={() => go('settings')}
-                                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#29323E] text-[11px] text-[#B8C5D3] hover:bg-[#1A222D]"
+                                    className="group flex w-full items-center gap-3 py-3.5 text-left transition-colors hover:bg-[#243646]"
                                 >
-                                    <Settings2 size={14} />
-                                    Settings
-                                </button>
-                            </div>
-                        </section>
+                                    <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#293C4D] text-[#8FB9DC]">
+                                        <Settings2 size={17} />
+                                    </span>
 
-                        {/* REQUEST SUMMARY */}
+                                    <span className="min-w-0 flex-1">
+                                        <span className="block text-[12px] font-semibold! text-[#EEF1F5]!">
+                                            Settings
+                                        </span>
+                                        <span className="mt-1 block text-[10px] text-[#94A2B2]">
+                                            Workspace preferences
+                                        </span>
+                                    </span>
 
-                        <RequestSummary
-                            total={requests.length}
-                            pending={pending}
-                            verified={verified}
-                            completed={completed}
-                            onNavigate={go}
-                        />
-
-                        {/* PROFILE */}
-
-                        <section className="overflow-hidden border border-[#29323E] bg-[#151C25]">
-                            <div className="bg-[#202F3E] p-5">
-                                <div className="flex items-center justify-between">
-                                    <p className={eyebrow}>Your membership</p>
-
-                                    <ShieldCheck
-                                        size={17}
-                                        className="text-[#8FB9DC]"
+                                    <ArrowUpRight
+                                        size={15}
+                                        className="shrink-0 text-[#8798AA] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                                     />
-                                </div>
-
-                                <div className="mt-4 flex items-center gap-3">
-                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#40556B] bg-[#344A60] text-[17px] font-semibold text-[#EEF1F5]">
-                                        {firstName.charAt(0).toUpperCase()}
-                                    </span>
-
-                                    <div className="min-w-0">
-                                        <p className="truncate text-[13px] font-semibold text-[#EEF1F5]">
-                                            {user.name || 'User'}
-                                        </p>
-
-                                        <p className="mt-1 text-[11px] text-[#AAB6C5]">
-                                            Community member
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="p-5">
-                                <div className="flex items-center justify-between gap-3 border-b border-[#29323E] py-3 text-[11px]">
-                                    <span className="flex items-center gap-2 text-[#94A2B2]">
-                                        <MapPin size={13} />
-                                        District
-                                    </span>
-
-                                    <span className="text-right font-medium text-[#EEF1F5]">
-                                        {user.district || 'Not provided'}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-3 py-3 text-[11px]">
-                                    <span className="flex items-center gap-2 text-[#94A2B2]">
-                                        <CalendarDays size={13} />
-                                        Member since
-                                    </span>
-
-                                    <span className="text-right font-medium text-[#EEF1F5]">
-                                        {dateText(user.memberSince)}
-                                    </span>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={() => go('profile')}
-                                    className="mt-2 flex min-h-10 w-full items-center justify-between border border-[#344353] bg-[#263747] px-3.5 text-[11px] font-semibold text-[#EEF1F5] transition hover:bg-[#30475B]"
-                                >
-                                    <span className="flex items-center gap-2">
-                                        <UserRound size={14} />
-                                        View your profile
-                                    </span>
-
-                                    <ArrowUpRight size={14} />
                                 </button>
                             </div>
                         </section>
-
-                        <footer className="mt-12 flex flex-wrap justify-between gap-3 border-t border-[#303B49] pt-6 text-[11px] text-[#8F9FAF]">
-                            <span>Stand For People · Individual workspace</span>
-                            <span>Community support and coordination</span>
-                        </footer>
                     </aside>
                 </div>
-
-                {/* FOOTER */}
-
-                <footer className="mt-10 flex flex-wrap justify-between gap-3 border-t border-[#29323E] pt-5 text-[10px] text-[#8792A1]">
+                <footer className="mt-12 flex flex-wrap justify-between gap-3 border-t border-[#29323E] py-5 text-[11px] text-[#8792A1]">
                     <span>Stand For People · Individual workspace</span>
-
                     <span>Community support and coordination</span>
                 </footer>
             </div>

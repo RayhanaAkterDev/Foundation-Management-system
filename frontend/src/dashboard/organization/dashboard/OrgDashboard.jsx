@@ -1,778 +1,864 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {
     Activity,
     ArrowRight,
     ArrowUpRight,
+    Building2,
     CalendarDays,
     CheckCircle2,
     ChevronRight,
-    Clock3,
+    CircleAlert,
     HeartHandshake,
+    ImageOff,
     MapPin,
     Megaphone,
     RefreshCw,
     ShieldCheck,
     UsersRound,
-    Building2,
-    ClipboardList,
+    TrendingUp,
 } from 'lucide-react';
-
-import LoadingUI from '@/components/dashboard/LoadingUI';
+import DashboardLoading from '@/components/dashboard/DashboardLoading';
 import LoadingError from '@/components/dashboard/LoadingError';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
-
+const ROOT = '/organization/dashboard';
 const ROUTES = {
-    profile: '/organization/dashboard/profile/edit',
-    requests: '/organization/dashboard/help-requests',
-    requestDetails: (id) => `/organization/dashboard/responses/${id}`,
-    campaigns: '/organization/dashboard/campaigns',
-    campaignDetails: (id) => `/organization/dashboard/campaigns/${id}`,
-    volunteers: '/organization/dashboard/volunteers',
+    profile: `${ROOT}/profile/edit`,
+    requests: `${ROOT}/help-requests`,
+    requestDetails: (id) => `${ROOT}/responses/${id}`,
+    campaigns: `${ROOT}/campaigns`,
+    campaignDetails: (id) => `${ROOT}/campaigns/${id}`,
+    volunteers: `${ROOT}/volunteers`,
 };
-
-const getToken = () =>
+const token = () =>
     localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
-
-const count = (value) => Number(value || 0).toLocaleString('en-BD');
-
-const normalize = (value) =>
+const fmt = (value) => Number(value || 0).toLocaleString('en-BD');
+const norm = (value) =>
     String(value || '')
         .trim()
         .toLowerCase()
         .replace(/[\s-]+/g, '_');
-
-const label = (value) =>
+const titleCase = (value) =>
     String(value || 'Unknown')
         .replace(/[_-]/g, ' ')
-        .replace(/\b\w/g, (letter) => letter.toUpperCase());
-
-const dateText = (value) => {
-    if (!value) return '—';
-
+        .replace(/\b\w/g, (s) => s.toUpperCase());
+const formatDate = (value) => {
+    if (!value) return 'Date unavailable';
     const date = new Date(value);
-
     return Number.isNaN(date.getTime())
-        ? '—'
+        ? 'Date unavailable'
         : date.toLocaleDateString('en-BD', {
               day: 'numeric',
               month: 'short',
               year: 'numeric',
           });
 };
-
-const relativeDate = (value) => {
-    if (!value) return '—';
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) return '—';
-
-    const minutes = Math.max(
-        0,
-        Math.floor((Date.now() - date.getTime()) / 60000),
+const urgencyRank = {
+    critical: 0,
+    urgent: 1,
+    high: 2,
+    medium: 3,
+    normal: 4,
+    low: 5,
+};
+const imageValue = (...values) => {
+    for (const value of values) {
+        if (typeof value === 'string' && value.trim()) return value;
+        if (value && typeof value === 'object') {
+            const url = value.url || value.path || value.src;
+            if (typeof url === 'string' && url.trim()) return url;
+        }
+    }
+    return '';
+};
+const getOrgCover = (org) =>
+    imageValue(
+        org.cover_photo,
+        org.cover_image,
+        org.cover_photo_url,
+        org.cover_image_url,
+        org.cover,
+        org.banner,
+        org.banner_image,
+        org.banner_url,
+        org.background_image,
+        org.profile_cover,
+        org.photo,
+        org.image,
     );
+const getCampaignCover = (campaign) =>
+    imageValue(
+        campaign.cover_photo,
+        campaign.cover_image,
+        campaign.cover_photo_url,
+        campaign.cover_image_url,
+        campaign.banner,
+        campaign.image,
+        campaign.photo,
+    );
+const LABEL =
+    'text-[10px] font-semibold! uppercase tracking-[0.17em] text-[#92A4B6]';
 
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (minutes < 1440) return `${Math.floor(minutes / 60)}h ago`;
-    if (minutes < 10080) return `${Math.floor(minutes / 1440)}d ago`;
-
-    return dateText(value);
-};
-
-const statusStyles = {
-    critical: 'bg-[#35232A] text-[#F0A6AF]',
-    urgent: 'bg-[#35232A] text-[#F0A6AF]',
-    high: 'bg-[#332A20] text-[#E6BF86]',
-    low: 'bg-[#1E332B] text-[#A4D9BB]',
-    active: 'bg-[#203247] text-[#B1D0EE]',
-    in_progress: 'bg-[#203247] text-[#B1D0EE]',
-    completed: 'bg-[#1E332B] text-[#A4D9BB]',
-    resolved: 'bg-[#1E332B] text-[#A4D9BB]',
-    verified: 'bg-[#1E332B] text-[#A4D9BB]',
-};
-
-function Badge({ value }) {
+function LinkAction({ children, onClick, light = false }) {
     return (
-        <span
-            className={`inline-flex shrink-0 items-center px-2 py-1 text-[11px] font-medium ${
-                statusStyles[normalize(value)] || 'bg-[#26313E] text-[#B5C2D0]'
-            }`}
+        <button
+            type="button"
+            onClick={onClick}
+            className={`group inline-flex min-h-9 items-center gap-1.5 text-[12px] font-medium! transition ${light ? 'text-[#F0C28D] hover:text-white' : 'text-[#A9BED2] hover:text-[#EEF1F5]'}`}
         >
-            {label(value)}
-        </span>
+            {children}
+            <ArrowUpRight
+                size={15}
+                className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+            />
+        </button>
     );
 }
-
-function SectionTitle({ title, subtitle, action, onAction }) {
+function Heading({ eyebrow, title, subtitle, action }) {
     return (
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#2C3541] pb-4">
+        <div className="flex flex-wrap items-end justify-between gap-x-5 gap-y-3">
             <div className="min-w-0">
-                <h2 className="font-sans! text-[16px] font-semibold! tracking-[-.02em] text-[#F0F3F7]!">
+                <p className={LABEL}>{eyebrow}</p>
+                <h2 className="mt-2 font-sans! text-[22px]! font-semibold! tracking-[-0.035em] text-[#EEF1F5]! sm:text-[25px]!">
                     {title}
                 </h2>
-
                 {subtitle && (
-                    <p className="mt-1 text-[12px] leading-5 text-[#94A1B2]">
+                    <p className="mt-1.5 text-[12px] leading-5 text-[#94A2B2]">
                         {subtitle}
                     </p>
                 )}
             </div>
-
-            {action && (
-                <button
-                    type="button"
-                    onClick={onAction}
-                    className="inline-flex shrink-0 items-center gap-1.5 pt-1 text-[12px] font-medium text-[#B9CBE0] transition hover:text-white"
-                >
-                    {action}
-                    <ArrowUpRight size={15} />
-                </button>
+            {action}
+        </div>
+    );
+}
+function Tag({ value }) {
+    const key = norm(value);
+    const color = ['critical', 'urgent'].includes(key)
+        ? 'bg-[#492D35] text-[#F1ABB5] border-[#70434B]'
+        : ['high', 'unverified'].includes(key)
+          ? 'bg-[#433126] text-[#EBC099] border-[#66503E]'
+          : ['verified', 'resolved', 'completed'].includes(key)
+            ? 'bg-[#253C35] text-[#9ED5B8] border-[#385B4D]'
+            : ['active', 'in_progress'].includes(key)
+              ? 'bg-[#283B4D] text-[#A6CBE8] border-[#3B5269]'
+              : 'bg-[#33322A] text-[#E4D09B] border-[#55503B]';
+    return (
+        <span
+            className={`inline-flex w-fit items-center border px-2 py-1 text-[10px] font-medium! ${color}`}
+        >
+            {titleCase(value)}
+        </span>
+    );
+}
+function Photo({ src, alt, className = '', icon: Icon = ImageOff }) {
+    const [broken, setBroken] = useState(false);
+    return (
+        <div className={`relative overflow-hidden bg-[#273745] ${className}`}>
+            {src && !broken ? (
+                <img
+                    src={src}
+                    alt={alt}
+                    className="h-full w-full object-cover"
+                    onError={() => setBroken(true)}
+                />
+            ) : (
+                <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#293F50,#182530_60%,#31443D)]">
+                    <Icon
+                        size={34}
+                        strokeWidth={1.3}
+                        className="text-[#8CA8BC]"
+                    />
+                </div>
             )}
         </div>
     );
 }
-
-/* Existing Organization profile section, redesigned as a sidebar. */
-function Snapshot({ organization, navigate }) {
-    const verified = normalize(organization.verification_status) === 'verified';
-
-    const photo = organization.photo || organization.photo_url;
-
-    const details = [
-        {
-            label: 'Organization type',
-            value: organization.type || 'Not specified',
-        },
-        {
-            label: 'Location',
-            value:
-                organization.location ||
-                organization.address ||
-                'Not specified',
-        },
-        {
-            label: 'Verification',
-            value: verified
-                ? 'Verified'
-                : label(organization.verification_status || 'Pending'),
-        },
-    ];
-
+function Hero({ organization, overview, navigate }) {
+    const cover = getOrgCover(organization);
+    const verified = norm(organization.verification_status) === 'verified';
     return (
-        <aside className="min-w-0 border border-[#303A47] bg-[#19212B] lg:sticky lg:top-5">
-            <div className="p-5 sm:p-6">
-                <SectionTitle
-                    title="Organization profile"
-                    subtitle="Account and verification details"
-                    action="Edit"
-                    onAction={() => navigate(ROUTES.profile)}
+        <section className="overflow-hidden border border-[#2B3542] bg-[#17212B]">
+            <div className="relative min-h-56 sm:min-h-70 lg:min-h-78">
+                <Photo
+                    src={cover}
+                    alt={`${organization.name || 'Organization'} cover`}
+                    icon={Building2}
+                    className="absolute inset-0 h-full w-full [&>img]:object-center"
                 />
-
-                <div className="mt-5 flex min-w-0 items-center gap-3">
-                    {photo ? (
-                        <img
-                            src={photo}
-                            alt=""
-                            className="size-12 shrink-0 border border-[#394554] bg-[#253D32] object-cover"
-                            onError={(event) => {
-                                event.currentTarget.style.display = 'none';
-                            }}
-                        />
-                    ) : (
-                        <span className="flex size-12 shrink-0 items-center justify-center bg-[#253D32] text-[#A6D5B9]">
-                            <Building2 size={21} strokeWidth={1.7} />
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(12,19,27,.96)_0%,rgba(12,19,27,.79)_48%,rgba(12,19,27,.25)_100%)]" />
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,rgba(12,19,27,.6),transparent_65%)]" />
+                <div className="relative flex min-h-56 flex-col justify-between gap-8 px-5 py-6 sm:min-h-70 sm:px-9 sm:py-8 lg:min-h-78 lg:px-11">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span className="inline-flex items-center gap-2 text-[10px] font-semibold! uppercase tracking-[0.17em] text-[#C1D0DD]">
+                            <span className="h-px w-6 bg-[#E8B083]" />{' '}
+                            Organization workspace
                         </span>
-                    )}
-
-                    <div className="min-w-0">
-                        <h3 className="break-words text-[14px] font-semibold leading-5 text-[#EFF3F8]">
-                            {organization.name || 'Organization'}
-                        </h3>
-
-                        <p className="mt-1 flex items-center gap-1.5 text-[11px] text-[#A0B1C2]">
-                            {verified && (
-                                <ShieldCheck
-                                    size={13}
-                                    className="shrink-0 text-[#9BD5B5]"
-                                />
+                        <span
+                            className={`inline-flex items-center gap-1.5 border border-white/15 bg-[#15222D]/80 px-3 py-1.5 text-[11px] ${verified ? 'text-[#A8D9BF]' : 'text-[#E8BF95]'}`}
+                        >
+                            {verified ? (
+                                <ShieldCheck size={14} />
+                            ) : (
+                                <CircleAlert size={14} />
                             )}
-                            {verified
-                                ? 'Verified organization'
-                                : label(
-                                      organization.verification_status ||
-                                          'Pending verification',
-                                  )}
+                            {titleCase(
+                                organization.verification_status || 'Pending',
+                            )}
+                        </span>
+                    </div>
+                    <div className="max-w-170">
+                        <p className="text-[11px] font-medium! tracking-[0.06em] text-[#D5B38B]">
+                            Welcome to your organization dashboard
                         </p>
+                        <h1 className="mt-3 break-words font-['Fraunces']! text-[30px]! font-semibold! leading-[1.15]! tracking-[-0.035em] text-white! sm:text-[42px]! lg:text-[47px]!">
+                            {organization.name || 'Your organization'}
+                        </h1>
+                        <p className="mt-3 max-w-130 text-[12px] leading-6 text-[#C0CCD7] sm:text-[13px]">
+                            Coordinate your people, respond to community needs,
+                            and move meaningful initiatives forward.
+                        </p>
+                        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-[#C4CFDA]">
+                            <span className="inline-flex items-center gap-1.5">
+                                <Building2 size={13} />
+                                {organization.type || 'Organization'}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5">
+                                <MapPin size={13} />
+                                {organization.location ||
+                                    organization.address ||
+                                    'Location not specified'}
+                            </span>
+                        </div>
                     </div>
                 </div>
-
-                <div className="mt-5 divide-y divide-[#303A47] border-t border-[#303A47]">
-                    {details.map((item) => (
-                        <div key={item.label} className="py-4">
-                            <p className="text-[11px] text-[#91A1B3]">
-                                {item.label}
-                            </p>
-
-                            <p className="mt-1.5 break-words text-[13px] leading-5 text-[#E4EAF1]">
-                                {item.value}
-                            </p>
-                        </div>
-                    ))}
-                </div>
-
-                <button
-                    type="button"
-                    onClick={() => navigate(ROUTES.profile)}
-                    className="mt-2 flex min-h-10 w-full items-center justify-between border border-[#405063] px-3.5 text-[12px] font-medium text-[#DFE8F2] transition hover:bg-[#283646]"
-                >
-                    View full profile
-                    <ArrowRight size={15} />
-                </button>
             </div>
-        </aside>
-    );
-}
-
-function Hero({ organization, navigate }) {
-    const banner = organization.banner || organization.banner_url || '';
-    const verified = normalize(organization.verification_status) === 'verified';
-
-    return (
-        <section className="relative isolate overflow-hidden border border-[#303A47] bg-[#101720]">
-            {banner && (
-                <img
-                    src={banner}
-                    alt=""
-                    className="absolute inset-0 size-full object-cover object-center"
-                    onError={(event) => {
-                        event.currentTarget.style.display = 'none';
-                    }}
-                />
-            )}
-
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(12,18,26,.99)_0%,rgba(12,18,26,.94)_48%,rgba(12,18,26,.55)_100%)]" />
-
-            <div className="relative flex min-h-[220px] flex-col justify-center px-5 py-7 sm:px-7 lg:min-h-[240px]">
-                <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#B4C4D4]">
-                        Organization workspace
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#33404D] bg-[#1B2935] px-5 py-4 sm:px-9 lg:px-11">
+                <div className="flex items-center gap-3 text-[11px] text-[#B5C3D0]">
+                    <span className="flex size-8 items-center justify-center bg-[#304251] text-[#9CC4DC]">
+                        <HeartHandshake size={16} />
                     </span>
-
-                    {verified && (
-                        <span className="inline-flex items-center gap-1.5 bg-[#193027] px-2.5 py-1 text-[11px] text-[#B5DFC5]">
-                            <ShieldCheck size={13} />
-                            Verified
-                        </span>
-                    )}
+                    <span>
+                        <strong className="text-[#EEF1F5]!">
+                            {fmt(overview.assigned_requests)}
+                        </strong>{' '}
+                        requests assigned to your team
+                    </span>
                 </div>
-
-                <h1 className="mt-3 max-w-[600px] break-words font-sans! text-[26px] font-semibold! leading-tight tracking-[-.035em] text-[#F7F9FC]! sm:text-[32px]">
-                    {organization.name || 'Organization dashboard'}
-                </h1>
-
-                <p className="mt-3 max-w-[480px] text-[13px] leading-6 text-[#C1CEDB]">
-                    Manage requests, coordinate campaigns, and keep your
-                    humanitarian response moving.
-                </p>
-
-                <div className="mt-5 flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        type="button"
+                        onClick={() => navigate(ROUTES.profile)}
+                        className="inline-flex min-h-10 items-center gap-2 border border-[#465565] px-3.5 text-[11px] font-semibold! text-[#D9E3EC] hover:bg-[#293949]"
+                    >
+                        Edit profile <ArrowUpRight size={14} />
+                    </button>
                     <button
                         type="button"
                         onClick={() => navigate(ROUTES.requests)}
-                        className="inline-flex min-h-10 items-center gap-2 bg-[#D4A05A] px-4 text-[12px] font-semibold text-[#111820] transition hover:bg-[#E5B675]"
+                        className="inline-flex min-h-10 items-center gap-2 bg-[#E4B487] px-4 text-[11px] font-semibold! text-[#17202A] hover:bg-[#F0C69C]"
                     >
-                        Review help requests
-                        <ArrowRight size={15} />
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => navigate(ROUTES.campaigns)}
-                        className="inline-flex min-h-10 items-center gap-2 border border-[#647184] bg-[#121B26]/70 px-4 text-[12px] font-medium text-[#F0F3F7] transition hover:bg-[#263242]"
-                    >
-                        Campaigns
-                        <ArrowUpRight size={15} />
+                        Review requests <ArrowRight size={14} />
                     </button>
                 </div>
             </div>
         </section>
     );
 }
-
-function Metrics({ overview, volunteers }) {
-    const items = [
+function Metrics({ overview, volunteers, navigate }) {
+    const metrics = [
         {
             label: 'Assigned requests',
             value: overview.assigned_requests,
-            icon: ClipboardList,
-            tone: 'text-[#A9C9E8]',
+            note: 'Your total caseload',
+            icon: HeartHandshake,
+            color: '#91B9DC',
+            route: ROUTES.requests,
         },
         {
             label: 'In progress',
             value: overview.active_requests,
+            note: 'Currently being handled',
             icon: Activity,
-            tone: 'text-[#E4BE88]',
+            color: '#E7B78D',
+            route: ROUTES.requests,
         },
         {
-            label: 'Completed',
+            label: 'Resolved',
             value: overview.completed_requests,
+            note: 'Support completed',
             icon: CheckCircle2,
-            tone: 'text-[#9BD5B5]',
+            color: '#8AC7AD',
+            route: ROUTES.requests,
         },
         {
-            label: 'Active campaigns',
+            label: 'Campaigns',
             value: overview.active_campaigns,
+            note: 'Community initiatives',
             icon: Megaphone,
-            tone: 'text-[#C3B4E2]',
-        },
-        {
-            label: 'Volunteers',
-            value: volunteers.total,
-            icon: UsersRound,
-            tone: 'text-[#AFC4E6]',
+            color: '#C1A8DB',
+            route: ROUTES.campaigns,
         },
     ];
-
     return (
-        <section
-            aria-label="Organization performance"
-            className="grid grid-cols-2 gap-px overflow-hidden border border-[#303A47] bg-[#303A47] sm:grid-cols-3 2xl:grid-cols-5"
-        >
-            {items.map((item) => {
-                const Icon = item.icon;
-
-                return (
-                    <div
-                        key={item.label}
-                        className="min-w-0 bg-[#19212B] px-4 py-5"
-                    >
-                        <div className="flex items-center justify-between gap-2">
-                            <span className="text-[12px] leading-5 text-[#B1BECD]">
-                                {item.label}
-                            </span>
-
-                            <Icon
-                                size={17}
-                                strokeWidth={1.8}
-                                className={`shrink-0 ${item.tone}`}
-                            />
-                        </div>
-
-                        <p className="mt-4 text-[28px] font-semibold leading-none tracking-tight text-[#F2F5F9] tabular-nums">
-                            {count(item.value)}
-                        </p>
-                    </div>
-                );
-            })}
-        </section>
-    );
-}
-
-function RequestStatus({ overview }) {
-    const total = Number(overview.assigned_requests || 0);
-    const active = Number(overview.active_requests || 0);
-    const completed = Number(overview.completed_requests || 0);
-    const other = Math.max(0, total - active - completed);
-
-    const segments = [
-        { name: 'In progress', value: active, color: '#75A4D8' },
-        { name: 'Completed', value: completed, color: '#78B99A' },
-        { name: 'Other statuses', value: other, color: '#536477' },
-    ];
-
-    let offset = 0;
-
-    const gradient = segments
-        .filter((item) => item.value > 0)
-        .map((item) => {
-            const start = offset;
-            offset += (item.value / Math.max(total, 1)) * 100;
-            return `${item.color} ${start}% ${offset}%`;
-        })
-        .join(', ');
-
-    return (
-        <section className="min-w-0 bg-[#19212B] p-5 sm:p-6">
-            <SectionTitle
-                title="Request progress"
-                subtitle="Status of all assigned cases"
-            />
-
-            <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row">
-                <div
-                    role="img"
-                    aria-label={`${active} in progress, ${completed} completed, ${other} other`}
-                    className="relative size-32 shrink-0 rounded-full"
-                    style={{
-                        background: total
-                            ? `conic-gradient(${gradient})`
-                            : '#34404D',
-                    }}
-                >
-                    <div className="absolute inset-[17px] flex flex-col items-center justify-center rounded-full bg-[#19212B]">
-                        <strong className="text-[28px] leading-none text-[#F3F6F9]">
-                            {count(total)}
-                        </strong>
-                        <span className="mt-1 text-[11px] text-[#9DAEBF]">
-                            Assigned
-                        </span>
-                    </div>
-                </div>
-
-                <div className="w-full min-w-0 flex-1 divide-y divide-[#303A47]">
-                    {segments.map((item) => (
-                        <div
-                            key={item.name}
-                            className="flex items-center justify-between gap-3 py-3 text-[12px]"
+        <section>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <p className={LABEL}>Your operations today</p>
+                <LinkAction onClick={() => navigate(ROUTES.volunteers)}>
+                    {fmt(volunteers.total)} volunteers in your network
+                </LinkAction>
+            </div>
+            <div className="grid grid-cols-2 overflow-hidden border border-[#2D3946] bg-[#1A2530] md:grid-cols-4">
+                {metrics.map(
+                    (
+                        { label, value, note, icon: Icon, color, route },
+                        index,
+                    ) => (
+                        <button
+                            key={label}
+                            type="button"
+                            onClick={() => navigate(route)}
+                            className={`group relative min-w-0 p-4 text-left transition-colors hover:bg-[#243340] sm:p-5 lg:p-6 ${index % 2 ? 'border-l border-[#354351]' : ''} ${index > 1 ? 'border-t border-[#354351] md:border-t-0' : ''} ${index === 2 ? 'md:border-l md:border-[#354351]' : ''}`}
                         >
-                            <span className="flex items-center gap-2.5 text-[#B9C6D4]">
+                            <div className="flex items-center justify-between gap-2">
                                 <span
-                                    className="size-2 shrink-0 rounded-full"
-                                    style={{ backgroundColor: item.color }}
+                                    className="flex size-9 items-center justify-center"
+                                    style={{
+                                        color,
+                                        backgroundColor: `${color}1C`,
+                                    }}
+                                >
+                                    <Icon size={18} />
+                                </span>
+                                <ArrowUpRight
+                                    size={15}
+                                    className="text-[#70869A] transition group-hover:text-white"
                                 />
-                                {item.name}
-                            </span>
-                            <strong className="text-[#F0F3F7] tabular-nums">
-                                {count(item.value)}
-                            </strong>
-                        </div>
-                    ))}
-                </div>
+                            </div>
+                            <p className="mt-5 text-[11px] text-[#B1BECA]">
+                                {label}
+                            </p>
+                            <p className="mt-1.5 text-[32px] font-semibold! leading-none tracking-[-0.04em] text-[#EEF1F5]! sm:text-[38px]">
+                                {fmt(value)}
+                            </p>
+                            <p className="mt-3 text-[10px] text-[#899BAD]">
+                                {note}
+                            </p>
+                            <span
+                                className="absolute inset-x-0 bottom-0 h-[2px] opacity-70"
+                                style={{ backgroundColor: color }}
+                            />
+                        </button>
+                    ),
+                )}
             </div>
         </section>
     );
 }
-
-function Distribution({ requests }) {
-    const counts = requests.reduce((acc, item) => {
-        const district = String(item.district || 'Not specified').trim();
-        acc[district] = (acc[district] || 0) + 1;
-        return acc;
-    }, {});
-
-    const entries = Object.entries(counts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-
-    const max = Math.max(1, ...entries.map((entry) => entry[1]));
-
+function RequestQueue({ requests, navigate }) {
+    const [filter, setFilter] = useState('all');
+    const sorted = useMemo(
+        () =>
+            [...requests].sort(
+                (a, b) =>
+                    (urgencyRank[norm(a.urgency)] ?? 6) -
+                    (urgencyRank[norm(b.urgency)] ?? 6),
+            ),
+        [requests],
+    );
+    const urgentCount = requests.filter((r) =>
+        ['critical', 'urgent'].includes(norm(r.urgency)),
+    ).length;
+    const visible = sorted
+        .filter((r) =>
+            filter === 'urgent'
+                ? ['critical', 'urgent'].includes(norm(r.urgency))
+                : filter === 'active'
+                  ? ['active', 'in_progress', 'pending'].includes(
+                        norm(r.status),
+                    )
+                  : true,
+        )
+        .slice(0, 6);
+    const tabs = [
+        { id: 'all', name: 'All requests' },
+        { id: 'urgent', name: 'Urgent', count: urgentCount },
+        { id: 'active', name: 'Active' },
+    ];
     return (
-        <section className="min-w-0 bg-[#19212B] p-5 sm:p-6">
-            <SectionTitle
-                title="Where support is needed"
-                subtitle="Districts represented in recent requests"
-            />
-
-            <div className="mt-6 space-y-5">
-                {entries.length ? (
-                    entries.map(([district, value]) => (
-                        <div
-                            key={district}
-                            className="grid grid-cols-[85px_minmax(0,1fr)_24px] items-center gap-3 sm:grid-cols-[105px_minmax(0,1fr)_24px]"
-                        >
-                            <span className="truncate text-[12px] text-[#B9C6D4]">
-                                {district}
+        <section className="min-w-0">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                    <p className={LABEL}>01 / Response queue</p>
+                    <h3 className="mt-2 font-sans! text-[20px]! font-semibold! text-[#EEF1F5]!">
+                        Requests needing attention
+                    </h3>
+                    <p className="mt-1 text-[12px] text-[#94A2B2]">
+                        Prioritized by urgency to help your team act faster.
+                    </p>
+                </div>
+                <LinkAction onClick={() => navigate(ROUTES.requests)}>
+                    View all
+                </LinkAction>
+            </div>
+            <div className="mt-5 flex items-center gap-5 border-b border-[#34414F]">
+                {tabs.map((tab) => (
+                    <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setFilter(tab.id)}
+                        className={`relative min-h-11 text-[11px] font-medium! ${filter === tab.id ? 'text-[#EEF1F5]' : 'text-[#8798A8] hover:text-white'}`}
+                    >
+                        {tab.name}
+                        {tab.count > 0 && (
+                            <span className="ml-1.5 rounded bg-[#483039] px-1.5 py-0.5 text-[9px] text-[#F0A7B2]">
+                                {tab.count}
                             </span>
-
-                            <div className="h-2 bg-[#303D4C]">
-                                <div
-                                    className="h-full bg-[#7CA7D2]"
-                                    style={{
-                                        width: `${(value / max) * 100}%`,
-                                    }}
+                        )}
+                        {filter === tab.id && (
+                            <span className="absolute inset-x-0 bottom-0 h-[2px] bg-[#E4B487]" />
+                        )}
+                    </button>
+                ))}
+            </div>
+            <div className="min-h-44">
+                {visible.length ? (
+                    visible.map((item, index) => {
+                        const id = item.help_request_id || item.id;
+                        const urgency = norm(item.urgency);
+                        const accent = ['critical', 'urgent'].includes(urgency)
+                            ? '#DE8794'
+                            : urgency === 'high'
+                              ? '#E5B083'
+                              : '#7D9AB1';
+                        return (
+                            <button
+                                key={item.id ?? id ?? index}
+                                type="button"
+                                onClick={() =>
+                                    navigate(
+                                        id
+                                            ? ROUTES.requestDetails(id)
+                                            : ROUTES.requests,
+                                    )
+                                }
+                                className="group flex w-full min-w-0 items-center gap-3 border-b border-[#2D3946] py-4 text-left transition hover:bg-[#1D2A35] sm:gap-4"
+                            >
+                                <span
+                                    className="h-11 w-[3px] shrink-0"
+                                    style={{ backgroundColor: accent }}
                                 />
-                            </div>
-
-                            <span className="text-right text-[12px] font-semibold text-[#EEF2F7] tabular-nums">
-                                {value}
-                            </span>
-                        </div>
-                    ))
+                                <span className="min-w-0 flex-1">
+                                    <span className="block break-words text-[12px] font-semibold! leading-5 text-[#E8EDF3]! sm:text-[13px]">
+                                        {item.title || 'Untitled request'}
+                                    </span>
+                                    <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-[#8FA0B1]">
+                                        <span className="inline-flex items-center gap-1">
+                                            <MapPin size={11} />
+                                            {item.district ||
+                                                'Location unavailable'}
+                                        </span>
+                                        <span className="inline-flex items-center gap-1">
+                                            <CalendarDays size={11} />
+                                            {formatDate(
+                                                item.updated_at ||
+                                                    item.created_at,
+                                            )}
+                                        </span>
+                                    </span>
+                                </span>
+                                <span className="flex shrink-0 flex-col items-end gap-1.5">
+                                    <span
+                                        className="text-[10px] font-semibold!"
+                                        style={{ color: accent }}
+                                    >
+                                        {titleCase(item.urgency || 'Normal')}
+                                    </span>
+                                    <span className="text-[10px] text-[#8B9CAD]">
+                                        {titleCase(item.status || 'Pending')}
+                                    </span>
+                                </span>
+                                <ChevronRight
+                                    size={15}
+                                    className="hidden shrink-0 text-[#74889B] group-hover:text-white sm:block"
+                                />
+                            </button>
+                        );
+                    })
                 ) : (
-                    <p className="py-6 text-[13px] text-[#9AAABD]">
-                        No location information available.
+                    <div className="flex min-h-40 flex-col items-center justify-center text-center">
+                        <CheckCircle2 size={24} className="text-[#82B9A4]" />
+                        <p className="mt-3 text-[12px] text-[#94A2B2]">
+                            No requests match this view.
+                        </p>
+                    </div>
+                )}
+            </div>
+            <button
+                type="button"
+                onClick={() => navigate(ROUTES.requests)}
+                className="mt-5 inline-flex items-center gap-2 text-[12px] font-semibold! text-[#D9B47B] hover:text-white"
+            >
+                Open request management <ArrowRight size={15} />
+            </button>
+        </section>
+    );
+}
+function ResponsePanel({ overview, requests }) {
+    const total = Math.max(0, Number(overview.assigned_requests) || 0);
+    const active = Math.max(0, Number(overview.active_requests) || 0);
+    const resolved = Math.max(0, Number(overview.completed_requests) || 0);
+    const other = Math.max(0, total - active - resolved);
+    const rate = total
+        ? Math.min(100, Math.round((resolved / total) * 100))
+        : 0;
+    const districts = useMemo(
+        () =>
+            Object.entries(
+                requests.reduce((acc, item) => {
+                    const district = String(
+                        item.district || 'Not specified',
+                    ).trim();
+                    acc[district] = (acc[district] || 0) + 1;
+                    return acc;
+                }, {}),
+            )
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 4),
+        [requests],
+    );
+    const max = Math.max(1, ...districts.map(([, count]) => count));
+    return (
+        <section className="min-w-0 bg-[#1D2C38] p-5 sm:p-6 lg:p-7">
+            <div className="flex items-center justify-between">
+                <p className={LABEL}>02 / Delivery insight</p>
+                <TrendingUp size={18} className="text-[#91B9DC]" />
+            </div>
+            <h3 className="mt-2 text-[18px] font-semibold! text-[#EEF1F5]!">
+                Response performance
+            </h3>
+            <div className="mt-6 flex items-center justify-between gap-3 border-b border-[#394A58] pb-6">
+                <div>
+                    <p className="text-[11px] text-[#A7B7C5]">
+                        Requests resolved
+                    </p>
+                    <p className="mt-2 text-[44px] font-semibold! leading-none tracking-[-0.055em] text-[#EEF1F5]!">
+                        {rate}%
+                    </p>
+                    <p className="mt-2 text-[11px] text-[#A7B7C5]">
+                        {fmt(resolved)} of {fmt(total)} assigned
+                    </p>
+                </div>
+                <div
+                    className="flex size-23 shrink-0 items-center justify-center rounded-full"
+                    style={{
+                        background: `conic-gradient(#83C0A7 ${rate * 3.6}deg, #364858 0)`,
+                    }}
+                >
+                    <div className="flex size-18 items-center justify-center rounded-full bg-[#1D2C38]">
+                        <CheckCircle2 size={25} className="text-[#83C0A7]" />
+                    </div>
+                </div>
+            </div>
+            <div className="mt-5 space-y-3">
+                {[
+                    { name: 'In progress', value: active, color: '#91B9DC' },
+                    { name: 'Completed', value: resolved, color: '#83C0A7' },
+                    { name: 'Other', value: other, color: '#7C8DA0' },
+                ].map((item) => (
+                    <div
+                        key={item.name}
+                        className="flex items-center justify-between text-[12px]"
+                    >
+                        <span className="flex items-center gap-2 text-[#B5C4D0]">
+                            <span
+                                className="size-2"
+                                style={{ backgroundColor: item.color }}
+                            />
+                            {item.name}
+                        </span>
+                        <strong className="text-[#EEF1F5]!">
+                            {fmt(item.value)}
+                        </strong>
+                    </div>
+                ))}
+            </div>
+            <div className="mt-7 border-t border-[#394A58] pt-6">
+                <div className="flex items-center justify-between">
+                    <h4 className="text-[13px] font-semibold! text-[#EEF1F5]!">
+                        Communities reached
+                    </h4>
+                    <MapPin size={16} className="text-[#BDA7D9]" />
+                </div>
+                <p className="mt-1 text-[11px] text-[#9BAEBE]">
+                    Requests by district
+                </p>
+                {districts.length ? (
+                    <div className="mt-5 space-y-4">
+                        {districts.map(([name, count]) => (
+                            <div key={name}>
+                                <div className="mb-1.5 flex justify-between gap-3 text-[11px]">
+                                    <span className="truncate text-[#B8C6D2]">
+                                        {name}
+                                    </span>
+                                    <span className="text-[#EEF1F5]">
+                                        {fmt(count)}
+                                    </span>
+                                </div>
+                                <div className="h-1.5 bg-[#344655]">
+                                    <div
+                                        className="h-full bg-[#B5A1D1]"
+                                        style={{
+                                            width: `${(count / max) * 100}%`,
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="mt-5 text-[11px] text-[#9BAEBE]">
+                        Location insights will appear when requests are
+                        available.
                     </p>
                 )}
             </div>
         </section>
     );
 }
-
-function Requests({ requests, navigate }) {
-    const rank = {
-        critical: 0,
-        urgent: 1,
-        high: 2,
-        medium: 3,
-        normal: 4,
-        low: 5,
-    };
-
-    const sorted = [...requests]
-        .sort(
-            (a, b) =>
-                (rank[normalize(a.urgency)] ?? 6) -
-                (rank[normalize(b.urgency)] ?? 6),
-        )
-        .slice(0, 5);
-
+function Campaigns({ campaigns, navigate }) {
+    const featured = campaigns[0];
+    const rest = campaigns.slice(1, 4);
     return (
-        <section className="min-w-0 bg-[#19212B] p-5 sm:p-6">
-            <SectionTitle
-                title="Requests requiring attention"
-                subtitle="Prioritized by urgency"
-                action="All requests"
-                onAction={() => navigate(ROUTES.requests)}
+        <section>
+            <Heading
+                eyebrow="Community initiatives"
+                title="Campaigns in motion"
+                subtitle="The causes your organization is currently supporting."
+                action={
+                    <LinkAction onClick={() => navigate(ROUTES.campaigns)}>
+                        All campaigns
+                    </LinkAction>
+                }
             />
-
-            <div className="divide-y divide-[#303A47]">
-                {sorted.length ? (
-                    sorted.map((item, index) => (
+            {featured ? (
+                <div className="mt-6 grid min-w-0 overflow-hidden border border-[#2E3B49] bg-[#1A2732] md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+                    <Photo
+                        src={getCampaignCover(featured)}
+                        alt={featured.title || 'Featured campaign'}
+                        icon={Megaphone}
+                        className="h-54 sm:h-64 md:h-full md:min-h-70"
+                    />
+                    <div className="flex min-w-0 flex-col justify-between gap-8 p-5 sm:p-7">
+                        <div>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <p className={LABEL}>Featured initiative</p>
+                                <Tag value={featured.status || 'Active'} />
+                            </div>
+                            <h3 className="mt-5 break-words font-['Fraunces']! text-[22px]! font-semibold! leading-snug text-[#EEF1F5]! sm:text-[26px]!">
+                                {featured.title || 'Untitled campaign'}
+                            </h3>
+                            <p className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-[#94A2B2]">
+                                <CalendarDays size={13} />
+                                Started {formatDate(featured.start_date)}
+                                {featured.end_date && (
+                                    <span>
+                                        {' '}
+                                        · Ends {formatDate(featured.end_date)}
+                                    </span>
+                                )}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() =>
+                                navigate(
+                                    featured.id
+                                        ? ROUTES.campaignDetails(featured.id)
+                                        : ROUTES.campaigns,
+                                )
+                            }
+                            className="inline-flex w-fit items-center gap-2 text-[12px] font-semibold! text-[#E8B083] hover:text-white"
+                        >
+                            Explore campaign <ArrowUpRight size={15} />
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <div className="mt-6 border-y border-[#303A47] py-10 text-center text-[12px] text-[#94A2B2]">
+                    Your organization's campaigns will appear here when
+                    available.
+                </div>
+            )}
+            {rest.length > 0 && (
+                <div className="mt-2 divide-y divide-[#303A47]">
+                    {rest.map((item, index) => (
                         <button
                             key={item.id ?? index}
                             type="button"
                             onClick={() =>
                                 navigate(
-                                    ROUTES.requestDetails(
-                                        item.help_request_id || item.id,
-                                    ),
+                                    item.id
+                                        ? ROUTES.campaignDetails(item.id)
+                                        : ROUTES.campaigns,
                                 )
                             }
-                            className="group flex w-full min-w-0 items-center gap-3 py-4 text-left transition hover:bg-[#222C38]/60"
+                            className="group flex w-full min-w-0 items-center gap-4 py-4 text-left hover:bg-[#1C2833]"
                         >
-                            <span className="flex size-9 shrink-0 items-center justify-center bg-[#25354A] text-[#A8C8E9]">
-                                <HeartHandshake size={17} />
-                            </span>
-
-                            <span className="min-w-0 flex-1">
-                                <span className="block truncate text-[13px] font-medium text-[#EEF2F7]">
-                                    {item.title || 'Untitled request'}
-                                </span>
-
-                                <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#93A6BA]">
-                                    <span className="inline-flex items-center gap-1">
-                                        <MapPin size={12} />
-                                        {item.district || 'Not specified'}
-                                    </span>
-                                    <span className="inline-flex items-center gap-1">
-                                        <Clock3 size={12} />
-                                        {relativeDate(item.updated_at)}
-                                    </span>
-                                </span>
-                            </span>
-
-                            <span className="hidden sm:inline-flex">
-                                <Badge value={item.urgency || item.status} />
-                            </span>
-
-                            <ChevronRight
-                                size={16}
-                                className="shrink-0 text-[#8294A8] group-hover:text-white"
+                            <Photo
+                                src={getCampaignCover(item)}
+                                alt=""
+                                icon={Megaphone}
+                                className="h-15 w-20 shrink-0 sm:h-18 sm:w-25"
                             />
-                        </button>
-                    ))
-                ) : (
-                    <p className="py-10 text-center text-[13px] text-[#99AABC]">
-                        No recent help requests available.
-                    </p>
-                )}
-            </div>
-        </section>
-    );
-}
-
-function Campaigns({ campaigns, navigate }) {
-    return (
-        <section className="min-w-0 bg-[#19212B] p-5 sm:p-6">
-            <SectionTitle
-                title="Campaign activity"
-                subtitle="Recent humanitarian initiatives"
-                action="All campaigns"
-                onAction={() => navigate(ROUTES.campaigns)}
-            />
-
-            <div className="divide-y divide-[#303A47]">
-                {campaigns.length ? (
-                    campaigns.slice(0, 5).map((item, index) => (
-                        <button
-                            key={item.id ?? index}
-                            type="button"
-                            onClick={() =>
-                                navigate(ROUTES.campaignDetails(item.id))
-                            }
-                            className="group flex w-full min-w-0 items-center gap-3 py-4 text-left transition hover:bg-[#222C38]/60"
-                        >
-                            <span className="flex size-9 shrink-0 items-center justify-center bg-[#312C42] text-[#C8B8E8]">
-                                <Megaphone size={17} />
-                            </span>
-
                             <span className="min-w-0 flex-1">
-                                <span className="block truncate text-[13px] font-medium text-[#EEF2F7]">
+                                <span className="block break-words text-[12px] font-semibold! text-[#E7EDF3]! sm:text-[13px]">
                                     {item.title || 'Untitled campaign'}
                                 </span>
-
-                                <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-[#93A6BA]">
-                                    <span className="inline-flex items-center gap-1">
-                                        <CalendarDays size={12} />
-                                        {dateText(item.start_date)}
-                                    </span>
-
-                                    {item.end_date && (
-                                        <span>
-                                            Ends {dateText(item.end_date)}
-                                        </span>
-                                    )}
+                                <span className="mt-1.5 block text-[10px] text-[#91A0B0]">
+                                    {formatDate(item.start_date)}
                                 </span>
                             </span>
-
-                            <span className="hidden sm:inline-flex">
-                                <Badge value={item.status} />
+                            <span className="hidden sm:block">
+                                <Tag value={item.status || 'Active'} />
                             </span>
-
                             <ChevronRight
                                 size={16}
-                                className="shrink-0 text-[#8294A8] group-hover:text-white"
+                                className="shrink-0 text-[#8093A6] group-hover:text-white"
                             />
                         </button>
-                    ))
-                ) : (
-                    <p className="py-10 text-center text-[13px] text-[#99AABC]">
-                        No recent campaigns available.
-                    </p>
-                )}
-            </div>
-        </section>
-    );
-}
-
-function VolunteerPanel({ volunteers, navigate }) {
-    return (
-        <section className="min-w-0 bg-[#19212B] p-5 sm:p-6">
-            <SectionTitle
-                title="Volunteer coordination"
-                subtitle="People supporting your response"
-            />
-
-            <div className="mt-6 flex items-center gap-4">
-                <span className="flex size-12 shrink-0 items-center justify-center bg-[#29354A] text-[#B4C7E9]">
-                    <UsersRound size={23} />
-                </span>
-
-                <div>
-                    <p className="text-[29px] font-semibold leading-none text-[#F3F6FA]">
-                        {count(volunteers.total)}
-                    </p>
-                    <p className="mt-2 text-[12px] text-[#9AAABC]">
-                        Assigned volunteers
-                    </p>
+                    ))}
                 </div>
-            </div>
-
-            <div className="mt-6 flex justify-between gap-3 border-y border-[#303A47] py-4 text-[12px]">
-                <span className="text-[#A7B5C5]">Active assignments</span>
-                <strong className="text-[#EEF2F7]">
-                    {count(volunteers.active_assignments)}
-                </strong>
-            </div>
-
-            <button
-                type="button"
-                onClick={() => navigate(ROUTES.volunteers)}
-                className="mt-5 flex min-h-10 w-full items-center justify-between border border-[#405063] px-4 text-[12px] font-medium text-[#DFE8F2] transition hover:bg-[#283646]"
-            >
-                Manage volunteers
-                <ArrowRight size={15} />
-            </button>
+            )}
         </section>
     );
 }
-
+function TeamWorkspace({ organization, volunteers, navigate }) {
+    const verified = norm(organization.verification_status) === 'verified';
+    return (
+        <section>
+            <Heading
+                eyebrow="People & administration"
+                title="Your workspace"
+                subtitle="Keep your team and organization information up to date."
+            />
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <button
+                    type="button"
+                    onClick={() => navigate(ROUTES.volunteers)}
+                    className="group flex min-h-39 flex-col justify-between bg-[#20332F] p-5 text-left transition hover:bg-[#294038] sm:p-6"
+                >
+                    <div className="flex items-start justify-between">
+                        <span className="flex size-10 items-center justify-center bg-[#335047] text-[#A3D5BC]">
+                            <UsersRound size={20} />
+                        </span>
+                        <ArrowUpRight size={17} className="text-[#A3D5BC]" />
+                    </div>
+                    <div>
+                        <p className="text-[21px] font-semibold! text-[#EEF1F5]!">
+                            {fmt(volunteers.total)}{' '}
+                            <span className="text-[13px] font-medium! text-[#B8D0C4]">
+                                volunteers
+                            </span>
+                        </p>
+                        <p className="mt-1 text-[11px] text-[#A6BDB2]">
+                            View people and assignments
+                        </p>
+                    </div>
+                </button>
+                <button
+                    type="button"
+                    onClick={() => navigate(ROUTES.profile)}
+                    className="group flex min-h-39 flex-col justify-between bg-[#243244] p-5 text-left transition hover:bg-[#2C4056] sm:p-6"
+                >
+                    <div className="flex items-start justify-between">
+                        <span className="flex size-10 items-center justify-center bg-[#354B61] text-[#AFCCE5]">
+                            <Building2 size={20} />
+                        </span>
+                        <ArrowUpRight size={17} className="text-[#AFCCE5]" />
+                    </div>
+                    <div>
+                        <p className="text-[16px] font-semibold! text-[#EEF1F5]!">
+                            Organization profile
+                        </p>
+                        <p className="mt-1 text-[11px] text-[#A9BDCF]">
+                            {verified
+                                ? 'Verified organization'
+                                : 'Verification pending'}{' '}
+                            · Manage details
+                        </p>
+                    </div>
+                </button>
+            </div>
+        </section>
+    );
+}
 export default function OrgDashboard() {
     const navigate = useNavigate();
-    const [requestVersion, setRequestVersion] = useState(0);
-
+    const [reload, setReload] = useState(0);
     const [result, setResult] = useState({
         data: null,
         error: '',
         version: -1,
     });
-
     useEffect(() => {
         const controller = new AbortController();
-
         const load = async () => {
-            const token = getToken();
-
-            if (!token) {
+            const authToken = token();
+            if (!authToken) {
                 setResult({
                     data: null,
                     error: 'Authentication token not found.',
-                    version: requestVersion,
+                    version: reload,
                 });
                 return;
             }
-
             try {
                 const response = await axios.get(
                     `${API_URL}/organization/dashboard`,
                     {
                         headers: {
-                            Authorization: `Bearer ${token}`,
+                            Authorization: `Bearer ${authToken}`,
                             Accept: 'application/json',
                         },
                         signal: controller.signal,
                     },
                 );
-
                 if (controller.signal.aborted) return;
-
-                if (!response.data?.data) {
+                if (!response.data?.data)
                     throw new Error('Dashboard data is currently unavailable.');
-                }
-
                 setResult({
                     data: response.data.data,
                     error: '',
-                    version: requestVersion,
+                    version: reload,
                 });
             } catch (error) {
-                if (controller.signal.aborted || axios.isCancel(error)) {
-                    return;
-                }
-
+                if (controller.signal.aborted || axios.isCancel(error)) return;
                 console.error('Organization dashboard error:', error);
-
                 setResult({
                     data: null,
                     error:
                         error.response?.data?.message ||
                         error.message ||
                         'Unable to load organization dashboard.',
-                    version: requestVersion,
+                    version: reload,
                 });
             }
         };
-
         void load();
-
         return () => controller.abort();
-    }, [requestVersion]);
-
-    if (result.version !== requestVersion) {
+    }, [reload]);
+    if (result.version !== reload)
         return (
-            <LoadingUI
-                variant="page"
+            <DashboardLoading
+                type="organization"
                 title="Loading dashboard..."
-                description="Please wait while we retrieve your organization's dashboard information."
+                description="Retrieving your organization's information."
             />
         );
-    }
-
-    if (result.error || !result.data) {
+    if (result.error || !result.data)
         return (
             <div className="space-y-4">
                 <LoadingError
@@ -782,69 +868,68 @@ export default function OrgDashboard() {
                         'Dashboard data is currently unavailable.'
                     }
                 />
-
                 <button
                     type="button"
-                    onClick={() => setRequestVersion((value) => value + 1)}
-                    className="inline-flex min-h-10 items-center gap-2 border border-[#394657] bg-[#202B38] px-4 text-[13px] font-medium text-[#E0E8F1] hover:bg-[#2A3949]"
+                    onClick={() => setReload((n) => n + 1)}
+                    className="inline-flex min-h-10 items-center gap-2 border border-[#394657] bg-[#202B38] px-4 text-[12px] text-[#EEF1F5] hover:bg-[#2A3949]"
                 >
                     <RefreshCw size={15} />
                     Try again
                 </button>
             </div>
         );
-    }
-
     const dashboard = result.data;
     const organization = dashboard.organization || {};
     const overview = dashboard.overview || {};
     const volunteers = dashboard.volunteers || {};
-
     const requests = Array.isArray(dashboard.requests)
         ? dashboard.requests
         : [];
-
     const campaigns = Array.isArray(dashboard.campaigns)
         ? dashboard.campaigns
         : [];
-
     return (
-        <main className="w-full min-w-0 pb-8 text-[#EEF1F5]">
-            <Hero organization={organization} navigate={navigate} />
-
-            <div className="mt-5 grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_285px] 2xl:grid-cols-[minmax(0,1fr)_310px]">
-                {/* Main dashboard content */}
-                <div className="min-w-0 space-y-5">
-                    <Metrics overview={overview} volunteers={volunteers} />
-
-                    <div className="grid min-w-0 grid-cols-1 gap-px overflow-hidden border border-[#303A47] bg-[#303A47] lg:grid-cols-2">
-                        <RequestStatus overview={overview} />
-                        <Distribution requests={requests} />
-                    </div>
-
-                    <div className="grid min-w-0 grid-cols-1 items-start gap-5 2xl:grid-cols-2">
-                        <Requests requests={requests} navigate={navigate} />
-
-                        <Campaigns campaigns={campaigns} navigate={navigate} />
-                    </div>
-
-                    <VolunteerPanel
-                        volunteers={volunteers}
-                        navigate={navigate}
+        <main className="org-dashboard-redesign min-w-0 w-full pb-7 font-sans! text-[#EEF1F5]">
+            <style>{`.org-dashboard-redesign{color-scheme:dark}.org-dashboard-redesign button{cursor:pointer}.org-dashboard-redesign button:focus-visible{outline:2px solid #91B9DC;outline-offset:3px}.org-dashboard-redesign section{min-width:0}@media(prefers-reduced-motion:reduce){.org-dashboard-redesign *{transition-duration:.01ms!important}}`}</style>
+            <div className="mx-auto flex w-full max-w-400 min-w-0 flex-col gap-9 sm:gap-11">
+                <Hero
+                    organization={organization}
+                    overview={overview}
+                    navigate={navigate}
+                />
+                <Metrics
+                    overview={overview}
+                    volunteers={volunteers}
+                    navigate={navigate}
+                />
+                <section>
+                    <Heading
+                        eyebrow="Daily operations"
+                        title="Humanitarian response"
+                        subtitle="A focused view of the requests and communities relying on your team."
                     />
-                </div>
-
-                {/* The original Organization profile section is now the sidebar */}
-                <Snapshot organization={organization} navigate={navigate} />
+                    <div className="mt-6 grid min-w-0 items-start gap-7 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,0.85fr)] xl:gap-9">
+                        <RequestQueue requests={requests} navigate={navigate} />
+                        <ResponsePanel
+                            overview={overview}
+                            requests={requests}
+                        />
+                    </div>
+                </section>
+                <Campaigns campaigns={campaigns} navigate={navigate} />
+                <TeamWorkspace
+                    organization={organization}
+                    volunteers={volunteers}
+                    navigate={navigate}
+                />
+                <footer className="flex flex-wrap justify-between gap-3 border-t border-[#303A47] pt-5 text-[10px] text-[#8495A8]">
+                    <span>Stand For People · Organization workspace</span>
+                    <span className="inline-flex items-center gap-2">
+                        <ShieldCheck size={13} />
+                        Humanitarian coordination
+                    </span>
+                </footer>
             </div>
-
-            <footer className="mt-6 flex flex-wrap justify-between gap-3 border-t border-[#303A47] pt-5 text-[11px] text-[#8FA1B5]">
-                <span>Stand For People · Organization workspace</span>
-                <span className="inline-flex items-center gap-2">
-                    <ShieldCheck size={14} />
-                    Humanitarian coordination
-                </span>
-            </footer>
         </main>
     );
 }

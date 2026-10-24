@@ -39,20 +39,20 @@ const StatItem = ({
     return (
         <div
             className={`
-                group relative min-w-0 px-5 py-5
+                group relative min-w-0 px-5 py-6
                 transition-colors duration-200 ease-out
-                sm:px-6 sm:py-6
+                sm:px-7 sm:py-7
                 ${
                     featured
-                        ? 'bg-[#171E28] hover:bg-[#1A222D]'
-                        : 'bg-[#0E1219] hover:bg-[#1A222D]'
+                        ? 'bg-[#19232E] hover:bg-[#1D2A37]'
+                        : 'bg-[#111821] hover:bg-[#18222D]'
                 }
             `}
         >
             {featured && (
                 <span
                     aria-hidden="true"
-                    className="absolute inset-x-0 top-0 h-px bg-[#697586]"
+                    className="absolute inset-x-0 top-0 h-[2px] bg-[#8EA5BD]"
                 />
             )}
 
@@ -82,7 +82,7 @@ const StatItem = ({
                     </p>
                 </div>
 
-                <div className="mt-5">
+                <div className="mt-6">
                     <span
                         className="
                             font-sans! text-[28px]
@@ -134,8 +134,8 @@ export default function VolunteerStats({ stats }) {
             <div
                 className="
                     grid grid-cols-2 overflow-hidden
-                    border border-[#252D38]
-                    bg-[#0E1219] lg:grid-cols-4
+                    border border-[#303A47]
+                    bg-[#111821] lg:grid-cols-4
                 "
             >
                 {items.map((item, index) => (

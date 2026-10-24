@@ -1,20 +1,40 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     ArrowRight,
-    CalendarDays,
-    CircleDollarSign,
     HandCoins,
-    ReceiptText,
-    TrendingUp,
+    Search,
+    X,
+    SlidersHorizontal,
+    CalendarDays,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
-import StatCard from '@/components/dashboard/StatCard';
-import DataTable from '@/components/dashboard/DataTable';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
+import DonationSummary from './components/DonationSummary';
+import DonationTable from './components/DonationTable';
+import DonationFilters from './components/DonationFilters';
+import DonationPagination from './components/DonationPagination';
+
 import { getMyDonations } from './api/donationApi';
+
+const PER_PAGE = 25;
+
+const campaignName = (donation) =>
+    donation?.campaign?.title || donation?.campaign?.name || 'Campaign';
+
+const paymentName = (donation) =>
+    String(
+        donation?.payment_method || donation?.paymentMethod || 'Not specified',
+    )
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+
+const donationTime = (donation) =>
+    new Date(donation?.created_at || 0).getTime() || 0;
 
 const formatAmount = (amount) => {
     const value = Number(amount || 0);
@@ -44,44 +64,67 @@ const formatDate = (date) => {
     });
 };
 
-const columns = [
-    {
-        key: 'campaign',
-        header: 'Campaign',
-        render: (val) => (
-            <div className="min-w-0">
-                <p className="truncate font-medium! text-text-primary">{val}</p>
-            </div>
-        ),
-    },
-    {
-        key: 'amount',
-        header: 'Amount',
-        align: 'right',
-        render: (val) => (
-            <span className="whitespace-nowrap font-semibold text-text-primary">
-                ৳{formatAmount(val)}
-            </span>
-        ),
-    },
-    {
-        key: 'date',
-        header: 'Date',
-        render: (val) => (
-            <div className="inline-flex items-center gap-2 text-sm text-text-secondary">
-                <CalendarDays className="h-4 w-4 shrink-0 text-slate-400" />
-                {val}
-            </div>
-        ),
-    },
-    {
-        key: 'status',
-        header: 'Status',
-        render: (val) => <StatusBadge status={val} />,
-    },
-];
+function RecentContribution({ donation }) {
+    if (!donation) {
+        return null;
+    }
 
-const MyDonations = () => {
+    return (
+        <section className="min-w-0">
+            <div className="mb-4 flex items-center gap-3">
+                <h2 className="font-sans! text-[18px] font-semibold! tracking-[-0.02em] text-[#EEF1F5]!">
+                    Recent contribution
+                </h2>
+            </div>
+
+            <div className="min-w-0 border border-[#29323E] bg-[#151C25]">
+                <div className="flex flex-col gap-5 px-5 py-6 sm:px-7 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+                    <div className="flex min-w-0 items-start gap-4">
+                        <div className="flex size-12 shrink-0 items-center justify-center border border-[#34404C] bg-[#202C39] text-[#B6C9DC]">
+                            <HandCoins size={20} strokeWidth={1.7} />
+                        </div>
+
+                        <div className="min-w-0">
+                            <p className="text-[11px] font-medium! uppercase tracking-[0.08em] text-[#8792A1]">
+                                Most recent contribution
+                            </p>
+
+                            <h3 className="mt-2 break-words font-sans! text-[16px] font-semibold! leading-6 text-[#EEF1F5]!">
+                                {campaignName(donation)}
+                            </h3>
+
+                            <div className="mt-2 inline-flex items-center gap-2 text-[12px] text-[#94A2B2]">
+                                <CalendarDays
+                                    size={14}
+                                    strokeWidth={1.8}
+                                    className="shrink-0"
+                                />
+
+                                {formatDate(donation.created_at)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-x-7 gap-y-4 border-t border-[#29323E] pt-4 sm:pl-16 lg:shrink-0 lg:border-t-0 lg:pt-0 lg:pl-0">
+                        <div>
+                            <p className="text-[11px] text-[#8792A1]">
+                                Amount contributed
+                            </p>
+
+                            <p className="mt-1 whitespace-nowrap font-sans! text-[20px] font-semibold! tabular-nums text-[#EEF1F5]!">
+                                ৳{formatAmount(donation.amount)}
+                            </p>
+                        </div>
+
+                        <StatusBadge status={donation.status || 'completed'} />
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+export default function MyDonations() {
     const [donations, setDonations] = useState([]);
 
     const [summary, setSummary] = useState({
@@ -90,22 +133,34 @@ const MyDonations = () => {
         lastDonation: '—',
     });
 
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [loadState, setLoadState] = useState({
+        loading: true,
+        error: '',
+        key: -1,
+    });
+
+    const [retryKey, setRetryKey] = useState(0);
+
+    const [search, setSearch] = useState('');
+    const [method, setMethod] = useState('all');
+    const [status, setStatus] = useState('all');
+
+    const [sort, setSort] = useState({
+        key: 'created_at',
+        direction: 'desc',
+    });
+
+    const [page, setPage] = useState(1);
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
     useEffect(() => {
-        let mounted = true;
+        let active = true;
 
-        const loadDonations = async () => {
+        async function loadDonations() {
             try {
-                setLoading(true);
-                setError('');
-
                 const response = await getMyDonations();
 
-                if (!mounted) {
-                    return;
-                }
+                if (!active) return;
 
                 const donationData = Array.isArray(response?.donations)
                     ? response.donations
@@ -120,222 +175,375 @@ const MyDonations = () => {
                     ),
                     lastDonation: response?.summary?.lastDonation || '—',
                 });
+
+                setLoadState({
+                    loading: false,
+                    error: '',
+                    key: retryKey,
+                });
             } catch (err) {
                 console.error('Failed to load donations:', err);
 
-                if (mounted) {
-                    setError(
-                        'Unable to load your donation history. Please try again.',
-                    );
-                }
-            } finally {
-                if (mounted) {
-                    setLoading(false);
+                if (active) {
+                    setLoadState({
+                        loading: false,
+                        error: 'Unable to load your donation history. Please try again.',
+                        key: retryKey,
+                    });
                 }
             }
-        };
+        }
 
         loadDonations();
 
         return () => {
-            mounted = false;
+            active = false;
         };
-    }, []);
+    }, [retryKey]);
+
+    const loading = loadState.loading || loadState.key !== retryKey;
+
+    const error = loadState.error;
+
+    const filtered = useMemo(() => {
+        const query = search.trim().toLowerCase();
+
+        const result = donations.filter((donation) => {
+            const matchesSearch =
+                !query ||
+                [
+                    campaignName(donation),
+                    donation?.id,
+                    donation?.transaction_id,
+                    donation?.transactionId,
+                    paymentName(donation),
+                    donation?.status || 'completed',
+                ].some((value) =>
+                    String(value ?? '')
+                        .toLowerCase()
+                        .includes(query),
+                );
+
+            const matchesMethod =
+                method === 'all' || paymentName(donation) === method;
+
+            const matchesStatus =
+                status === 'all' ||
+                String(donation?.status || 'completed').toLowerCase() ===
+                    status;
+
+            return matchesSearch && matchesMethod && matchesStatus;
+        });
+
+        if (!sort.key || !sort.direction) {
+            return result;
+        }
+
+        const sortValue = (donation) => {
+            switch (sort.key) {
+                case 'campaign':
+                    return campaignName(donation);
+
+                case 'amount':
+                    return Number(donation.amount) || 0;
+
+                case 'status':
+                    return donation.status || 'completed';
+
+                default:
+                    return donationTime(donation);
+            }
+        };
+
+        return result.sort((a, b) => {
+            const first = sortValue(a);
+            const second = sortValue(b);
+
+            const comparison =
+                typeof first === 'number'
+                    ? first - second
+                    : String(first).localeCompare(String(second));
+
+            return comparison * (sort.direction === 'asc' ? 1 : -1);
+        });
+    }, [donations, search, method, status, sort]);
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+
+    const currentPage = Math.min(page, totalPages);
 
     const rows = useMemo(() => {
-        return donations.map((donation) => ({
-            id: donation.id,
+        const start = (currentPage - 1) * PER_PAGE;
 
-            campaign:
-                donation.campaign?.title ||
-                donation.campaign?.name ||
-                'Campaign',
-
-            amount: Number(donation.amount || 0),
-
-            date: formatDate(donation.created_at),
-
-            status: donation.status || 'completed',
-        }));
-    }, [donations]);
+        return filtered
+            .slice(start, start + PER_PAGE)
+            .map((donation, index) => ({
+                ...donation,
+                serialNumber: start + index + 1,
+            }));
+    }, [filtered, currentPage]);
 
     const latestDonation = donations[0];
 
+    const activeFilterCount =
+        Number(method !== 'all') + Number(status !== 'all');
+
+    const changeMethod = (value) => {
+        setMethod(value);
+        setPage(1);
+    };
+
+    const changeStatus = (value) => {
+        setStatus(value);
+        setPage(1);
+    };
+
+    const clearFilters = () => {
+        setMethod('all');
+        setStatus('all');
+        setPage(1);
+    };
+
+    const handleSort = (key) => {
+        setSort((current) => {
+            if (current.key !== key) {
+                return {
+                    key,
+                    direction: 'asc',
+                };
+            }
+
+            if (current.direction === 'asc') {
+                return {
+                    key,
+                    direction: 'desc',
+                };
+            }
+
+            return {
+                key: null,
+                direction: null,
+            };
+        });
+
+        setPage(1);
+    };
+
+    const handleRetry = () => {
+        setRetryKey((current) => current + 1);
+    };
+
+    const filters = (
+        <DonationFilters
+            donations={donations}
+            method={method}
+            onMethodChange={changeMethod}
+            status={status}
+            onStatusChange={changeStatus}
+            onClear={clearFilters}
+        />
+    );
+
     return (
-        <div className="space-y-8">
-            {/* Header */}
+        <div className="min-w-0 space-y-12 pb-8 lg:space-y-14">
             <PageHeader
                 title="My Donations"
-                subtitle="See the causes you have supported and the difference your contributions make."
+                subtitle="Review your contributions and the campaigns you have supported."
                 action={
                     <Link
                         to="/individual/dashboard/campaigns"
-                        className="group inline-flex h-11 items-center gap-2 bg-primary px-5 text-sm font-semibold text-white! transition-colors hover:bg-primary-hover"
+                        className="group inline-flex h-10 items-center justify-center gap-2 border border-[#343E4B] bg-transparent px-3.5 text-[12px] font-medium! text-[#B8C2CF] transition-colors hover:border-[#4B596A] hover:bg-[#1C232D] hover:text-[#EEF1F5]"
                     >
-                        <HandCoins className="h-4 w-4" />
-                        Donate Now
-                        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                        <HandCoins size={15} strokeWidth={1.8} />
+                        Donate now
+                        <ArrowRight
+                            size={14}
+                            className="transition-transform group-hover:translate-x-0.5"
+                        />
                     </Link>
                 }
             />
 
-            {/* Contribution overview */}
-            <section className="relative overflow-hidden bg-primary px-6 py-7 text-white! md:px-8 md:py-8">
-                <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full border border-white/10" />
-                <div className="absolute -bottom-28 right-16 h-64 w-64 rounded-full border border-white/10" />
-
-                <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-                    <div>
-                        <div className="mb-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-white!/70">
-                            <CircleDollarSign className="h-4 w-4" />
-                            Your contribution
-                        </div>
-
-                        <div className="text-3xl font-semibold tracking-tight md:text-4xl">
-                            ৳{formatAmount(summary.totalDonated)}
-                        </div>
-
-                        <p className="mt-2 max-w-xl text-sm leading-6 text-white!/75">
-                            Every contribution helps connect resources with
-                            people and communities who need support.
-                        </p>
-                    </div>
-
-                    <div className="border-l border-white/15 pl-6 lg:min-w-[190px]">
-                        <p className="text-xs font-medium! uppercase tracking-[0.14em] text-white!/60">
-                            Contributions
-                        </p>
-
-                        <p className="mt-2 text-2xl font-semibold">
-                            {summary.donationCount}
-                        </p>
-
-                        <p className="mt-1 text-sm text-white!/65">
-                            completed transactions
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            {/* Stats */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <StatCard
-                    label="Total Donated"
-                    value={`৳${formatAmount(summary.totalDonated)}`}
-                    icon={HandCoins}
-                    subtext="all time"
+            {loading ? (
+                <LoadingUI
+                    variant="page"
+                    title="Loading donations..."
+                    description="Retrieving your donation records."
                 />
-
-                <StatCard
-                    label="Donations Made"
-                    value={summary.donationCount}
-                    icon={ReceiptText}
-                    iconColor="bg-blue-50"
-                    subtext="total transactions"
+            ) : error ? (
+                <LoadingError
+                    title="Unable to load donations"
+                    message={error}
+                    onRetry={handleRetry}
                 />
-
-                <StatCard
-                    label="Last Donation"
-                    value={summary.lastDonation}
-                    icon={TrendingUp}
-                    iconColor="bg-amber-50"
-                    subtext="most recent"
-                />
-            </div>
-
-            {/* Error */}
-            {error && (
-                <div className="flex items-start gap-3 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-red-500" />
-                    <span>{error}</span>
-                </div>
-            )}
-
-            {/* Latest contribution */}
-            {!loading && !error && latestDonation && (
-                <section className="border border-border bg-white">
-                    <div className="flex flex-col gap-5 px-6 py-6 md:flex-row md:items-center md:justify-between md:px-7">
-                        <div className="flex min-w-0 items-center gap-4">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-primary/10 text-primary">
-                                <HandCoins className="h-5 w-5" />
-                            </div>
-
-                            <div className="min-w-0">
-                                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary">
-                                    Most recent contribution
-                                </p>
-
-                                <h2 className="mt-1 truncate text-base font-semibold text-text-primary">
-                                    {latestDonation.campaign?.title ||
-                                        latestDonation.campaign?.name ||
-                                        'Campaign'}
-                                </h2>
-
-                                <p className="mt-1 text-sm text-text-secondary">
-                                    {formatDate(latestDonation.created_at)}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-5 md:text-right">
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.1em] text-text-secondary">
-                                    Amount
-                                </p>
-                                <p className="mt-1 text-xl font-semibold text-text-primary">
-                                    ৳{formatAmount(latestDonation.amount)}
-                                </p>
-                            </div>
-
-                            <StatusBadge
-                                status={latestDonation.status || 'completed'}
-                            />
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {/* Donation history */}
-            <section className="space-y-3">
-                <div className="flex items-end justify-between gap-4">
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                            Your giving history
-                        </p>
-
-                        <h2 className="mt-1 text-xl font-semibold text-text-primary">
-                            Donation History
+            ) : (
+                <>
+                    <section>
+                        <h2 className="mb-5 font-sans! text-[18px] font-semibold! tracking-[-0.02em] text-[#EEF1F5]!">
+                            Donation overview
                         </h2>
 
-                        <p className="mt-1 text-sm text-text-secondary">
-                            A record of the campaigns and causes you have
-                            supported.
-                        </p>
-                    </div>
+                        <DonationSummary summary={summary} />
+                    </section>
 
-                    {!loading && donations.length > 0 && (
-                        <span className="hidden text-sm text-text-secondary sm:block">
-                            {donations.length}{' '}
-                            {donations.length === 1 ? 'donation' : 'donations'}
-                        </span>
+                    {latestDonation && (
+                        <RecentContribution donation={latestDonation} />
                     )}
-                </div>
 
-                <DataTable
-                    title=""
-                    columns={columns}
-                    rows={rows}
-                    loading={loading}
-                    empty={{
-                        icon: HandCoins,
-                        title: 'No donations yet',
-                        message:
-                            'Your donation history will appear here once you contribute to a campaign.',
-                    }}
-                />
-            </section>
+                    <section className="min-w-0 pt-1 lg:pt-2">
+                        <div className="pb-5 sm:pb-6">
+                            <h2 className="font-sans! text-[20px] font-semibold! leading-tight tracking-[-0.02em] text-[#EEF1F5]!">
+                                Donation Directory
+                            </h2>
+
+                            <p className="mt-2 max-w-xl font-sans! text-[12px] leading-[1.65] text-[#8792A1]">
+                                Browse your contributions and payment
+                                information.
+                            </p>
+                        </div>
+
+                        <div className="mb-5 xl:hidden">
+                            <button
+                                type="button"
+                                onClick={() => setMobileFiltersOpen(true)}
+                                className="flex h-10 w-full items-center justify-between border border-[#252D38] bg-[#0E1219] px-3.5 text-[11px] font-medium! text-[#AEB7C3] hover:border-[#35404E] hover:bg-[#151B24]"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <SlidersHorizontal size={14} />
+                                    Filters
+                                </span>
+
+                                {activeFilterCount > 0 && (
+                                    <span className="bg-[#1D2632] px-2 py-0.5 text-[10px] text-[#EEF1F5]">
+                                        {activeFilterCount}
+                                    </span>
+                                )}
+                            </button>
+                        </div>
+
+                        <div className="grid min-w-0 gap-6 xl:h-[650px] xl:grid-cols-[minmax(0,1fr)_300px] xl:items-stretch xl:gap-7 2xl:grid-cols-[minmax(0,1fr)_320px]">
+                            <div className="relative min-h-0 min-w-0 xl:h-full">
+                                <div className="flex min-h-[520px] min-w-0 flex-col overflow-hidden border border-[#252D38] bg-[#0E1219] xl:h-full xl:min-h-0">
+                                    <div className="shrink-0 border-b border-[#252D38] bg-[#1A222D] px-4 py-3.5 sm:px-5">
+                                        <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
+                                            <div className="relative min-w-0 flex-1">
+                                                <Search
+                                                    size={15}
+                                                    strokeWidth={1.8}
+                                                    className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[#697586]"
+                                                />
+
+                                                <input
+                                                    type="text"
+                                                    value={search}
+                                                    onChange={(event) => {
+                                                        setSearch(
+                                                            event.target.value,
+                                                        );
+                                                        setPage(1);
+                                                    }}
+                                                    placeholder="Search campaign, payment or transaction"
+                                                    aria-label="Search donations"
+                                                    className="h-10 w-full border border-[#29323E] bg-[#0A0E14] pr-16 pl-9 font-sans! text-[12px] font-medium! text-[#EEF1F5] outline-none transition-colors placeholder:text-[#5E6978] hover:border-[#394553] focus:border-[#4B5869] focus:ring-0"
+                                                />
+
+                                                {search && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSearch('');
+                                                            setPage(1);
+                                                        }}
+                                                        className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-1 px-2 py-1 text-[10px] text-[#8792A1] hover:text-[#EEF1F5]"
+                                                    >
+                                                        <X size={12} />
+                                                        Clear
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="flex shrink-0 items-center gap-4">
+                                                <span className="hidden h-7 w-px bg-[#303A47] lg:block" />
+
+                                                <p className="font-sans! text-[11px] font-medium! text-[#AAB3BF]">
+                                                    {filtered.length}{' '}
+                                                    {filtered.length === 1
+                                                        ? 'result'
+                                                        : 'results'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-[#0E1219] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#0A0E14] [&::-webkit-scrollbar-thumb]:bg-[#303A47]">
+                                        <DonationTable
+                                            rows={rows}
+                                            onSort={handleSort}
+                                            sort={sort}
+                                        />
+                                    </div>
+
+                                    <div className="shrink-0 border-t border-[#252D38]">
+                                        <DonationPagination
+                                            currentPage={currentPage}
+                                            totalPages={totalPages}
+                                            totalItems={filtered.length}
+                                            itemsPerPage={PER_PAGE}
+                                            onPageChange={setPage}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="hidden min-h-0 min-w-0 overflow-y-auto border border-[#252D38] bg-[#0E1219] xl:block xl:h-full [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[#303A47]">
+                                {filters}
+                            </div>
+                        </div>
+                    </section>
+                </>
+            )}
+
+            {mobileFiltersOpen && !loading && !error && (
+                <div className="fixed inset-0 z-50 xl:hidden">
+                    <button
+                        type="button"
+                        aria-label="Close filters"
+                        className="absolute inset-0 bg-black/70"
+                        onClick={() => setMobileFiltersOpen(false)}
+                    />
+
+                    <div className="absolute inset-y-0 right-0 flex w-[min(340px,90vw)] flex-col border-l border-[#303A47] bg-[#0E1219] shadow-2xl">
+                        <div className="flex items-center justify-between border-b border-[#303A47] px-4 py-3">
+                            <span className="text-[13px] font-semibold! text-[#EEF1F5]">
+                                Donation filters
+                            </span>
+
+                            <button
+                                type="button"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                aria-label="Close filters"
+                                className="p-2 text-[#8792A1] hover:text-[#EEF1F5]"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <div className="min-h-0 flex-1 overflow-y-auto">
+                            {filters}
+                        </div>
+
+                        <div className="border-t border-[#303A47] p-4">
+                            <button
+                                type="button"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className="h-10 w-full border border-[#46566A] bg-[#263343] text-[12px] font-medium! text-[#EEF1F5]"
+                            >
+                                Show {filtered.length} results
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
-};
-
-export default MyDonations;
+}

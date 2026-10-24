@@ -101,6 +101,7 @@ import OrganizationSettings from '@/dashboard/organization/settings/OrgSettings'
 // Individual dashboard
 import IndividualDashboard from '@/dashboard/individual/dashboard/IndividualDashboard';
 import IndividualCampaigns from '@/dashboard/individual/campaigns/IndividualCampaigns';
+import IndividualCampaignDetails from '@/dashboard/individual/campaigns/components/CampaignDetails';
 import IndividualNotifications from '@/dashboard/individual/notifications/IndividualNotifications';
 import IndividualProfile from '@/dashboard/individual/profile/IndividualProfile';
 import IndividualSettings from '@/dashboard/individual/settings/IndividualSettings';
@@ -236,14 +237,8 @@ const router = createBrowserRouter([
                     },
 
                     // Campaigns
-                    {
-                        path: 'campaigns',
-                        element: <AdminCampaigns />,
-                    },
-                    {
-                        path: 'campaigns/add',
-                        element: <AdminAddCampaign />,
-                    },
+                    { path: 'campaigns', element: <AdminCampaigns /> },
+                    { path: 'campaigns/add', element: <AdminAddCampaign /> },
                     {
                         path: 'campaigns/:id',
                         element: <AdminCampaignDetails />,
@@ -286,6 +281,7 @@ const router = createBrowserRouter([
                 element: <ProtectedRoute allowedRoles={['individual']} />,
                 children: [
                     { index: true, element: <IndividualDashboard /> },
+
                     // Individual help requests
                     { path: 'help-requests', element: <MyHelpRequests /> },
                     {
@@ -296,13 +292,31 @@ const router = createBrowserRouter([
                         path: 'help-requests/:requestId/edit',
                         element: <HelpRequestEdit />,
                     },
+
+                    // Donations
                     { path: 'donations', element: <MyDonations /> },
                     {
                         path: 'donation/payment-result',
                         element: <PaymentResult />,
                     },
-                    { path: 'volunteer', element: <MyVolunteerActivities /> },
-                    { path: 'campaigns', element: <IndividualCampaigns /> },
+
+                    // Volunteer activities
+                    {
+                        path: 'volunteer',
+                        element: <MyVolunteerActivities />,
+                    },
+
+                    // Campaigns
+                    {
+                        path: 'campaigns',
+                        element: <IndividualCampaigns />,
+                    },
+                    {
+                        path: 'campaigns/:id',
+                        element: <IndividualCampaignDetails />,
+                    },
+
+                    // Account
                     {
                         path: 'notifications',
                         element: <IndividualNotifications />,
@@ -352,18 +366,33 @@ const router = createBrowserRouter([
                     },
 
                     // Volunteers and reports
-                    { path: 'volunteers', element: <OrganizationVolunteers /> },
-                    { path: 'reports', element: <OrganizationReports /> },
+                    {
+                        path: 'volunteers',
+                        element: <OrganizationVolunteers />,
+                    },
+                    {
+                        path: 'reports',
+                        element: <OrganizationReports />,
+                    },
 
                     // Profile and settings
-                    { path: 'profile', element: <OrganizationProfile /> },
-                    { path: 'profile/edit', element: <OrganizationProfile /> },
+                    {
+                        path: 'profile',
+                        element: <OrganizationProfile />,
+                    },
+                    {
+                        path: 'profile/edit',
+                        element: <OrganizationProfile />,
+                    },
                     { path: 'security', element: <AdminSecurity /> },
                     {
                         path: 'notifications',
                         element: <OrganizationNotifications />,
                     },
-                    { path: 'settings', element: <OrganizationSettings /> },
+                    {
+                        path: 'settings',
+                        element: <OrganizationSettings />,
+                    },
                     { path: 'help', element: <HelpPage /> },
                 ],
             },

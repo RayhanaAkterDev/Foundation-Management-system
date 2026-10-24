@@ -1,36 +1,36 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import DashboardLoading from '@/components/dashboard/DashboardLoading';
+
 import {
     Activity,
     AlertCircle,
     ArrowRight,
     ArrowUpRight,
+    Bell,
     Building2,
+    CalendarDays,
     CheckCircle2,
     HeartHandshake,
+    ClipboardList,
+    LockKeyhole,
     Megaphone,
+    Plus,
     RefreshCw,
+    Settings,
     ShieldCheck,
+    UserCircle2,
     UserRoundCheck,
     Users,
     Wallet,
-    MapPin,
-    CalendarDays,
-    CircleDot,
-    Bell,
-    Settings,
-    Layers3,
-    UserCircle2,
-    BarChart3,
-    LockKeyhole,
 } from 'lucide-react';
 
 const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 const ROOT = '/admin/dashboard';
-const T = {
-    base: '#151C25',
-    surface: '#1B242E',
-    elevated: '#202B37',
+const C = {
+    bg: '#151C25',
+    panel: '#1B242E',
+    raised: '#202B37',
     border: '#303A47',
     text: '#EEF1F5',
     muted: '#94A2B2',
@@ -39,64 +39,82 @@ const T = {
     teal: '#58AFA2',
     violet: '#A998C8',
 };
-const number = (value) =>
-    new Intl.NumberFormat('en-US').format(Number(value) || 0);
-const currency = (value) => `৳ ${number(value)}`;
-const unwrap = (response) => response?.data ?? response ?? {};
-const arrayOf = (response, keys = []) => {
-    const root = unwrap(response);
-    if (Array.isArray(root)) return root;
-    for (const key of keys) if (Array.isArray(root?.[key])) return root[key];
-    if (Array.isArray(root?.data)) return root.data;
-    if (Array.isArray(root?.items)) return root.items;
-    return [];
-};
-const totalOf = (response, fallback) => {
-    const root = unwrap(response);
-    const value =
-        root?.total ??
-        root?.meta?.total ??
-        root?.pagination?.total ??
-        root?.data?.total;
-    return value == null || !Number.isFinite(Number(value))
-        ? fallback
-        : Number(value);
+const fmt = (v) => new Intl.NumberFormat('en-US').format(Number(v) || 0);
+const money = (v) => `৳ ${fmt(v)}`;
+const unwrap = (v) => v?.data ?? v ?? {};
+const arrayOf = (v, keys = []) => {
+    const r = unwrap(v);
+    if (Array.isArray(r)) return r;
+    for (const k of keys) if (Array.isArray(r?.[k])) return r[k];
+    return Array.isArray(r?.data)
+        ? r.data
+        : Array.isArray(r?.items)
+          ? r.items
+          : [];
 };
 const firstNumber = (...values) => {
-    for (const value of values) {
-        if (value !== undefined && value !== null && value !== '')
-            return Number(value) || 0;
-    }
+    for (const v of values)
+        if (v !== undefined && v !== null && v !== '') return Number(v) || 0;
     return 0;
 };
-const recordId = (record) =>
-    record?.id ?? record?._id ?? record?.request_id ?? record?.campaign_id;
-const recordLocation = (record) => {
-    const value = record?.district || record?.location || record?.address;
-    return typeof value === 'string'
-        ? value
-        : value?.name || 'Location unavailable';
+const totalOf = (v, fallback) => {
+    const r = unwrap(v);
+    const n =
+        r?.total ?? r?.meta?.total ?? r?.pagination?.total ?? r?.data?.total;
+    return n == null || !Number.isFinite(Number(n)) ? fallback : Number(n);
 };
-const urgency = (record) =>
+const recordId = (r) => r?.id ?? r?._id ?? r?.request_id ?? r?.campaign_id;
+const urgency = (r) =>
     String(
-        record?.urgency ||
-            record?.priority ||
-            record?.urgency_level ||
-            'normal',
+        r?.urgency || r?.priority || r?.urgency_level || 'normal',
     ).toLowerCase();
-const formatDate = (value) => {
-    if (!value) return 'Date unavailable';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return 'Date unavailable';
-    return date.toLocaleDateString('en-GB', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-    });
+const normalizedStatus = (record) =>
+    String(
+        record?.status ??
+            record?.verification_status ??
+            record?.application_status ??
+            record?.request_status ??
+            '',
+    )
+        .trim()
+        .toLowerCase()
+        .replace(/[\s-]+/g, '_');
+const countStatuses = (records, statuses) =>
+    records.filter((r) => statuses.includes(normalizedStatus(r))).length;
+const hasStatusCoverage = (records, total) =>
+    records.length >= total && total > 0;
+const statNumber = (...values) => {
+    for (const value of values) {
+        if (
+            value !== undefined &&
+            value !== null &&
+            value !== '' &&
+            Number.isFinite(Number(value))
+        )
+            return Number(value);
+    }
+    return null;
+};
+const recordLocation = (r) => {
+    const v = r?.district || r?.location || r?.address;
+    return typeof v === 'string' ? v : v?.name || 'Location unavailable';
+};
+const formatDate = (v) => {
+    const d = new Date(v);
+    return v && !Number.isNaN(d.getTime())
+        ? d.toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+          })
+        : 'Date unavailable';
 };
 const initialData = {
     stats: {},
     requests: [],
+    allRequests: [],
+    allOrganizations: [],
+    allVolunteers: [],
     verifications: [],
     campaigns: [],
     activity: [],
@@ -109,216 +127,240 @@ const initialData = {
     activeCampaigns: 0,
     pendingCampaigns: 0,
     donations: 0,
+    admin: null,
 };
-
-function SectionTitle({ kicker, title, description, action }) {
-    return (
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <div className="min-w-0">
-                {kicker && (
-                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#8294A7]">
-                        {kicker}
-                    </p>
-                )}
-                <h2 className="!m-0 !font-poppins !text-[18px] !font-semibold !leading-[1.35] !tracking-[-0.025em] !text-[#EEF1F5]">
-                    {title}
-                </h2>
-                {description && (
-                    <p className="mt-1 text-[12px] leading-5 text-[#94A2B2]">
-                        {description}
-                    </p>
-                )}
-            </div>
-            {action}
-        </div>
-    );
-}
-function TextAction({ children, onClick }) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="group inline-flex items-center gap-2 text-[12px] font-medium text-[#B9CCE3] hover:text-white"
-        >
-            {children}
-            <ArrowUpRight
-                size={14}
-                className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-            />
-        </button>
-    );
-}
-function Stat({ icon: Icon, label, value, color, onClick }) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="group flex min-w-0 items-center gap-3 border-b border-[#303A47] py-4 text-left transition-colors hover:bg-white/[0.025] sm:px-4 lg:border-b-0 lg:border-r lg:last:border-r-0"
-        >
-            <span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#2A3643]"
-                style={{ color }}
-            >
-                <Icon size={19} strokeWidth={1.7} />
-            </span>
-            <span className="min-w-0 flex-1">
-                <span className="block truncate text-[12px] text-[#94A2B2]">
-                    {label}
-                </span>
-                <span className="mt-1 block truncate text-[23px] font-semibold leading-none tabular-nums text-[#EEF1F5]">
-                    {value}
-                </span>
-            </span>
-            <ArrowUpRight
-                size={15}
-                className="shrink-0 text-[#75899E] opacity-0 transition-opacity group-hover:opacity-100"
-            />
-        </button>
-    );
+function readAdmin() {
+    for (const key of ['user', 'auth_user', 'authUser', 'currentUser'])
+        try {
+            const raw =
+                localStorage.getItem(key) || sessionStorage.getItem(key);
+            if (raw) {
+                const p = JSON.parse(raw);
+                const u = p?.user || p?.data?.user || p;
+                if (u?.name || u?.email) return u;
+            }
+        } catch {
+            /* Ignore invalid stored session */
+        }
+    return null;
 }
 function useCalendarDate() {
     const [today, setToday] = useState(() => new Date());
     useEffect(() => {
-        let timeout;
-        function scheduleNextDay() {
+        let timer;
+        const schedule = () => {
             const now = new Date();
             const next = new Date(
                 now.getFullYear(),
                 now.getMonth(),
                 now.getDate() + 1,
             );
-            timeout = setTimeout(
+            timer = setTimeout(
                 () => {
                     setToday(new Date());
-                    scheduleNextDay();
+                    schedule();
                 },
-                next.getTime() - now.getTime() + 100,
+                next - now + 100,
             );
-        }
-        scheduleNextDay();
-        return () => clearTimeout(timeout);
+        };
+        schedule();
+        return () => clearTimeout(timer);
     }, []);
     return today;
 }
-function readAdmin() {
-    // The dashboard API may provide the user; otherwise use only existing session data.
-    for (const key of ['user', 'auth_user', 'authUser', 'currentUser']) {
-        try {
-            const raw =
-                localStorage.getItem(key) || sessionStorage.getItem(key);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                const user = parsed?.user || parsed?.data?.user || parsed;
-                if (
-                    user &&
-                    typeof user === 'object' &&
-                    (user.name || user.email)
-                )
-                    return user;
-            }
-        } catch {
-            /* Invalid or unavailable stored profile. */
-        }
-    }
-    return null;
-}
-function SystemChart({ data, loading }) {
-    // A cross-sectional chart: no fictional monthly history or mismatched currency units.
-    const values = [
-        { label: 'Registered users', value: data.users, color: T.blue },
-        { label: 'Organizations', value: data.organizations, color: T.violet },
-        { label: 'Volunteers', value: data.volunteers, color: T.teal },
-        { label: 'Help requests', value: data.helpRequests, color: T.amber },
-        { label: 'Campaigns', value: data.totalCampaigns, color: '#A4B7CC' },
-    ];
-    const max = Math.max(1, ...values.map((item) => item.value));
+function Heading({ eyebrow, title, description, action }) {
     return (
-        <div className="rounded-[9px] border border-[#303A47] bg-[#1B242E] px-5 py-6 sm:px-6">
-            <div className="mb-6 flex items-center justify-between gap-3">
-                <span className="text-[12px] font-medium text-[#DDE6F0]">
-                    Network by category
-                </span>
-                <span className="text-[11px] text-[#94A2B2]">
-                    Current totals
-                </span>
+        <div className="mb-5 flex min-w-0 flex-wrap items-center justify-between gap-x-5 gap-y-3">
+            <div className="min-w-0">
+                <h2 className="!m-0 !font-poppins !text-[19px] !font-semibold !leading-snug !tracking-[-0.025em] !text-[#EEF1F5] sm:!text-[21px]">
+                    {title}
+                </h2>
+                {description ? (
+                    <p className="mt-1 text-[12px] leading-5 text-[#94A2B2] sm:text-[13px]">
+                        {description}
+                    </p>
+                ) : eyebrow ? (
+                    <p className="mt-1 text-[12px] text-[#94A2B2]">{eyebrow}</p>
+                ) : null}
             </div>
-            <div
-                className="space-y-5"
-                role="img"
-                aria-label="Bar chart comparing current counts of users, organizations, volunteers, help requests and campaigns"
-            >
-                {values.map((item) => (
-                    <div key={item.label}>
-                        <div className="mb-2 flex justify-between gap-4 text-[12px]">
-                            <span className="text-[#B6C3D0]">{item.label}</span>
-                            <strong className="tabular-nums text-[#EEF1F5]">
-                                {loading ? '—' : number(item.value)}
-                            </strong>
-                        </div>
-                        <div className="h-[9px] overflow-hidden rounded-[3px] bg-[#2B3846]">
-                            <div
-                                className="h-full rounded-[3px] transition-[width] duration-500"
-                                style={{
-                                    width: loading
-                                        ? '0%'
-                                        : `${Math.max(0, (item.value / max) * 100)}%`,
-                                    backgroundColor: item.color,
-                                }}
-                            />
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <p className="mt-6 border-t border-[#303A47] pt-4 text-[11px] leading-5 text-[#94A2B2]">
-                A snapshot of the platform's current totals, not historical
-                growth. Donation amounts are excluded because they use a
-                different unit.
-            </p>
+            {action}
         </div>
     );
 }
-function Skeleton({ count = 4 }) {
+function LinkAction({ children, onClick }) {
     return (
-        <div className="space-y-3 p-5">
-            {Array.from({ length: count }, (_, index) => (
-                <div
-                    key={index}
-                    className="h-[65px] animate-pulse rounded-md bg-[#283543]"
+        <button
+            type="button"
+            onClick={onClick}
+            className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#B9CCE3] transition hover:text-white"
+        >
+            {children}
+            <ArrowUpRight size={15} />
+        </button>
+    );
+}
+function Metric({ icon: Icon, label, value, color, onClick }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="group relative flex min-w-0 flex-col items-start justify-between overflow-hidden rounded-xl border border-[#34404E] bg-[#1B242E] p-4 text-left transition duration-200 hover:-translate-y-0.5 hover:border-[#52657A] hover:bg-[#222E3A] sm:min-h-[155px] sm:p-5"
+        >
+            <span
+                className="pointer-events-none absolute inset-x-0 top-0 h-[2px] opacity-80"
+                style={{ backgroundColor: color }}
+            />
+            <span className="flex w-full items-start justify-between gap-2">
+                <span
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg sm:h-11 sm:w-11"
+                    style={{ color, backgroundColor: `${color}1B` }}
+                >
+                    <Icon size={20} />
+                </span>
+                <ArrowUpRight
+                    size={16}
+                    className="text-[#71849A] transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-white"
                 />
-            ))}
-        </div>
+            </span>
+            <span className="mt-5 block w-full min-w-0">
+                <span className="block text-[12px] font-medium text-[#AAB9C9]">
+                    {label}
+                </span>
+                <strong className="mt-1.5 block break-words text-[clamp(19px,2vw,29px)] font-semibold leading-tight tracking-[-0.035em] tabular-nums text-[#F2F5F8]">
+                    {value}
+                </strong>
+            </span>
+        </button>
     );
 }
-function EmptyQueue({ title, description }) {
+function Empty({
+    title = 'All caught up',
+    description = 'There are no records awaiting review.',
+}) {
     return (
-        <div className="flex min-h-[300px] flex-col items-center justify-center px-6 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#273843] text-[#58AFA2]">
-                <CheckCircle2 size={24} />
+        <div className="flex min-h-[255px] flex-col items-center justify-center px-5 text-center">
+            <span className="mb-3 rounded-xl bg-[#58AFA2]/10 p-3 text-[#58AFA2]">
+                <CheckCircle2 size={23} />
             </span>
-            <p className="mt-4 text-[14px] font-semibold text-[#EEF1F5]">
-                {title}
-            </p>
-            <p className="mt-1.5 max-w-[280px] text-[12px] leading-5 text-[#94A2B2]">
+            <p className="font-semibold">{title}</p>
+            <p className="mt-1 max-w-[300px] text-[12px] leading-5 text-[#94A2B2]">
                 {description}
             </p>
         </div>
     );
 }
-
+function Bars({ data, loading }) {
+    const items = [
+        { name: 'Users', n: data.users, c: C.blue },
+        { name: 'Organizations', n: data.organizations, c: C.violet },
+        { name: 'Volunteers', n: data.volunteers, c: C.teal },
+        { name: 'Help requests', n: data.helpRequests, c: C.amber },
+        { name: 'Campaigns', n: data.totalCampaigns, c: '#B5C5D7' },
+    ];
+    const max = Math.max(1, ...items.map((item) => item.n));
+    return (
+        <div className="grid h-full min-w-0 content-between gap-6 rounded-xl border border-[#34404E] bg-[#1B242E] p-4 sm:p-6 2xl:grid-cols-[minmax(0,1fr)_190px] 2xl:p-7">
+            <div className="min-w-0">
+                <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h3 className="!m-0 !text-[15px] !font-semibold !text-[#EEF1F5]">
+                            Network distribution
+                        </h3>
+                        <p className="mt-1 text-[12px] text-[#94A2B2]">
+                            A comparison of live platform records
+                        </p>
+                    </div>
+                    <span className="rounded-md border border-[#344454] px-2.5 py-1 text-[11px] text-[#AFC0D1]">
+                        Current totals
+                    </span>
+                </div>
+                <div className="flex h-[195px] min-w-0 items-end gap-1.5 border-b border-[#3B4755] pb-0 sm:gap-4">
+                    {items.map((item) => (
+                        <div
+                            key={item.name}
+                            className="group flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2"
+                        >
+                            <strong className="text-[13px] font-semibold tabular-nums text-[#EAF0F6]">
+                                {loading ? '—' : fmt(item.n)}
+                            </strong>
+                            <div
+                                className="relative w-full max-w-[94px] overflow-hidden rounded-t-md bg-[#283440]"
+                                style={{
+                                    height: `${loading ? 4 : Math.max(8, (item.n / max) * 100)}%`,
+                                }}
+                            >
+                                <div
+                                    className="absolute inset-0 opacity-90"
+                                    style={{ background: item.c }}
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <div className="mt-3 flex min-w-0 gap-1 sm:gap-3">
+                    {items.map((item) => (
+                        <div
+                            key={item.name}
+                            className="min-w-0 flex-1 text-center break-words text-[9px] leading-4 text-[#A9B7C6] sm:text-[11px]"
+                        >
+                            {item.name}
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <div className="flex flex-col justify-between gap-6 border-t border-[#303A47] pt-6 2xl:border-l 2xl:border-t-0 2xl:pl-6 2xl:pt-0">
+                <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#94A2B2]">
+                        Platform reach
+                    </p>
+                    <strong className="mt-3 block text-[43px] font-semibold leading-none tabular-nums text-[#EEF1F5]">
+                        {loading ? '—' : fmt(data.users)}
+                    </strong>
+                    <p className="mt-2 text-[12px] text-[#94A2B2]">
+                        Registered accounts
+                    </p>
+                </div>
+                <div className="space-y-3 border-t border-[#303A47] pt-5">
+                    <div className="flex justify-between text-[12px]">
+                        <span className="text-[#94A2B2]">Organizations</span>
+                        <b className="tabular-nums">
+                            {loading ? '—' : fmt(data.organizations)}
+                        </b>
+                    </div>
+                    <div className="flex justify-between text-[12px]">
+                        <span className="text-[#94A2B2]">Volunteers</span>
+                        <b className="tabular-nums">
+                            {loading ? '—' : fmt(data.volunteers)}
+                        </b>
+                    </div>
+                    <div className="flex justify-between text-[12px]">
+                        <span className="text-[#94A2B2]">Campaigns</span>
+                        <b className="tabular-nums">
+                            {loading ? '—' : fmt(data.totalCampaigns)}
+                        </b>
+                    </div>
+                </div>
+                <p className="text-[11px] leading-5 text-[#8294A7]">
+                    Counts are compared on the same scale; donations are
+                    excluded because they use currency.
+                </p>
+            </div>
+        </div>
+    );
+}
 export default function Dashboard() {
     const navigate = useNavigate();
+    const go = (path) => navigate(`${ROOT}/${path}`);
     const [data, setData] = useState(initialData);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeQueue, setActiveQueue] = useState('campaigns');
     const [reload, setReload] = useState(0);
-    const today = useCalendarDate();
+    const [activeQueue, setActiveQueue] = useState('campaigns');
     const [sessionAdmin] = useState(readAdmin);
-    const go = (path) => navigate(`${ROOT}/${path}`);
-
+    const today = useCalendarDate();
     useEffect(() => {
         const controller = new AbortController();
-        async function fetchDashboard() {
+        async function load() {
             setLoading(true);
             setError('');
             try {
@@ -338,131 +380,107 @@ export default function Dashboard() {
                     'campaigns',
                 ];
                 const responses = await Promise.all(
-                    endpoints.map((endpoint) =>
-                        fetch(`${API}/admin/${endpoint}`, {
+                    endpoints.map((e) =>
+                        fetch(`${API}/admin/${e}`, {
                             headers,
                             signal: controller.signal,
                         }),
                     ),
                 );
-                const failed = responses.findIndex((response) => !response.ok);
+                const failed = responses.findIndex((r) => !r.ok);
                 if (failed !== -1)
                     throw new Error(
                         `Unable to load ${endpoints[failed]} (${responses[failed].status}).`,
                     );
-                const [
-                    dashboardRaw,
-                    usersRaw,
-                    organizationsRaw,
-                    volunteersRaw,
-                    requestsRaw,
-                    campaignsRaw,
-                ] = await Promise.all(
-                    responses.map((response) => response.json()),
+                const [dr, ur, or, vr, rr, cr] = await Promise.all(
+                    responses.map((r) => r.json()),
                 );
-                const dashboard = unwrap(dashboardRaw);
-                const users = arrayOf(usersRaw, ['users']);
-                const organizations = arrayOf(organizationsRaw, [
-                    'organizations',
-                ]);
-                const volunteers = arrayOf(volunteersRaw, ['volunteers']);
-                const requests = arrayOf(requestsRaw, [
-                    'helpRequests',
-                    'help_requests',
-                    'requests',
-                ]);
-                const campaigns = arrayOf(campaignsRaw, ['campaigns']);
-                const pendingCampaigns = campaigns.filter((campaign) =>
+                const d = unwrap(dr),
+                    users = arrayOf(ur, ['users']),
+                    orgs = arrayOf(or, ['organizations']),
+                    vols = arrayOf(vr, ['volunteers']),
+                    requests = arrayOf(rr, [
+                        'helpRequests',
+                        'help_requests',
+                        'requests',
+                    ]),
+                    campaigns = arrayOf(cr, ['campaigns']);
+                const pending = campaigns.filter((c) =>
                     ['unverified', 'pending', 'pending_review'].includes(
-                        String(campaign?.status).toLowerCase(),
+                        String(c?.status).toLowerCase(),
                     ),
                 );
-                const activeCampaigns = campaigns.filter(
-                    (campaign) =>
-                        String(campaign?.status).toLowerCase() === 'active',
+                const active = campaigns.filter(
+                    (c) => String(c?.status).toLowerCase() === 'active',
                 );
-                const pendingRequests =
-                    dashboard?.pendingHelpRequests ??
-                    dashboard?.pending_help_requests ??
-                    dashboard?.pendingRequests ??
-                    [];
-                const pendingVerifications =
-                    dashboard?.pendingVerifications ??
-                    dashboard?.pending_verifications ??
-                    [];
-                const activity =
-                    dashboard?.recentActivity ??
-                    dashboard?.recent_activity ??
-                    [];
-                if (!controller.signal.aborted) {
+                if (!controller.signal.aborted)
                     setData({
-                        stats: dashboard?.stats || {},
-                        admin:
-                            dashboard?.admin ||
-                            dashboard?.user ||
-                            dashboard?.currentUser ||
-                            null,
-                        requests: Array.isArray(pendingRequests)
-                            ? pendingRequests
+                        stats: d?.stats || {},
+                        admin: d?.admin || d?.user || d?.currentUser || null,
+                        requests: Array.isArray(
+                            d?.pendingHelpRequests ??
+                                d?.pending_help_requests ??
+                                d?.pendingRequests,
+                        )
+                            ? (d?.pendingHelpRequests ??
+                              d?.pending_help_requests ??
+                              d?.pendingRequests)
                             : [],
-                        verifications: Array.isArray(pendingVerifications)
-                            ? pendingVerifications
+                        verifications: Array.isArray(
+                            d?.pendingVerifications ?? d?.pending_verifications,
+                        )
+                            ? (d?.pendingVerifications ??
+                              d?.pending_verifications)
                             : [],
-                        campaigns: pendingCampaigns,
-                        activity: Array.isArray(activity) ? activity : [],
+                        activity: Array.isArray(
+                            d?.recentActivity ?? d?.recent_activity,
+                        )
+                            ? (d?.recentActivity ?? d?.recent_activity)
+                            : [],
+                        campaigns: pending,
+                        allRequests: requests,
+                        allOrganizations: orgs,
+                        allVolunteers: vols,
                         users: totalOf(
-                            usersRaw,
-                            firstNumber(
-                                dashboard?.stats?.totalUsers,
-                                users.length,
-                            ),
+                            ur,
+                            firstNumber(d?.stats?.totalUsers, users.length),
                         ),
                         individuals: firstNumber(
-                            dashboard?.stats?.totalIndividualUsers,
-                            users.filter((user) => user?.role === 'individual')
+                            d?.stats?.totalIndividualUsers,
+                            users.filter((u) => u?.role === 'individual')
                                 .length,
                         ),
-                        organizations: totalOf(
-                            organizationsRaw,
-                            organizations.length,
-                        ),
+                        organizations: totalOf(or, orgs.length),
                         volunteers: totalOf(
-                            volunteersRaw,
-                            firstNumber(
-                                dashboard?.stats?.totalVolunteers,
-                                volunteers.length,
-                            ),
+                            vr,
+                            firstNumber(d?.stats?.totalVolunteers, vols.length),
                         ),
-                        helpRequests: totalOf(requestsRaw, requests.length),
-                        totalCampaigns: totalOf(campaignsRaw, campaigns.length),
+                        helpRequests: totalOf(rr, requests.length),
+                        totalCampaigns: totalOf(cr, campaigns.length),
                         activeCampaigns: firstNumber(
-                            dashboard?.stats?.activeCampaigns,
-                            activeCampaigns.length,
+                            d?.stats?.activeCampaigns,
+                            active.length,
                         ),
                         pendingCampaigns: firstNumber(
-                            dashboard?.stats?.pendingCampaigns,
-                            pendingCampaigns.length,
+                            d?.stats?.pendingCampaigns,
+                            pending.length,
                         ),
                         donations: firstNumber(
-                            dashboard?.stats?.totalDonations,
-                            dashboard?.stats?.totalDonationAmount,
-                            dashboard?.stats?.donations,
+                            d?.stats?.totalDonations,
+                            d?.stats?.totalDonationAmount,
+                            d?.stats?.donations,
                         ),
                     });
-                }
-            } catch (caught) {
+            } catch (e) {
                 if (!controller.signal.aborted)
-                    setError(
-                        caught?.message || 'Unable to load dashboard data.',
-                    );
+                    setError(e?.message || 'Unable to load dashboard data.');
             } finally {
                 if (!controller.signal.aborted) setLoading(false);
             }
         }
-        fetchDashboard();
+        load();
         return () => controller.abort();
     }, [reload]);
-
     const counts = useMemo(
         () => ({
             requests: firstNumber(
@@ -483,24 +501,12 @@ export default function Dashboard() {
         }),
         [data],
     );
-    const workload =
-        counts.requests +
-        counts.organizations +
-        counts.volunteers +
-        counts.campaigns;
-    const urgentCount = firstNumber(
-        data.stats?.highPriorityRequests,
-        data.stats?.urgentHelpRequests,
-        data.requests.filter((item) =>
-            ['critical', 'urgent', 'high'].includes(urgency(item)),
-        ).length,
-    );
     const queues = [
         {
             id: 'requests',
             label: 'Help requests',
             count: counts.requests,
-            color: T.amber,
+            color: C.amber,
             icon: HeartHandshake,
             route: 'help-requests',
         },
@@ -508,7 +514,7 @@ export default function Dashboard() {
             id: 'organizations',
             label: 'Organizations',
             count: counts.organizations,
-            color: T.teal,
+            color: C.teal,
             icon: Building2,
             route: 'organizations',
         },
@@ -516,7 +522,7 @@ export default function Dashboard() {
             id: 'volunteers',
             label: 'Volunteers',
             count: counts.volunteers,
-            color: T.violet,
+            color: C.violet,
             icon: UserRoundCheck,
             route: 'volunteers/requests',
         },
@@ -524,13 +530,12 @@ export default function Dashboard() {
             id: 'campaigns',
             label: 'Campaigns',
             count: counts.campaigns,
-            color: T.blue,
+            color: C.blue,
             icon: Megaphone,
             route: 'campaigns',
         },
     ];
-    const currentQueue =
-        queues.find((queue) => queue.id === activeQueue) || queues[0];
+    const current = queues.find((q) => q.id === activeQueue) || queues[0];
     const entries =
         activeQueue === 'requests'
             ? data.requests
@@ -539,699 +544,1026 @@ export default function Dashboard() {
               : activeQueue === 'campaigns'
                 ? data.campaigns
                 : [];
-    const otherCampaigns = Math.max(
+    const workload = Object.values(counts).reduce((a, b) => a + b, 0);
+    const urgent = statNumber(
+        data.stats?.highPriorityRequests,
+        data.stats?.urgentHelpRequests,
+        hasStatusCoverage(data.allRequests, data.helpRequests)
+            ? data.allRequests.filter((x) =>
+                  ['critical', 'urgent', 'high'].includes(urgency(x)),
+              ).length
+            : null,
+    );
+    const information = useMemo(() => {
+        const s = data.stats || {};
+        const complete = (records, total) => hasStatusCoverage(records, total);
+        const derive = (records, total, statuses) =>
+            complete(records, total) ? countStatuses(records, statuses) : null;
+        const helpPending = statNumber(
+            s.pendingRequests,
+            s.pendingHelpRequests,
+            counts.requests,
+        );
+        const helpDone = statNumber(
+            s.completedHelpRequests,
+            s.resolvedHelpRequests,
+            s.completedRequests,
+            derive(data.allRequests, data.helpRequests, [
+                'completed',
+                'resolved',
+                'closed',
+                'fulfilled',
+            ]),
+        );
+        const orgVerified = statNumber(
+            s.verifiedOrganizations,
+            s.approvedOrganizations,
+            derive(data.allOrganizations, data.organizations, [
+                'verified',
+                'approved',
+                'active',
+            ]),
+        );
+        const volunteerActive = statNumber(
+            s.activeVolunteers,
+            derive(data.allVolunteers, data.volunteers, [
+                'active',
+                'accepted',
+                'approved',
+            ]),
+        );
+        const configs = {
+            requests: {
+                title: 'Help requests',
+                total: data.helpRequests,
+                totalLabel: 'Total requests',
+                rows: [
+                    {
+                        label: 'Awaiting review',
+                        value: helpPending,
+                        color: C.amber,
+                    },
+                    {
+                        label: 'Completed / resolved',
+                        value: helpDone,
+                        color: C.teal,
+                    },
+                    { label: 'High priority', value: urgent, color: '#E8A56E' },
+                ],
+                note: 'Current status of community support requests.',
+            },
+            organizations: {
+                title: 'Organizations',
+                total: data.organizations,
+                totalLabel: 'Total organizations',
+                rows: [
+                    {
+                        label: 'Awaiting verification',
+                        value: counts.organizations,
+                        color: C.amber,
+                    },
+                    {
+                        label: 'Verified / active',
+                        value: orgVerified,
+                        color: C.teal,
+                    },
+                ],
+                note: 'Registration and verification overview.',
+            },
+            volunteers: {
+                title: 'Volunteers',
+                total: data.volunteers,
+                totalLabel: 'Registered volunteers',
+                rows: [
+                    {
+                        label: 'Pending applications',
+                        value: counts.volunteers,
+                        color: C.amber,
+                    },
+                    {
+                        label: 'Active / accepted',
+                        value: volunteerActive,
+                        color: C.teal,
+                    },
+                ],
+                note: 'Volunteer enrollment and participation.',
+            },
+            campaigns: {
+                title: 'Campaigns',
+                total: data.totalCampaigns,
+                totalLabel: 'Total campaigns',
+                rows: [
+                    {
+                        label: 'Active campaigns',
+                        value: data.activeCampaigns,
+                        color: C.teal,
+                    },
+                    {
+                        label: 'Awaiting review',
+                        value: data.pendingCampaigns,
+                        color: C.amber,
+                    },
+                    {
+                        label: 'Other statuses',
+                        value: Math.max(
+                            0,
+                            data.totalCampaigns -
+                                data.activeCampaigns -
+                                data.pendingCampaigns,
+                        ),
+                        color: C.violet,
+                    },
+                ],
+                note: 'Campaign status across the platform.',
+            },
+        };
+        return configs[activeQueue] || configs.campaigns;
+    }, [activeQueue, data, counts, urgent]);
+    const admin = data.admin || sessionAdmin;
+    const adminName =
+        admin?.name || admin?.full_name || admin?.fullName || 'Administrator';
+    const adminPhoto =
+        admin?.avatar ||
+        admin?.photo ||
+        admin?.profile_photo ||
+        admin?.profile_image ||
+        '';
+    const initials = adminName
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((s) => s[0])
+        .join('')
+        .toUpperCase();
+    const other = Math.max(
         0,
         data.totalCampaigns - data.activeCampaigns - data.pendingCampaigns,
     );
-    const campaignDistribution = [
-        { label: 'Active', value: data.activeCampaigns, color: T.teal },
-        {
-            label: 'Pending review',
-            value: data.pendingCampaigns,
-            color: T.amber,
-        },
-        { label: 'Other statuses', value: otherCampaigns, color: '#64748B' },
+    const segments = [
+        { name: 'Active', n: data.activeCampaigns, c: C.teal },
+        { name: 'Pending review', n: data.pendingCampaigns, c: C.amber },
+        { name: 'Other statuses', n: other, c: '#64748B' },
     ];
-    const activePct = data.totalCampaigns
-        ? Math.min(100, (data.activeCampaigns / data.totalCampaigns) * 100)
+    const pct = data.totalCampaigns
+        ? (data.activeCampaigns / data.totalCampaigns) * 100
         : 0;
-    const pendingPct = data.totalCampaigns
-        ? Math.min(
-              100 - activePct,
-              (data.pendingCampaigns / data.totalCampaigns) * 100,
-          )
+    const ppct = data.totalCampaigns
+        ? (data.pendingCampaigns / data.totalCampaigns) * 100
         : 0;
+    const actions = [
+        {
+            name: 'Users',
+            desc: 'Accounts & permissions',
+            icon: Users,
+            path: 'users',
+            c: C.blue,
+        },
+        {
+            name: 'Organizations',
+            desc: 'Partners & verification',
+            icon: Building2,
+            path: 'organizations',
+            c: C.violet,
+        },
+        {
+            name: 'Volunteers',
+            desc: 'People & applications',
+            icon: UserRoundCheck,
+            path: 'volunteers',
+            c: C.teal,
+        },
+        {
+            name: 'Notifications',
+            desc: 'Platform updates',
+            icon: Bell,
+            path: 'notifications',
+            c: C.amber,
+        },
+        {
+            name: 'Help requests',
+            desc: 'Community support',
+            icon: HeartHandshake,
+            path: 'help-requests',
+            c: C.amber,
+        },
+        {
+            name: 'Settings',
+            desc: 'Account preferences',
+            icon: Settings,
+            path: 'settings',
+            c: C.blue,
+        },
+    ];
+    if (loading && !error) {
+        return (
+            <DashboardLoading
+                type="admin"
+                title="Loading dashboard..."
+                description="Retrieving your network and platform information."
+            />
+        );
+    }
 
     return (
-        <main className="min-h-screen font-poppins text-[#EEF1F5]">
-            <div className="mx-auto max-w-[1550px] space-y-12">
-                {/* Open header: the date and statistics are independent of the title. */}
-                <header className="flex flex-wrap items-start justify-between gap-6 border-b border-[#303A47] pb-7">
-                    <div className="min-w-0 max-w-[720px]">
-                        <p className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#94A2B2]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-[#88A9D7]" />
-                            Administration / Overview
-                        </p>
-                        <h1 className="!m-0 !font-fraunces !text-[30px] !font-semibold !leading-[1.2] !tracking-[-0.025em] !text-[#EEF1F5] sm:!text-[38px]">
-                            Operations overview
-                        </h1>
-                        <p className="mt-3 text-[13px] leading-6 text-[#A3B1C0]">
-                            Manage incoming requests, review platform activity
-                            and keep humanitarian operations moving.
-                        </p>
-                    </div>
-                    <div className="flex flex-col items-start gap-3 sm:items-end">
-                        <div className="flex items-center gap-2 text-[13px] font-medium text-[#D8E3EE]">
-                            <CalendarDays
-                                size={16}
-                                className="text-[#88A9D7]"
-                            />
-                            <time
-                                dateTime={`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`}
-                            >
-                                {today.toLocaleDateString('en-GB', {
-                                    weekday: 'long',
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}
-                            </time>
+        <main className="dashboard-refined min-h-screen min-w-0 w-full overflow-x-clip font-poppins text-[#EEF1F5]">
+            <style>{`.dashboard-refined h1,.dashboard-refined h2,.dashboard-refined h3{color:#EEF1F5!important}.dashboard-refined button{cursor:pointer}.dashboard-refined button:focus-visible{outline:2px solid #88A9D7;outline-offset:3px}.dashboard-refined section{min-width:0}.dashboard-refined strong{color:inherit}.dashboard-refined .font-fraunces{font-family:Poppins,sans-serif}`}</style>
+            <div className="mx-auto w-full max-w-[1550px] min-w-0 space-y-9 sm:space-y-11 xl:space-y-14">
+                <header className="relative overflow-hidden ">
+                    <div className="pointer-events-none absolute -right-12 -top-20 h-72 w-96 rounded-full bg-[#6D93C8]/[0.09] blur-[85px]" />
+                    <div className="relative flex min-w-0 flex-wrap items-start justify-between gap-5">
+                        <div className="min-w-0 max-w-[700px]">
+                            <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#A3B5C9]">
+                                <span className="h-2 w-2 rounded-full bg-[#6AB8AA] shadow-[0_0_12px_#58AFA255]" />
+                                ADMINISTRATION
+                                <span className="text-[#596B7D]">/</span>{' '}
+                                OVERVIEW
+                            </p>
+                            <h1 className="!m-0 !font-poppins !text-[27px] !font-semibold !leading-[1.15] !tracking-[-0.035em] !text-[#F2F5F8] sm:!text-[37px] xl:!text-[44px]">
+                                Operations{' '}
+                                <span className="text-[#A7C1E0]">overview</span>
+                            </h1>
+                            <p className="mt-3 max-w-[620px] text-[13px] leading-6 text-[#A8B6C5]">
+                                A clear view of the people, programs and
+                                decisions shaping your humanitarian network.
+                                Track operational progress and take action where
+                                support is needed.
+                            </p>
+                            <div className="mt-7 flex flex-wrap items-center gap-3">
+                                <span className="inline-flex items-center gap-2 rounded-lg border border-[#344557] bg-[#1D2A37] px-3 py-2 text-[12px] text-[#C6D7E8]">
+                                    <Activity
+                                        size={15}
+                                        className="text-[#58AFA2]"
+                                    />{' '}
+                                    Live operational overview
+                                </span>
+                                <span className="inline-flex items-center gap-2 rounded-lg border border-[#344557] bg-[#1D2A37] px-3 py-2 text-[12px] text-[#C6D7E8]">
+                                    <ShieldCheck
+                                        size={15}
+                                        className="text-[#88A9D7]"
+                                    />{' '}
+                                    Review, coordinate and respond
+                                </span>
+                            </div>
                         </div>
-                        <button
-                            type="button"
-                            disabled={loading}
-                            onClick={() => setReload((value) => value + 1)}
-                            className="inline-flex h-9 items-center gap-2 rounded-md border border-[#3A4857] bg-[#202B37] px-3.5 text-[12px] text-[#DCE5EE] hover:bg-[#304050] disabled:opacity-50"
-                        >
-                            <RefreshCw
-                                size={14}
-                                className={loading ? 'animate-spin' : ''}
-                            />
-                            Refresh data
-                        </button>
+                        <div className="flex min-w-0 flex-col items-start gap-3 sm:items-end">
+                            <span className="inline-flex items-center gap-2 text-[12px] font-medium text-[#D8E3EE]">
+                                <CalendarDays
+                                    size={16}
+                                    className="text-[#88A9D7]"
+                                />
+                                <time
+                                    dateTime={`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`}
+                                >
+                                    {today.toLocaleDateString('en-GB', {
+                                        weekday: 'long',
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric',
+                                    })}
+                                </time>
+                            </span>
+                            <button
+                                type="button"
+                                disabled={loading}
+                                onClick={() => setReload((v) => v + 1)}
+                                className="inline-flex items-center gap-2 rounded-lg border border-[#40536A] bg-[#253444] px-4 py-2.5 text-[12px] font-medium text-[#E3EDF7] transition hover:bg-[#314459] disabled:opacity-50"
+                            >
+                                <RefreshCw
+                                    size={14}
+                                    className={loading ? 'animate-spin' : ''}
+                                />
+                                Refresh data
+                            </button>
+                        </div>
                     </div>
                 </header>
 
-                {/* Standalone metrics, outside the header. */}
-                <section aria-label="Platform statistics">
-                    <SectionTitle
-                        kicker="Network snapshot"
+                {/* Primary creation shortcuts stay above the navigation center. */}
+                <div className="mb-9 flex flex-col gap-5 border-y border-[#303A47] py-5 sm:py-6 xl:flex-row xl:items-center xl:justify-between xl:gap-8">
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#88A9D7]">
+                            <Plus size={14} className="text-[#E8A56E]" />
+                            Quick actions
+                        </div>
+                        <p className="mt-2 text-[13px] text-[#A8B7C6]">
+                            Create a new record without opening a management
+                            list.
+                        </p>
+                    </div>
+                    <div className="grid w-full gap-2 min-[650px]:grid-cols-3 xl:w-auto xl:min-w-[510px]">
+                        {[
+                            {
+                                label: 'Add user',
+                                path: 'users/add',
+                                icon: Users,
+                                color: '#88A9D7',
+                            },
+                            {
+                                label: 'Add organization',
+                                path: 'organizations/add',
+                                icon: Building2,
+                                color: '#A998C8',
+                            },
+                            {
+                                label: 'Create campaign',
+                                path: 'campaigns/add',
+                                icon: Megaphone,
+                                color: '#E8A56E',
+                            },
+                        ].map((action) => {
+                            const Icon = action.icon;
+                            return (
+                                <button
+                                    key={action.path}
+                                    type="button"
+                                    onClick={() => go(action.path)}
+                                    className="group flex min-h-12 items-center justify-between gap-3 rounded-md border border-[#354251] bg-[#202B37] px-4 py-3 text-left transition-colors hover:border-[#61768B] hover:bg-[#293949] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#88A9D7]"
+                                >
+                                    <span className="flex min-w-0 items-center gap-2.5">
+                                        <Icon
+                                            size={17}
+                                            style={{ color: action.color }}
+                                            className="shrink-0"
+                                        />
+                                        <span className="text-[12px] font-semibold text-[#EEF1F5]">
+                                            {action.label}
+                                        </span>
+                                    </span>
+                                    <Plus
+                                        size={15}
+                                        className="shrink-0 text-[#8294A7] transition-colors group-hover:text-[#EEF1F5]"
+                                    />
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <section>
+                    <Heading
+                        eyebrow="Network snapshot"
                         title="Platform at a glance"
-                        description="Current totals across Stand For People."
+                        description="Current reach and contributions across the platform."
                     />
-                    <div className="grid grid-cols-1 gap-x-2 border-y border-[#303A47] sm:grid-cols-2 lg:grid-cols-4">
-                        <Stat
-                            icon={Users}
-                            label="Individuals"
-                            value={loading ? '—' : number(data.individuals)}
-                            color={T.blue}
+                    <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-12 xl:grid-rows-2">
+                        <button
+                            type="button"
                             onClick={() => go('users')}
-                        />
-                        <Stat
-                            icon={Building2}
-                            label="Organizations"
-                            value={loading ? '—' : number(data.organizations)}
-                            color={T.violet}
-                            onClick={() => go('organizations')}
-                        />
-                        <Stat
-                            icon={UserRoundCheck}
-                            label="Volunteers"
-                            value={loading ? '—' : number(data.volunteers)}
-                            color={T.teal}
-                            onClick={() => go('volunteers')}
-                        />
-                        <Stat
-                            icon={Wallet}
-                            label="Donations"
-                            value={loading ? '—' : currency(data.donations)}
-                            color={T.amber}
+                            className="group relative flex min-h-[178px] flex-col justify-between overflow-hidden rounded-xl border border-[#354455] bg-[#223242] p-6 text-left transition hover:bg-[#293C4D] sm:col-span-2 xl:col-span-4 xl:row-span-2"
+                        >
+                            <div className="flex items-start justify-between">
+                                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#88A9D7]/15 text-[#88A9D7]">
+                                    <Users size={23} />
+                                </span>
+                                <ArrowUpRight
+                                    size={17}
+                                    className="text-[#91A6BC]"
+                                />
+                            </div>
+                            <div className="mt-8">
+                                <p className="text-[12px] text-[#B8C9DA]">
+                                    People across the network
+                                </p>
+                                <strong className="mt-2 block text-[clamp(32px,4vw,52px)] font-semibold leading-none tabular-nums text-[#EEF1F5]">
+                                    {loading ? '—' : fmt(data.users)}
+                                </strong>
+                                <p className="mt-3 text-[12px] text-[#94A2B2]">
+                                    Registered users
+                                </p>
+                            </div>
+                            <div className="mt-6 grid grid-cols-2 gap-3 border-t border-[#405163] pt-4">
+                                <span className="text-[11px] text-[#AFC1D2]">
+                                    Individuals
+                                    <strong className="mt-1 block text-[18px] font-semibold text-[#EEF1F5]">
+                                        {loading ? '—' : fmt(data.individuals)}
+                                    </strong>
+                                </span>
+                                <span className="text-[11px] text-[#AFC1D2]">
+                                    Organizations
+                                    <strong className="mt-1 block text-[18px] font-semibold text-[#EEF1F5]">
+                                        {loading
+                                            ? '—'
+                                            : fmt(data.organizations)}
+                                    </strong>
+                                </span>
+                            </div>
+                        </button>
+                        <div className="grid gap-3 min-[520px]:grid-cols-2 xl:col-span-5">
+                            <Metric
+                                icon={UserRoundCheck}
+                                label="Volunteers"
+                                value={loading ? '—' : fmt(data.volunteers)}
+                                color={C.teal}
+                                onClick={() => go('volunteers')}
+                            />
+                            <Metric
+                                icon={HeartHandshake}
+                                label="Help requests"
+                                value={loading ? '—' : fmt(data.helpRequests)}
+                                color={C.amber}
+                                onClick={() => go('help-requests')}
+                            />
+                        </div>
+                        <button
+                            type="button"
                             onClick={() => go('donations')}
-                        />
+                            className="group flex min-h-[155px] flex-col justify-between rounded-xl border border-[#57483D] bg-[#282C30] p-5 text-left transition hover:bg-[#33343A] xl:col-span-3 xl:row-span-2"
+                        >
+                            <span className="flex items-center justify-between text-[#E8A56E]">
+                                <Wallet size={23} />
+                                <ArrowUpRight size={16} />
+                            </span>
+                            <span>
+                                <span className="block text-[12px] text-[#D0B9A5]">
+                                    Total contributions
+                                </span>
+                                <strong className="mt-2 block text-[clamp(23px,2.6vw,35px)] font-semibold tabular-nums text-[#F3D5AD]">
+                                    {loading ? '—' : money(data.donations)}
+                                </strong>
+                                <span className="mt-2 block text-[11px] text-[#B8A99A]">
+                                    Donations received
+                                </span>
+                            </span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => go('campaigns')}
+                            className="group flex min-h-[145px] flex-col justify-between rounded-xl border border-[#34404E] bg-[#1B2732] p-5 text-left transition hover:bg-[#273746] xl:col-span-5"
+                        >
+                            <span className="flex items-center justify-between text-[#A7B7D0]">
+                                <Megaphone size={21} />
+                                <ArrowUpRight size={16} />
+                            </span>
+                            <span className="mt-4 flex items-end justify-between gap-4">
+                                <span>
+                                    <span className="block text-[12px] text-[#AAB9C9]">
+                                        Campaigns
+                                    </span>
+                                    <strong className="mt-1 block text-[28px] font-semibold tabular-nums">
+                                        {loading
+                                            ? '—'
+                                            : fmt(data.totalCampaigns)}
+                                    </strong>
+                                </span>
+                                <span className="text-right text-[11px] text-[#A5B9CB]">
+                                    <strong className="block text-[18px] font-semibold text-[#7BC2B5]">
+                                        {loading
+                                            ? '—'
+                                            : fmt(data.activeCampaigns)}
+                                    </strong>
+                                    Active
+                                </span>
+                            </span>
+                            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#344452]">
+                                <div
+                                    className="h-full bg-[#58AFA2]"
+                                    style={{
+                                        width: `${Math.min(100, Math.max(0, pct))}%`,
+                                    }}
+                                />
+                            </div>
+                        </button>
                     </div>
                 </section>
-
                 {error && (
                     <div
                         role="alert"
-                        className="flex flex-wrap items-center gap-3 rounded-md border border-[#80544A] bg-[#38272C] px-4 py-3 text-[13px] text-[#F2BDA2]"
+                        className="flex items-center gap-3 rounded-lg border border-[#80544A] bg-[#38272C] p-4 text-[13px] text-[#F2BDA2]"
                     >
-                        <AlertCircle size={17} />
+                        <AlertCircle size={18} />
                         <span className="flex-1">{error}</span>
                         <button
                             type="button"
+                            onClick={() => setReload((v) => v + 1)}
                             className="underline"
-                            onClick={() => setReload((value) => value + 1)}
                         >
                             Retry
                         </button>
                     </div>
                 )}
-
-                {/* Review area: one primary workspace, one quiet context rail */}
                 <section>
-                    <SectionTitle
-                        kicker="Priority workspace"
+                    <Heading
+                        eyebrow="Priority workspace"
                         title="Needs attention"
-                        description="Review submissions waiting for a decision."
+                        description="Review and act on items waiting for a decision."
                         action={
-                            <span className="inline-flex items-center gap-2 rounded-full border border-[#4A433C] bg-[#332D29] px-3 py-1.5 text-[11px] font-semibold text-[#E8B083]">
-                                <CircleDot size={12} />
-                                {loading ? '—' : number(workload)} pending
+                            <span className="rounded-full border border-[#5A4537] bg-[#332D29] px-3 py-1.5 text-[12px] font-semibold text-[#E8B083]">
+                                {loading ? '—' : fmt(workload)} pending
                             </span>
                         }
                     />
-                    <div className="grid min-w-0 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
-                        <div className="min-w-0 overflow-hidden rounded-[9px] border border-[#303A47] bg-[#1B242E]">
-                            <div className="flex overflow-x-auto border-b border-[#303A47] bg-[#202B37] [scrollbar-width:none]">
-                                {queues.map((queue) => (
+                    <div className="grid min-w-0 items-stretch gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(285px,0.83fr)] 2xl:grid-cols-[minmax(0,1fr)_380px]">
+                        <div className="flex min-h-[320px] min-w-0 flex-col overflow-hidden rounded-xl border border-[#34404E] bg-[#1B242E] xl:h-[430px]">
+                            <div
+                                className="grid min-w-0 grid-cols-2 border-b border-[#303A47] bg-[#202B37] 2xl:grid-cols-4"
+                                role="tablist"
+                                aria-label="Review categories"
+                            >
+                                {queues.map((q) => (
                                     <button
-                                        key={queue.id}
+                                        key={q.id}
                                         type="button"
-                                        onClick={() => setActiveQueue(queue.id)}
-                                        className={`flex min-w-[140px] flex-1 items-center justify-center gap-2 border-b-2 px-3 py-[17px] text-[12px] font-medium transition-colors ${activeQueue === queue.id ? 'text-[#EEF1F5]' : 'border-transparent text-[#94A2B2] hover:bg-[#293746] hover:text-white'}`}
+                                        onClick={() => setActiveQueue(q.id)}
+                                        className={`flex min-w-0 items-center justify-center gap-1.5 border-b-2 px-2 py-3 text-[11px] font-medium transition sm:gap-2 sm:px-3 sm:text-[12px] 2xl:py-4 ${activeQueue === q.id ? 'bg-[#293746] text-white' : 'border-transparent text-[#94A2B2] hover:bg-white/5'}`}
+                                        role="tab"
+                                        aria-selected={activeQueue === q.id}
                                         style={
-                                            activeQueue === queue.id
-                                                ? { borderColor: queue.color }
+                                            activeQueue === q.id
+                                                ? { borderColor: q.color }
                                                 : undefined
                                         }
                                     >
-                                        {queue.label}
+                                        {q.label}
                                         <span
-                                            className="rounded bg-[#32404E] px-1.5 py-0.5 text-[10px] tabular-nums"
-                                            style={{ color: queue.color }}
+                                            className="rounded bg-[#334252] px-1.5 py-0.5 text-[10px]"
+                                            style={{ color: q.color }}
                                         >
-                                            {loading ? '—' : queue.count}
+                                            {loading ? '—' : q.count}
                                         </span>
                                     </button>
                                 ))}
                             </div>
-                            <div className="flex items-center justify-between border-b border-[#303A47] px-5 py-3.5 sm:px-6">
-                                <span className="text-[11px] font-medium text-[#9BAABD]">
-                                    {currentQueue.label} awaiting review
+                            <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-[#303A47] px-3 py-3.5 sm:px-5">
+                                <span className="text-[12px] font-medium text-[#B8C5D3]">
+                                    {current.label} awaiting review
                                 </span>
-                                <TextAction
-                                    onClick={() => go(currentQueue.route)}
-                                >
+                                <LinkAction onClick={() => go(current.route)}>
                                     Open all
-                                </TextAction>
+                                </LinkAction>
                             </div>
-                            {loading ? (
-                                <Skeleton count={4} />
-                            ) : entries.length ? (
-                                <div className="divide-y divide-[#303A47]">
-                                    {entries.slice(0, 5).map((item, index) => {
-                                        const title =
-                                            activeQueue === 'requests'
-                                                ? item?.title ||
-                                                  item?.subject ||
-                                                  item?.request_title ||
-                                                  'Untitled help request'
-                                                : activeQueue ===
-                                                    'organizations'
-                                                  ? item?.organization_name ||
-                                                    item?.name ||
-                                                    item?.organizationName ||
-                                                    'Organization registration'
-                                                  : item?.title ||
-                                                    item?.name ||
-                                                    item?.campaign_title ||
-                                                    'Untitled campaign';
-                                        const detail =
-                                            activeQueue === 'requests'
-                                                ? recordLocation(item)
-                                                : activeQueue ===
-                                                    'organizations'
-                                                  ? item?.email ||
-                                                    item?.organization?.email ||
-                                                    'Awaiting verification'
-                                                  : item?.organization?.name ||
-                                                    item?.organization_name ||
-                                                    recordLocation(item);
-                                        const id = recordId(item);
-                                        const destination =
-                                            activeQueue === 'requests'
-                                                ? `help-requests/${id}`
-                                                : activeQueue === 'campaigns'
-                                                  ? `campaigns/${id}`
-                                                  : `organizations/${id}`;
-                                        const priority = urgency(item);
-                                        return (
-                                            <button
-                                                key={id ?? index}
-                                                type="button"
-                                                onClick={() =>
-                                                    go(
-                                                        id
-                                                            ? destination
-                                                            : currentQueue.route,
-                                                    )
-                                                }
-                                                className="group flex w-full items-center gap-3 px-4 py-[17px] text-left transition-colors hover:bg-[#263442] sm:px-6"
-                                            >
-                                                <span
-                                                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[7px] bg-[#2A3744]"
-                                                    style={{
-                                                        color: currentQueue.color,
-                                                    }}
+                            <div className="min-h-[110px] max-h-[360px] flex-1 overflow-y-auto overscroll-contain lg:max-h-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                                {loading ? (
+                                    <div className="space-y-3 p-5">
+                                        {Array.from({ length: 4 }, (_, i) => (
+                                            <div
+                                                key={i}
+                                                className="h-[65px] animate-pulse rounded-lg bg-[#283543]"
+                                            />
+                                        ))}
+                                    </div>
+                                ) : entries.length ? (
+                                    <div className="divide-y divide-[#303A47]">
+                                        {entries.map((item, index) => {
+                                            const id = recordId(item);
+                                            const title =
+                                                activeQueue === 'requests'
+                                                    ? item?.title ||
+                                                      item?.subject ||
+                                                      item?.request_title ||
+                                                      'Untitled help request'
+                                                    : activeQueue ===
+                                                        'organizations'
+                                                      ? item?.organization_name ||
+                                                        item?.name ||
+                                                        item?.organizationName ||
+                                                        'Organization registration'
+                                                      : item?.title ||
+                                                        item?.name ||
+                                                        item?.campaign_title ||
+                                                        'Untitled campaign';
+                                            const detail =
+                                                activeQueue === 'requests'
+                                                    ? recordLocation(item)
+                                                    : activeQueue ===
+                                                        'organizations'
+                                                      ? item?.email ||
+                                                        item?.organization
+                                                            ?.email ||
+                                                        'Awaiting verification'
+                                                      : item?.organization
+                                                            ?.name ||
+                                                        item?.organization_name ||
+                                                        recordLocation(item);
+                                            const destination =
+                                                activeQueue === 'requests'
+                                                    ? `help-requests/${id}`
+                                                    : activeQueue ===
+                                                        'campaigns'
+                                                      ? `campaigns/${id}`
+                                                      : `organizations/${id}`;
+                                            const high =
+                                                activeQueue === 'requests' &&
+                                                [
+                                                    'critical',
+                                                    'urgent',
+                                                    'high',
+                                                ].includes(urgency(item));
+                                            const Icon = current.icon;
+                                            return (
+                                                <button
+                                                    key={id ?? index}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        go(
+                                                            id
+                                                                ? destination
+                                                                : current.route,
+                                                        )
+                                                    }
+                                                    className="group flex min-w-0 w-full items-center gap-2.5 px-3 py-3.5 text-left transition hover:bg-[#263442] sm:gap-3 sm:px-5 sm:py-4"
                                                 >
-                                                    <currentQueue.icon
-                                                        size={18}
-                                                        strokeWidth={1.75}
-                                                    />
-                                                </span>
-                                                <span className="min-w-0 flex-1">
-                                                    <span className="block truncate text-[13px] font-semibold text-[#E9EEF5]">
-                                                        {title}
+                                                    <span
+                                                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#2A3744]"
+                                                        style={{
+                                                            color: current.color,
+                                                        }}
+                                                    >
+                                                        <Icon size={18} />
                                                     </span>
-                                                    <span className="mt-1 flex items-center gap-1.5 truncate text-[11px] text-[#94A2B2]">
-                                                        <MapPin
-                                                            size={11}
-                                                            className="shrink-0"
-                                                        />
-                                                        <span className="truncate">
+                                                    <span className="min-w-0 flex-1">
+                                                        <strong className="block truncate text-[13px] font-semibold">
+                                                            {title}
+                                                        </strong>
+                                                        <span className="mt-1 block truncate text-[11px] text-[#94A2B2]">
                                                             {detail}
                                                         </span>
                                                     </span>
-                                                </span>
-                                                <span
-                                                    className={`hidden rounded-[4px] px-2.5 py-1 text-[10px] font-medium sm:inline-flex ${activeQueue === 'requests' && ['critical', 'urgent', 'high'].includes(priority) ? 'bg-[#49352D] text-[#F2B184]' : 'bg-[#2D3C4B] text-[#AFC7E5]'}`}
-                                                >
-                                                    {activeQueue === 'requests'
-                                                        ? priority
-                                                              .charAt(0)
-                                                              .toUpperCase() +
-                                                          priority.slice(1)
-                                                        : 'Pending'}
-                                                </span>
-                                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#364554] text-[#A4B6C8] group-hover:bg-[#364858] group-hover:text-white">
-                                                    <ArrowRight size={15} />
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            ) : (
-                                <EmptyQueue
-                                    title={
-                                        activeQueue === 'volunteers' &&
-                                        counts.volunteers
-                                            ? 'Volunteer applications pending'
-                                            : 'Queue is clear'
-                                    }
-                                    description={
-                                        activeQueue === 'volunteers' &&
-                                        counts.volunteers
-                                            ? 'Open volunteer requests to review the applications.'
-                                            : 'There are no records in this review category.'
-                                    }
-                                />
-                            )}
+                                                    <span
+                                                        className={`hidden rounded-md px-2.5 py-1 text-[10px] font-medium sm:inline ${high ? 'bg-[#49352D] text-[#F2B184]' : 'bg-[#2D3C4B] text-[#AFC7E5]'}`}
+                                                    >
+                                                        {activeQueue ===
+                                                        'requests'
+                                                            ? urgency(item)
+                                                            : 'Pending'}
+                                                    </span>
+                                                    <ArrowRight
+                                                        size={16}
+                                                        className="shrink-0 text-[#94A2B2] group-hover:text-white"
+                                                    />
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <Empty
+                                        title={
+                                            activeQueue === 'volunteers' &&
+                                            counts.volunteers
+                                                ? 'Volunteer applications pending'
+                                                : 'Queue is clear'
+                                        }
+                                        description={
+                                            activeQueue === 'volunteers' &&
+                                            counts.volunteers
+                                                ? 'Open volunteer requests to review applications.'
+                                                : 'There are no records in this review category.'
+                                        }
+                                    />
+                                )}
+                            </div>
                             <button
                                 type="button"
-                                onClick={() => go(currentQueue.route)}
-                                className="flex w-full items-center justify-between border-t border-[#303A47] bg-[#202B37]/70 px-5 py-3.5 text-[12px] font-medium text-[#B7CEE7] hover:bg-[#293948] sm:px-6"
+                                onClick={() => go(current.route)}
+                                className="flex w-full items-center justify-between border-t border-[#303A47] bg-[#202B37]/70 px-5 py-3.5 text-[12px] font-medium text-[#B7CEE7] hover:bg-[#293948]"
                             >
-                                View all {currentQueue.label.toLowerCase()}{' '}
+                                View all {current.label.toLowerCase()}
                                 <ArrowRight size={15} />
                             </button>
                         </div>
-
-                        <aside className="flex min-w-0 flex-col overflow-hidden rounded-[9px] border border-[#303A47] bg-[#1B242E]">
-                            <div className="border-b border-[#303A47] px-5 py-5">
-                                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#9EAFC0]">
-                                    <ShieldCheck
-                                        size={15}
-                                        className="text-[#E8A56E]"
-                                    />{' '}
-                                    Priority status
+                        <aside className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-[#34404E] bg-[#1B242E] xl:h-[430px]">
+                            <div className="min-w-0 flex-1 p-4 sm:p-6">
+                                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#B9C6D5]">
+                                    <ClipboardList
+                                        size={16}
+                                        style={{ color: current.color }}
+                                    />
+                                    Information desk
                                 </div>
-                                <div className="mt-4 flex items-end gap-3">
-                                    <span className="text-[40px] font-semibold leading-none tracking-tight tabular-nums text-[#EEF1F5]">
-                                        {loading ? '—' : number(urgentCount)}
-                                    </span>
-                                    <span className="pb-1 text-[11px] leading-4 text-[#94A2B2]">
-                                        high-priority
-                                        <br />
-                                        help requests
-                                    </span>
+                                <p className="mt-3 text-[12px] text-[#94A2B2]">
+                                    {information.note}
+                                </p>
+                                <div className="mt-5 border-b border-[#34404E] pb-5">
+                                    <p className="text-[12px] text-[#AFC0D1]">
+                                        {information.totalLabel}
+                                    </p>
+                                    <strong className="mt-1 block text-[37px] font-semibold leading-tight tabular-nums text-[#EEF1F5]">
+                                        {loading ? '—' : fmt(information.total)}
+                                    </strong>
                                 </div>
-                                <p className="mt-3 text-[11px] leading-5 text-[#94A2B2]">
-                                    Critical, urgent, or high-priority cases
-                                    requiring review.
-                                </p>
-                            </div>
-                            <div className="flex-1 px-5 py-5">
-                                <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#A8B7C6]">
-                                    Pending by team
-                                </p>
-                                <div className="space-y-4">
-                                    {queues.map((queue) => (
-                                        <button
-                                            key={queue.id}
-                                            type="button"
-                                            onClick={() =>
-                                                setActiveQueue(queue.id)
-                                            }
-                                            className="flex w-full items-center justify-between gap-3 text-left"
+                                <div className="mt-4 space-y-3.5">
+                                    {information.rows.map((item) => (
+                                        <div
+                                            key={item.label}
+                                            className="flex items-center justify-between gap-3 text-[12px]"
                                         >
-                                            <span className="flex items-center gap-2.5 text-[12px] text-[#AFBCCB]">
+                                            <span className="flex min-w-0 items-center gap-2 text-[#B9C6D5]">
                                                 <span
-                                                    className="h-2 w-2 rounded-full"
+                                                    className="h-2 w-2 shrink-0 rounded-full"
                                                     style={{
                                                         backgroundColor:
-                                                            queue.color,
+                                                            item.color,
                                                     }}
                                                 />
-                                                {queue.label}
+                                                {item.label}
                                             </span>
-                                            <strong className="text-[12px] tabular-nums text-[#EEF1F5]">
-                                                {loading
+                                            <strong className="shrink-0 tabular-nums text-[#EEF1F5]">
+                                                {loading || item.value === null
                                                     ? '—'
-                                                    : number(queue.count)}
+                                                    : fmt(item.value)}
                                             </strong>
-                                        </button>
+                                        </div>
                                     ))}
                                 </div>
+                                {!loading &&
+                                    information.rows.some(
+                                        (item) => item.value === null,
+                                    ) && (
+                                        <p className="mt-4 text-[11px] leading-4 text-[#8193A6]">
+                                            — means this total is not available
+                                            from the current API response.
+                                        </p>
+                                    )}
                             </div>
                             <button
                                 type="button"
-                                onClick={() => go('help-requests')}
-                                className="flex items-center justify-between border-t border-[#303A47] bg-[#202B37] px-5 py-4 text-[12px] font-medium text-[#B7CEE7] hover:bg-[#2A3948]"
+                                onClick={() => go(current.route)}
+                                className="flex w-full items-center justify-between gap-3 border-t border-[#303A47] bg-[#202B37] px-5 py-4 text-left text-[12px] font-medium text-[#B7CEE7] transition hover:bg-[#293948]"
                             >
-                                Manage help requests <ArrowRight size={15} />
+                                View {information.title.toLowerCase()}{' '}
+                                <ArrowRight size={15} />
                             </button>
                         </aside>
                     </div>
                 </section>
-
-                <section>
-                    <SectionTitle
-                        kicker="System intelligence"
-                        title="Whole-system statistics"
-                        description="Compare the scale of core platform activities using live totals."
-                        action={
-                            <BarChart3 size={19} className="text-[#88A9D7]" />
-                        }
-                    />
-                    <SystemChart data={data} loading={loading} />
-                </section>
-
-                {/* Profile and action center use different layouts from the review workspace. */}
-                <section>
-                    <SectionTitle
-                        kicker="Administration"
-                        title="Your workspace"
-                        description="Account details and direct access to the tools you manage."
-                    />
-                    <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(260px,0.85fr)_minmax(0,1.5fr)]">
-                        <div className="rounded-[9px] border border-[#303A47] bg-[#1B242E] p-5 sm:p-6">
-                            {(() => {
-                                const admin = data.admin || sessionAdmin;
-                                const name =
-                                    admin?.name ||
-                                    admin?.full_name ||
-                                    admin?.fullName ||
-                                    'Administrator';
-                                const email = admin?.email || '';
-                                const photo =
-                                    admin?.avatar ||
-                                    admin?.photo ||
-                                    admin?.profile_photo ||
-                                    admin?.profile_image ||
-                                    '';
-                                const initials = name
-                                    .split(/\s+/)
-                                    .slice(0, 2)
-                                    .map((part) => part[0])
-                                    .join('')
-                                    .toUpperCase();
-                                return (
-                                    <>
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#3B4A59] bg-[#2C3947] text-[19px] font-semibold text-[#DCE7F2]">
-                                                {photo ? (
-                                                    <img
-                                                        src={photo}
-                                                        alt=""
-                                                        className="h-full w-full object-cover"
-                                                        onError={(event) => {
-                                                            event.currentTarget.style.display =
-                                                                'none';
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    initials
-                                                )}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-[11px] uppercase tracking-[0.12em] text-[#94A2B2]">
-                                                    Administrator profile
-                                                </p>
-                                                <h3 className="mt-1 truncate text-[17px] font-semibold text-[#EEF1F5]">
-                                                    {name}
-                                                </h3>
-                                                <p className="mt-0.5 truncate text-[12px] text-[#94A2B2]">
-                                                    {email ||
-                                                        'Platform administration'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="mt-6 grid grid-cols-2 gap-2 border-t border-[#303A47] pt-5">
-                                            <button
-                                                type="button"
-                                                onClick={() => go('profile')}
-                                                className="inline-flex items-center justify-center gap-2 rounded-md border border-[#3A4857] px-3 py-2.5 text-[12px] font-medium text-[#DDE7F0] hover:bg-[#293746]"
-                                            >
-                                                <UserCircle2 size={15} />
-                                                My profile
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => go('security')}
-                                                className="inline-flex items-center justify-center gap-2 rounded-md border border-[#3A4857] px-3 py-2.5 text-[12px] font-medium text-[#DDE7F0] hover:bg-[#293746]"
-                                            >
-                                                <LockKeyhole size={15} />
-                                                Security
-                                            </button>
-                                        </div>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                        <div className="overflow-hidden rounded-[9px] border border-[#303A47] bg-[#1B242E]">
-                            <div className="flex items-center justify-between border-b border-[#303A47] px-5 py-4 sm:px-6">
-                                <div>
-                                    <h3 className="text-[15px] font-semibold text-[#EEF1F5]">
-                                        Action center
-                                    </h3>
-                                    <p className="mt-1 text-[12px] text-[#94A2B2]">
-                                        Go directly to administrative tools
-                                    </p>
-                                </div>
-                                <Layers3 size={17} className="text-[#88A9D7]" />
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2">
-                                {[
-                                    {
-                                        label: 'Users',
-                                        note: 'Accounts and permissions',
-                                        icon: Users,
-                                        path: 'users',
-                                        color: T.blue,
-                                    },
-                                    {
-                                        label: 'Organizations',
-                                        note: 'Partners and verification',
-                                        icon: Building2,
-                                        path: 'organizations',
-                                        color: T.violet,
-                                    },
-                                    {
-                                        label: 'Volunteers',
-                                        note: 'People and applications',
-                                        icon: UserRoundCheck,
-                                        path: 'volunteers',
-                                        color: T.teal,
-                                    },
-                                    {
-                                        label: 'Notifications',
-                                        note: 'Platform updates',
-                                        icon: Bell,
-                                        path: 'notifications',
-                                        color: T.amber,
-                                    },
-                                    {
-                                        label: 'Help requests',
-                                        note: 'Community support cases',
-                                        icon: HeartHandshake,
-                                        path: 'help-requests',
-                                        color: T.amber,
-                                    },
-                                    {
-                                        label: 'Settings',
-                                        note: 'Account preferences',
-                                        icon: Settings,
-                                        path: 'settings',
-                                        color: T.blue,
-                                    },
-                                ].map((action) => (
-                                    <button
-                                        key={action.label}
-                                        type="button"
-                                        onClick={() => go(action.path)}
-                                        className="group flex min-w-0 items-center gap-3 border-b border-[#303A47] px-5 py-4 text-left transition-colors hover:bg-[#263442] sm:odd:border-r sm:px-6"
-                                    >
-                                        <span
-                                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#2A3744]"
-                                            style={{ color: action.color }}
-                                        >
-                                            <action.icon size={17} />
-                                        </span>
-                                        <span className="min-w-0 flex-1">
-                                            <span className="block text-[12px] font-semibold text-[#EAF0F6]">
-                                                {action.label}
-                                            </span>
-                                            <span className="mt-1 block truncate text-[11px] text-[#94A2B2]">
-                                                {action.note}
-                                            </span>
-                                        </span>
-                                        <ArrowUpRight
-                                            size={15}
-                                            className="shrink-0 text-[#8195A9] group-hover:text-white"
-                                        />
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Bottom row: compact platform health and meaningful timeline */}
-                <section className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
-                    <div className="min-w-0">
-                        <SectionTitle
-                            kicker="Platform health"
+                <section className="grid min-w-0 items-stretch gap-7 xl:grid-cols-2">
+                    <div className="flex min-w-0 flex-col">
+                        <Heading
+                            eyebrow="Platform health"
                             title="Campaign overview"
-                            description="How campaigns are progressing across the network."
+                            description="How campaigns are progressing."
                             action={
-                                <TextAction onClick={() => go('campaigns')}>
+                                <LinkAction onClick={() => go('campaigns')}>
                                     Manage campaigns
-                                </TextAction>
+                                </LinkAction>
                             }
                         />
-                        <div className="rounded-[9px] border border-[#303A47] bg-[#1B242E] px-5 py-6 sm:px-6">
-                            <div className="flex flex-wrap items-center gap-7">
+                        <div className="flex min-h-[365px] flex-1 flex-col justify-between rounded-xl border border-[#34404E] bg-[#1B242E] p-5 sm:p-6">
+                            <div className="flex flex-wrap items-center justify-center gap-7 sm:justify-start">
                                 <div
-                                    className="relative flex h-[145px] w-[145px] shrink-0 items-center justify-center rounded-full"
+                                    className="flex h-[150px] w-[150px] shrink-0 items-center justify-center rounded-full"
                                     style={{
                                         background: data.totalCampaigns
-                                            ? `conic-gradient(${T.teal} 0 ${activePct}%, ${T.amber} ${activePct}% ${activePct + pendingPct}%, #64748B ${activePct + pendingPct}% 100%)`
+                                            ? `conic-gradient(${C.teal} 0 ${pct}%, ${C.amber} ${pct}% ${pct + ppct}%, #64748B ${pct + ppct}% 100%)`
                                             : '#34404D',
                                     }}
                                 >
-                                    <div className="flex h-[109px] w-[109px] flex-col items-center justify-center rounded-full bg-[#1B242E]">
-                                        <strong className="text-[32px] font-semibold leading-none tabular-nums">
+                                    <div className="flex h-[114px] w-[114px] flex-col items-center justify-center rounded-full bg-[#1B242E]">
+                                        <strong className="text-[32px] font-semibold tabular-nums">
                                             {loading
                                                 ? '—'
-                                                : number(data.totalCampaigns)}
+                                                : fmt(data.totalCampaigns)}
                                         </strong>
-                                        <span className="mt-1 text-[10px] text-[#94A2B2]">
+                                        <span className="text-[11px] text-[#94A2B2]">
                                             Campaigns
                                         </span>
                                     </div>
                                 </div>
-                                <div className="min-w-[160px] flex-1 space-y-4">
-                                    {campaignDistribution.map((segment) => (
+                                <div className="min-w-0 flex-[1_1_150px] space-y-4">
+                                    {segments.map((s) => (
                                         <div
-                                            key={segment.label}
-                                            className="flex items-center justify-between gap-3"
+                                            key={s.name}
+                                            className="flex justify-between gap-3 text-[12px]"
                                         >
-                                            <span className="flex items-center gap-2 text-[12px] text-[#B4C0CE]">
+                                            <span className="flex items-center gap-2 text-[#B5C1CF]">
                                                 <span
-                                                    className="h-2.5 w-2.5 rounded-[2px]"
-                                                    style={{
-                                                        backgroundColor:
-                                                            segment.color,
-                                                    }}
+                                                    className="h-2.5 w-2.5 rounded-sm"
+                                                    style={{ background: s.c }}
                                                 />
-                                                {segment.label}
+                                                {s.name}
                                             </span>
-                                            <strong className="text-[13px] tabular-nums">
-                                                {loading
-                                                    ? '—'
-                                                    : number(segment.value)}
+                                            <strong>
+                                                {loading ? '—' : fmt(s.n)}
                                             </strong>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="mt-6 grid grid-cols-2 gap-3 border-t border-[#303A47] pt-5">
+                            <div className="mt-6 grid grid-cols-2 gap-5 border-t border-[#303A47] pt-5">
                                 <div>
                                     <p className="text-[11px] text-[#94A2B2]">
                                         Total help requests
                                     </p>
-                                    <p className="mt-1 text-[20px] font-semibold tabular-nums">
-                                        {loading
-                                            ? '—'
-                                            : number(data.helpRequests)}
-                                    </p>
+                                    <strong className="mt-1 block text-[20px] font-semibold">
+                                        {loading ? '—' : fmt(data.helpRequests)}
+                                    </strong>
                                 </div>
                                 <div>
                                     <p className="text-[11px] text-[#94A2B2]">
                                         Registered users
                                     </p>
-                                    <p className="mt-1 text-[20px] font-semibold tabular-nums">
-                                        {loading ? '—' : number(data.users)}
-                                    </p>
+                                    <strong className="mt-1 block text-[20px] font-semibold">
+                                        {loading ? '—' : fmt(data.users)}
+                                    </strong>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="min-w-0">
-                        <SectionTitle
-                            kicker="Audit trail"
-                            title="Recent activity"
-                            description="Latest recorded administrative actions."
+                    <div className="flex min-w-0 flex-col">
+                        <Heading
+                            eyebrow="System intelligence"
+                            title="Network distribution"
+                            description="Current activity across the platform."
                         />
-                        <div className="overflow-hidden rounded-[9px] border border-[#303A47] bg-[#1B242E]">
-                            {loading ? (
-                                <Skeleton count={4} />
-                            ) : data.activity.length ? (
-                                <div className="divide-y divide-[#303A47] px-5 sm:px-6">
-                                    {data.activity
-                                        .slice(0, 5)
-                                        .map((item, index) => {
-                                            const headline =
-                                                item?.title ||
-                                                item?.action ||
-                                                item?.description ||
-                                                'Administrative update';
-                                            const description =
-                                                item?.title || item?.action
-                                                    ? item?.description
-                                                    : '';
-                                            const date = formatDate(
-                                                item?.created_at ||
-                                                    item?.createdAt ||
-                                                    item?.timestamp ||
-                                                    item?.date,
-                                            );
-                                            return (
-                                                <div
-                                                    key={item?.id ?? index}
-                                                    className="flex items-start gap-3 py-[15px]"
-                                                >
-                                                    <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#293746] text-[#9CB6D5]">
-                                                        <Activity size={15} />
-                                                    </span>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="line-clamp-1 text-[12px] font-semibold text-[#E7EDF4]">
-                                                            {headline}
-                                                        </p>
-                                                        {description && (
-                                                            <p className="mt-0.5 line-clamp-1 text-[11px] text-[#94A2B2]">
-                                                                {description}
-                                                            </p>
-                                                        )}
-                                                        <p className="mt-1 flex items-center gap-1.5 text-[10px] text-[#7F91A4]">
-                                                            <CalendarDays
-                                                                size={11}
-                                                            />
-                                                            {date}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                </div>
-                            ) : (
-                                <EmptyQueue
-                                    title="No recent activity"
-                                    description="Administrative actions will appear here when available."
-                                />
-                            )}
+                        <div className="min-h-[365px] flex-1">
+                            <Bars data={data} loading={loading} />
                         </div>
+                    </div>
+                </section>
+                <section>
+                    <Heading
+                        title="Recent activity"
+                        description="Latest recorded administrative actions."
+                    />
+                    <div className="rounded-xl border border-[#34404E] bg-[#1B242E] px-5 py-2">
+                        {loading ? (
+                            <div className="space-y-3 py-5">
+                                {Array.from({ length: 4 }, (_, i) => (
+                                    <div
+                                        key={i}
+                                        className="h-14 animate-pulse rounded-lg bg-[#283543]"
+                                    />
+                                ))}
+                            </div>
+                        ) : data.activity.length ? (
+                            <div className="divide-y divide-[#303A47]">
+                                {data.activity.slice(0, 5).map((item, i) => {
+                                    const headline =
+                                        item?.title ||
+                                        item?.action ||
+                                        item?.description ||
+                                        'Administrative update';
+                                    const desc =
+                                        item?.title || item?.action
+                                            ? item?.description
+                                            : '';
+                                    return (
+                                        <div
+                                            key={item?.id ?? i}
+                                            className="flex items-start gap-3 py-3.5"
+                                        >
+                                            <span className="mt-0.5 rounded-lg bg-[#293746] p-2.5 text-[#9CB6D5]">
+                                                <Activity size={16} />
+                                            </span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-[12px] font-semibold">
+                                                    {headline}
+                                                </p>
+                                                {desc && (
+                                                    <p className="mt-1 truncate text-[11px] text-[#94A2B2]">
+                                                        {desc}
+                                                    </p>
+                                                )}
+                                                <p className="mt-1.5 flex items-center gap-1.5 text-[10px] text-[#8294A7]">
+                                                    <CalendarDays size={11} />
+                                                    {formatDate(
+                                                        item?.created_at ||
+                                                            item?.createdAt ||
+                                                            item?.timestamp ||
+                                                            item?.date,
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <Empty
+                                title="No recent activity"
+                                description="Administrative actions will appear here when available."
+                            />
+                        )}
+                    </div>
+                </section>
+                <section>
+                    <Heading
+                        title="Your workspace"
+                        description="Administrative tools and account access."
+                    />
+                    <div className="grid min-w-0 items-stretch gap-7 xl:grid-cols-[minmax(0,1.55fr)_minmax(280px,0.85fr)]">
+                        <div className="min-w-0">
+                            <div className="mb-5 flex items-center justify-between gap-4">
+                                <div>
+                                    <h3 className="!m-0 !text-[16px] !font-semibold text-[#EEF1F5]">
+                                        Action center
+                                    </h3>
+                                </div>
+                                <span className="text-[11px] text-[#94A2B2]">
+                                    6 destinations
+                                </span>
+                            </div>
+                            <div className="grid min-w-0 gap-3 min-[520px]:grid-cols-2">
+                                {actions.map((a) => {
+                                    const Icon = a.icon;
+                                    return (
+                                        <button
+                                            key={a.name}
+                                            type="button"
+                                            onClick={() => go(a.path)}
+                                            className="group flex min-w-0 items-center gap-3 rounded-lg bg-[#1B242E] px-4 py-4 text-left transition hover:bg-[#263442] sm:px-5"
+                                        >
+                                            <span
+                                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                                                style={{
+                                                    backgroundColor: `${a.c}18`,
+                                                    color: a.c,
+                                                }}
+                                            >
+                                                <Icon size={19} />
+                                            </span>
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block text-[13px] font-semibold text-[#EEF1F5]">
+                                                    {a.name}
+                                                </span>
+                                                <span className="mt-1 block truncate text-[11px] text-[#94A2B2]">
+                                                    {a.desc}
+                                                </span>
+                                            </span>
+                                            <ArrowUpRight
+                                                size={15}
+                                                className="shrink-0 text-[#75879A] transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-white"
+                                            />
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                        <aside className="flex min-w-0 flex-col justify-between border-l-2 border-[#40586A] bg-[#1B242E] px-5 py-6 sm:px-7">
+                            <div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9EB8D0]">
+                                        Signed in as
+                                    </span>
+                                    <span className="flex items-center gap-1.5 text-[11px] text-[#8CC6BC]">
+                                        <ShieldCheck size={14} />
+                                        Administrator
+                                    </span>
+                                </div>
+                                <div className="mt-6 flex min-w-0 flex-wrap items-center gap-4">
+                                    <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#354A5F] text-[18px] font-semibold">
+                                        {adminPhoto ? (
+                                            <img
+                                                src={adminPhoto}
+                                                alt=""
+                                                className="h-full w-full object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display =
+                                                        'none';
+                                                }}
+                                            />
+                                        ) : (
+                                            initials
+                                        )}
+                                    </span>
+                                    <div className="min-w-0">
+                                        <strong className="block truncate text-[16px] font-semibold text-[#EEF1F5]">
+                                            {adminName}
+                                        </strong>
+                                        <span className="mt-1 block truncate text-[11px] text-[#94A2B2]">
+                                            {admin?.email ||
+                                                'Platform administration'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <p className="mt-6 text-[12px] leading-5 text-[#A8B7C6]">
+                                    Manage your personal information and account
+                                    security.
+                                </p>
+                            </div>
+                            <div className="mt-7 space-y-1 border-t border-[#34404E] pt-3">
+                                <button
+                                    type="button"
+                                    onClick={() => go('profile')}
+                                    className="group flex w-full items-center gap-3 px-2 py-3 text-left text-[12px] font-medium text-[#DDE7F1] transition hover:bg-[#263442]"
+                                >
+                                    <UserCircle2
+                                        size={17}
+                                        className="text-[#88A9D7]"
+                                    />
+                                    <span className="flex-1">My profile</span>
+                                    <ArrowUpRight
+                                        size={15}
+                                        className="text-[#94A2B2]"
+                                    />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => go('security')}
+                                    className="group flex w-full items-center gap-3 px-2 py-3 text-left text-[12px] font-medium text-[#DDE7F1] transition hover:bg-[#263442]"
+                                >
+                                    <LockKeyhole
+                                        size={17}
+                                        className="text-[#8CC6BC]"
+                                    />
+                                    <span className="flex-1">
+                                        Password & security
+                                    </span>
+                                    <ArrowUpRight
+                                        size={15}
+                                        className="text-[#94A2B2]"
+                                    />
+                                </button>
+                            </div>
+                        </aside>
                     </div>
                 </section>
             </div>

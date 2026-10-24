@@ -98,15 +98,15 @@ function MembershipPanel({
 
     return (
         <section
-            className="w-full min-w-0 overflow-hidden border border-[#303A47] bg-[#10161F]"
+            className="w-full min-w-0 overflow-hidden border border-[#344150] bg-[#151C25]"
             style={{ fontFamily: 'Poppins, sans-serif' }}
         >
             {/* HEADER CONTENT */}
-            <div className="min-w-0 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-7">
+            <div className="min-w-0 px-5 py-6 sm:px-7 sm:py-7 lg:px-8 lg:py-8">
                 {/* Identity and status */}
                 <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-5">
                     <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#364454] bg-[#18212C] text-[#A7B5C5] sm:h-11 sm:w-11">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#405065] bg-[#202C39] text-[#A7B5C5] sm:h-11 sm:w-11">
                             {isWarning ? (
                                 <ShieldAlert size={20} strokeWidth={1.6} />
                             ) : (
@@ -133,11 +133,11 @@ function MembershipPanel({
 
                 {/* Main message */}
                 <div className="mt-5 min-w-0 sm:mt-7">
-                    <h2 className="!m-0 break-words !text-[18px] !font-semibold !leading-[1.45] tracking-[-0.025em] !text-[#E5EAF0] sm:!text-[21px] sm:tracking-[-0.035em] lg:!text-[24px]">
+                    <h2 className="!m-0 break-words !text-[18px] !font-semibold !leading-[1.45] tracking-[-0.025em] !text-[#EEF1F5] sm:!text-[21px] sm:tracking-[-0.035em] lg:!text-[24px]">
                         {title}
                     </h2>
 
-                    <p className="mt-2.5 max-w-[680px] break-words text-[12px] leading-[1.85] !text-[#9EACBC] sm:text-[13px] sm:leading-[1.9]">
+                    <p className="mt-2.5 max-w-[680px] break-words text-[12px] leading-[1.85] !text-[#AAB6C5] sm:text-[13px] sm:leading-[1.9]">
                         {description}
                     </p>
 
@@ -151,7 +151,7 @@ function MembershipPanel({
 
             {/* ACTION FOOTER */}
             {children && (
-                <div className="min-w-0 border-t border-[#29333F] bg-[#131B25] px-4 py-4 sm:px-6 sm:py-4 lg:px-8">
+                <div className="min-w-0 border-t border-[#303A47] bg-[#111821] px-5 py-4 sm:px-7 sm:py-5 lg:px-8">
                     <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
                         <p className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.12em] !text-[#718196] sm:text-[10px]">
                             Next step

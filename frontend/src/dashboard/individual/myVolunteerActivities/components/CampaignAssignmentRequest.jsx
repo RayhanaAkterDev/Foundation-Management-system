@@ -11,15 +11,15 @@ const CampaignAssignmentRequest = ({
     const isLoading = actionLoading === assignment?.id;
 
     return (
-        <div className="overflow-hidden border border-[#29323E] bg-[#0E1219] transition-colors hover:border-[#3B4654]">
-            <div className="border-b border-[#29323E] bg-[#151C25] px-5 py-5 sm:px-6">
+        <div className="overflow-hidden border border-[#344150] bg-[#151C25] transition-colors hover:border-[#536173]">
+            <div className="border-b border-[#29323E] bg-[#19232E] px-5 py-5 sm:px-7">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                         <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.13em] text-[#788595]">
                             Campaign Assignment
                         </p>
 
-                        <h3 className="text-lg font-semibold leading-7 text-[#EEF1F5]">
+                        <h3 className="font-sans! text-[17px] font-semibold! leading-7 text-[#EEF1F5]!">
                             {campaign?.title || 'Untitled campaign'}
                         </h3>
                     </div>
@@ -31,9 +31,9 @@ const CampaignAssignmentRequest = ({
                 </div>
             </div>
 
-            <div className="grid gap-5 px-5 py-6 sm:grid-cols-2 lg:grid-cols-3 sm:px-6">
+            <div className="grid gap-6 px-5 py-6 sm:grid-cols-2 sm:px-7 xl:grid-cols-3">
                 <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-none bg-[#1A222D] text-[#8792A1]">
+                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border border-[#303A47] bg-[#202B37] text-[#8792A1]">
                         <MapPin className="h-4 w-4" />
                     </div>
 
@@ -49,7 +49,7 @@ const CampaignAssignmentRequest = ({
                 </div>
 
                 <div className="flex items-start gap-3">
-                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-none bg-[#1A222D] text-[#8792A1]">
+                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border border-[#303A47] bg-[#202B37] text-[#8792A1]">
                         <CalendarDays className="h-4 w-4" />
                     </div>
 
@@ -77,7 +77,7 @@ const CampaignAssignmentRequest = ({
                 )}
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-[#252D38] bg-[#151C25] px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+            <div className="flex flex-col gap-2 border-t border-[#303A47] bg-[#111821] px-5 py-4 sm:flex-row sm:justify-end sm:px-7">
                 <button
                     type="button"
                     disabled={isLoading}
@@ -93,7 +93,7 @@ const CampaignAssignmentRequest = ({
                     type="button"
                     disabled={isLoading}
                     onClick={() => onAccept(assignment)}
-                    className="inline-flex min-h-10 items-center justify-center rounded-none bg-[#0f766e] px-5 text-sm font-semibold text-white! transition hover:bg-[#115e59] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex min-h-10 items-center justify-center rounded-none border border-[#526173] bg-[#D7DEE7] px-5 text-sm font-semibold !text-[#111821] transition hover:bg-[#F0F3F7] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <CheckCircle2 className="mr-2 h-4 w-4" />
 

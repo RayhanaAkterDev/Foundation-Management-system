@@ -33,6 +33,7 @@ const MyVolunteerActivities = () => {
     const [assignments, setAssignments] = useState([]);
 
     const [loading, setLoading] = useState(true);
+    const [loadRetryKey, setLoadRetryKey] = useState(0);
     const [actionLoading, setActionLoading] = useState(false);
     const [assignmentActionId, setAssignmentActionId] = useState(null);
 
@@ -98,7 +99,7 @@ const MyVolunteerActivities = () => {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [loadRetryKey]);
 
     // ===========================================================
     // VOLUNTEER REQUEST ACTIONS
@@ -447,16 +448,31 @@ const MyVolunteerActivities = () => {
     };
 
     return (
-        <div className="min-w-0 space-y-8 pb-10 lg:space-y-10">
+        <div className="min-w-0 space-y-10 pb-12 lg:space-y-12">
             <PageHeader
                 title="My Volunteer Activities"
                 subtitle="Manage campaign assignments and track your contributions."
             />
             {loading ? (
-                <LoadingUI />
+                <LoadingUI
+                    variant="page"
+                    title="Loading volunteer activities..."
+                    description="Please wait while we retrieve your volunteer information."
+                />
+            ) : error && !volunteer && !request ? (
+                <LoadingError
+                    title="Unable to load volunteer activities"
+                    message={error}
+                    onRetry={() => setLoadRetryKey((key) => key + 1)}
+                />
             ) : (
                 <>
-                    {error && <LoadingError message={error} />}
+                    {error && (
+                        <LoadingError
+                            message={error}
+                            onRetry={() => setLoadRetryKey((key) => key + 1)}
+                        />
+                    )}
                     <VolunteerStatusPanel
                         volunteer={volunteer}
                         request={request}
@@ -469,16 +485,16 @@ const MyVolunteerActivities = () => {
                         onResign={handleOpenResignModal}
                     />
                     {volunteer && (
-                        <div className="space-y-9 lg:space-y-11">
+                        <div className="space-y-10 lg:space-y-12">
                             <VolunteerStats stats={stats} />
                             {pendingAssignments.length > 0 && (
                                 <section className="space-y-4">
                                     <div className="flex flex-wrap items-end justify-between gap-3">
                                         <div>
-                                            <h2 className="text-[19px] font-semibold tracking-tight text-[#EEF1F5]">
+                                            <h2 className="font-sans! text-[19px] font-semibold! tracking-tight text-[#EEF1F5]!">
                                                 Pending assignments
                                             </h2>
-                                            <p className="mt-1 text-[12px] text-[#8792A1]">
+                                            <p className="mt-1 text-[13px] text-[#94A2B2]">
                                                 Review invitations to support
                                                 campaigns.
                                             </p>
@@ -488,7 +504,7 @@ const MyVolunteerActivities = () => {
                                             response
                                         </span>
                                     </div>
-                                    <div className="grid gap-3">
+                                    <div className="grid gap-4">
                                         {pendingAssignments.map(
                                             (assignment) => (
                                                 <CampaignAssignmentRequest
@@ -519,7 +535,7 @@ const MyVolunteerActivities = () => {
                                 />
                             )}
                             {assignments.length === 0 && (
-                                <section className="border border-[#252D38] bg-[#0E1219] px-5 py-10 text-center">
+                                <section className="border border-[#29323E] bg-[#151C25] px-5 py-12 text-center">
                                     <CalendarDays
                                         size={22}
                                         className="mx-auto text-[#788595]"

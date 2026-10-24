@@ -66,7 +66,7 @@ export default function CurrentActivities({
             </div>
 
             {/* ASSIGNMENT LIST */}
-            <div className="grid min-w-0 gap-4">
+            <div className="grid min-w-0 gap-5">
                 {assignments?.map((assignment) => {
                     const campaign = assignment?.campaign;
                     const isLoading = actionLoading === assignment?.id;
@@ -88,10 +88,10 @@ export default function CurrentActivities({
                     return (
                         <article
                             key={assignment.id}
-                            className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]"
+                            className="min-w-0 overflow-hidden border border-[#303A47] bg-[#151C25]"
                         >
                             {/* CAMPAIGN CONTENT */}
-                            <div className="px-5 py-6 sm:px-7 sm:py-7">
+                            <div className="px-5 py-6 sm:px-7 sm:py-8">
                                 {/* TITLE + STATUS */}
                                 <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
                                     <div className="min-w-0 flex-1">
@@ -113,7 +113,7 @@ export default function CurrentActivities({
                                 </div>
 
                                 {/* CAMPAIGN METADATA */}
-                                <div className="mt-5 flex min-w-0 flex-wrap items-center gap-x-7 gap-y-3">
+                                <div className="mt-5 flex min-w-0 flex-wrap items-center gap-x-8 gap-y-3">
                                     <div className="flex min-w-0 items-center gap-2">
                                         <MapPin
                                             size={15}
@@ -161,7 +161,7 @@ export default function CurrentActivities({
 
                             {/* ACTION AREA */}
                             {hasActions && (
-                                <div className="border-t border-[#29323E] bg-[#121922] px-5 py-4 sm:px-7 sm:py-5">
+                                <div className="border-t border-[#303A47] bg-[#111821] px-5 py-4 sm:px-7 sm:py-5">
                                     {assignmentStatus === 'accepted' && (
                                         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
                                             <ActionButton
@@ -274,7 +274,7 @@ export default function CurrentActivities({
 
                 {/* EMPTY STATE */}
                 {(!assignments || assignments.length === 0) && (
-                    <div className="border border-[#29323E] bg-[#0E1219] px-5 py-9 text-center sm:px-8">
+                    <div className="border border-[#303A47] bg-[#151C25] px-5 py-10 text-center sm:px-8">
                         <UsersRound
                             size={20}
                             strokeWidth={1.6}

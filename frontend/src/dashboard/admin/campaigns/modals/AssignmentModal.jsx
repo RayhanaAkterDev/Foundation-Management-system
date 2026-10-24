@@ -229,7 +229,7 @@ function AssignmentModal({
 }) {
     const [selectedIds, setSelectedIds] = useState([]);
     const [search, setSearch] = useState('');
-    const [note, setNote] = useState('');
+    // const [note, setNote] = useState('');
     const [showHistory, setShowHistory] = useState(false);
 
     const existingAssignments = useMemo(() => {
@@ -348,7 +348,7 @@ function AssignmentModal({
         try {
             await onConfirm({
                 volunteer_ids: selectedIds.map(Number),
-                assignment_note: note.trim() || null,
+                // assignment_note: note.trim() || null,
             });
 
             onClose?.();
@@ -661,7 +661,7 @@ function AssignmentModal({
                                     </div>
                                 </div>
 
-                                <div className="mt-7">
+                                {/* <div className="mt-7">
                                     <div className="flex items-center justify-between gap-3">
                                         <label
                                             htmlFor="assignment-note"
@@ -691,7 +691,7 @@ function AssignmentModal({
                                         placeholder="Write assignment instructions..."
                                         className="mt-3 block min-h-[130px] w-full resize-y border border-[#394554] bg-[#10161F] px-3.5 py-3 text-[13px] leading-6 text-[#EEF1F5]! outline-none transition-colors placeholder:text-[#748193] hover:border-[#4A5A6E] focus:border-[#8297B8] disabled:opacity-50"
                                     />
-                                </div>
+                                </div> */}
                             </aside>
                         </div>
                     </div>

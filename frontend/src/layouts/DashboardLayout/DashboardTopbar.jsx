@@ -681,7 +681,7 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
     return (
         <header
             className="
-                sticky top-0 z-1000 isolate
+                sticky top-0 z-100 isolate
                 border-b border-[#252D38]
                 bg-[#0E1219]
             "

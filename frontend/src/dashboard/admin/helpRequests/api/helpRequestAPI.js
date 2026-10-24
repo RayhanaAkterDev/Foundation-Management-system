@@ -98,3 +98,12 @@ export const fetchOrganizations = async () => {
 export const fetchVolunteers = async () => {
   return apiRequest("/admin/volunteers");
 };
+
+export const checkHelpRequestDuplicates = async (helpRequestId) => {
+    return apiRequest(
+        `/admin/help-requests/${helpRequestId}/duplicate-check`,
+        {
+            method: "POST",
+        }
+    );
+};

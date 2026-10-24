@@ -1,0 +1,2594 @@
+========== ADMIN CONTROLLER IMPORTS ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use App\Models\Organization;
+use App\Models\OrganizationRegistrationNumber;
+use App\Models\IndividualProfile;
+use App\Models\HelpRequest;
+use App\Models\HelpRequestAssignment;
+use App\Models\Campaign;
+use App\Models\Donation;
+use App\Models\Volunteer;
+use App\Models\VolunteerRequest;
+use App\Models\CampaignVolunteerAssignment;
+use App\Notifications\PlatformNotification;
+use ImageKit\ImageKit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+
+class AdminController extends Controller
+{
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Authorization Helper
+    |--------------------------------------------------------------------------
+    */
+
+    private function authorizeAdmin(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        return $user;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Volunteer Availability Helpers
+    |--------------------------------------------------------------------------
+    |
+    | Availability is DERIVED.
+    |
+    | available:
+    | - volunteer status = active
+    | - no active campaign assignment
+    |
+    | unavailable:
+    | - volunteer status != active
+    | - OR active campaign assignment exists
+    |
+    | The volunteers.availability database column is no longer used.
+    |
+    */
+
+    private function hasActiveCampaignAssignment(int $userId): bool
+    {
+        return CampaignVolunteerAssignment::query()
+            ->where('volunteer_id', $userId)
+            ->whereIn(
+                'status',
+                CampaignVolunteerAssignment::activeStatuses()
+            )
+            ->exists();
+    }
+
+    private function calculateVolunteerAvailability(
+        Volunteer $volunteer
+    ): string {
+        if ($volunteer->status !== Volunteer::STATUS_ACTIVE) {
+            return 'unavailable';
+        }
+
+        return $this->hasActiveCampaignAssignment(
+            (int) $volunteer->user_id
+        )
+            ? 'unavailable'
+            : 'available';
+    }
+
+    private function volunteerWithAvailability(Volunteer $volunteer): array
+    {
+        return [
+            'id' => $volunteer->id,
+
+            'user_id' => $volunteer->user_id,
+
+            'user' => $volunteer->user,
+
+            'phone' => $volunteer->phone
+                ?? $volunteer->user?->phone,
+
+            'district' => $volunteer->district,
+
+========== ADMIN HELP REQUEST METHODS ==========
+        }
+
+        $organizationUser = $organization->user;
+
+        DB::transaction(function () use (
+            $organization,
+            $organizationUser
+        ) {
+            $organization->delete();
+
+            if ($organizationUser) {
+                $organizationUser->delete();
+            }
+        });
+
+        return response()->json([
+            'message' =>
+            'Organization and its user account deleted successfully.',
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - List
+    |--------------------------------------------------------------------------
+    */
+
+    public function helpRequests(Request $request)
+    {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequests = HelpRequest::with([
+            'user',
+            'assignments.organization.user:id,email',
+            'assignments.volunteer',
+            'assignments.assignedBy',
+        ])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'helpRequests' => $helpRequests,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - Edit
+    |--------------------------------------------------------------------------
+    */
+
+    public function updateHelpRequest(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'required',
+                'string',
+                'max:1000',
+            ],
+
+            'category' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'district' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
+            'urgency' => [
+                'required',
+                'in:normal,high,critical',
+            ],
+        ]);
+
+        $helpRequest->title = trim($validated['title']);
+        $helpRequest->description = trim($validated['description']);
+        $helpRequest->category = trim($validated['category']);
+        $helpRequest->district = trim($validated['district']);
+        $helpRequest->address = isset($validated['address'])
+            ? trim($validated['address'])
+            : null;
+        $helpRequest->urgency = $validated['urgency'];
+
+        $helpRequest->save();
+
+        return response()->json([
+            'message' => 'Help request updated successfully.',
+
+            'help_request' => $helpRequest
+                ->fresh()
+                ->load([
+                    'user',
+                    'assignments.organization',
+                    'assignments.volunteer',
+                    'assignments.assignedBy',
+                ]),
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - Verify / Reject
+    |--------------------------------------------------------------------------
+    */
+
+    public function updateHelpRequestVerification(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        if ($helpRequest->status !== HelpRequest::STATUS_PENDING) {
+            return response()->json([
+                'message' =>
+                'Only pending help requests can be reviewed.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'status' => [
+                'required',
+                'in:verified,rejected',
+            ],
+
+            'verification_note' => [
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+        ]);
+
+        $helpRequest->update([
+            'status' => $validated['status'],
+
+            'verification_note' =>
+            $validated['verification_note'] ?? null,
+        ]);
+
+        if ($helpRequest->user) {
+            $title = $validated['status'] === HelpRequest::STATUS_VERIFIED
+                ? 'Help request approved'
+                : 'Help request rejected';
+
+            $body = $validated['status'] === HelpRequest::STATUS_VERIFIED
+                ? "Your help request \"{$helpRequest->title}\" has been approved."
+                : "Your help request \"{$helpRequest->title}\" has been rejected.";
+
+            if (
+
+========== HELP REQUEST ROUTES ==========
+544-        // DASHBOARD
+545-        // ---------------------------------------------------------
+546-
+547-        Route::get(
+548-            '/dashboard',
+549:            [AdminController::class, 'dashboard']
+550-        );
+551-
+552-        // ---------------------------------------------------------
+553-        // USERS
+554-        // ---------------------------------------------------------
+555-
+556-        Route::get(
+557-            '/users',
+558:            [AdminController::class, 'users']
+559-        );
+560-
+561-        Route::get(
+562-            '/users/{id}',
+563:            [AdminController::class, 'showUser']
+564-        );
+565-
+566-        Route::post(
+567-            '/users',
+568:            [AdminController::class, 'storeUser']
+569-        );
+570-
+571-        Route::put(
+572-            '/users/{id}',
+573:            [AdminController::class, 'updateUser']
+574-        );
+575-
+576-        Route::delete(
+577-            '/users/{id}',
+578:            [AdminController::class, 'destroyUser']
+579-        );
+580-
+581-        // ---------------------------------------------------------
+582-        // ORGANIZATIONS
+583-        // ---------------------------------------------------------
+584-
+585-        Route::get(
+586-            '/organizations',
+587:            [AdminController::class, 'organizations']
+588-        );
+589-
+590-        Route::post(
+591-            '/organizations',
+592:            [AdminController::class, 'storeOrganization']
+593-        );
+594-
+595-        Route::get(
+596-            '/organizations/{id}',
+597:            [AdminController::class, 'showOrganization']
+598-        );
+599-
+600-        Route::put(
+601-            '/organizations/{id}',
+602:            [AdminController::class, 'updateOrganization']
+603-        );
+604-
+605-        Route::patch(
+606-            '/organizations/{id}/verification',
+607:            [AdminController::class, 'updateOrganizationVerification']
+608-        );
+609-
+610-        Route::delete(
+611-            '/organizations/{id}',
+612:            [AdminController::class, 'destroyOrganization']
+613-        );
+614-
+615-        // ---------------------------------------------------------
+616-        // HELP REQUESTS
+617-        // ---------------------------------------------------------
+618-
+619-        Route::get(
+620-            '/help-requests',
+621:            [AdminController::class, 'helpRequests']
+622-        );
+623-
+624-        Route::put(
+625-            '/help-requests/{id}',
+626:            [AdminController::class, 'updateHelpRequest']
+627-        );
+628-
+629-        Route::patch(
+630-            '/help-requests/{id}/verification',
+631:            [AdminController::class, 'updateHelpRequestVerification']
+632-        );
+633-
+634-        Route::patch(
+635-            '/help-requests/{id}/urgency',
+636:            [AdminController::class, 'updateHelpRequestUrgency']
+637-        );
+638-
+639-        Route::patch(
+640-            '/help-requests/{id}/assignment',
+641:            [AdminController::class, 'assignHelpRequest']
+642-        );
+643-
+644-        Route::get(
+645-            '/help-requests/withdrawal-requests',
+646:            [AdminController::class, 'withdrawalRequests']
+647-        );
+648-
+649-        Route::patch(
+650-            '/help-requests/assignments/{id}/withdrawal',
+651:            [AdminController::class, 'reviewWithdrawal']
+652-        );
+653-
+654-        Route::post(
+655-            '/help-requests/{id}/reassign',
+656:            [AdminController::class, 'reassignHelpRequest']
+657-        );
+658-
+659-        // =========================================================
+660-        // VOLUNTEERS
+661-        // =========================================================
+662-
+663-        Route::get(
+664-            '/volunteers',
+665-            [VolunteerController::class, 'index']
+666-        );
+667-
+668-        Route::get(
+--
+734-        // CAMPAIGN VOLUNTEER CANDIDATES
+735-        // ---------------------------------------------------------
+736-
+737-        Route::get(
+738-            '/campaign-volunteers/candidates',
+739:            [AdminController::class, 'campaignVolunteerCandidates']
+740-        );
+741-
+742-        // =========================================================
+743-        // CAMPAIGNS
+744-        // =========================================================
+745-
+746-        Route::post(
+747-            '/campaigns',
+748:            [AdminController::class, 'storeCampaign']
+749-        );
+750-
+751-        Route::get(
+752-            '/campaigns',
+753:            [AdminController::class, 'campaigns']
+754-        );
+755-
+756-        Route::put(
+757-            '/campaigns/{id}',
+758:            [AdminController::class, 'updateCampaign']
+759-        );
+760-
+761-        Route::patch(
+762-            '/campaigns/{id}/verification',
+763:            [AdminController::class, 'updateCampaignVerification']
+764-        );
+765-
+766-        Route::patch(
+767-            '/campaigns/{id}/status',
+768:            [AdminController::class, 'updateCampaignStatus']
+769-        );
+770-
+771-        Route::patch(
+772-            '/campaigns/{id}/assignment',
+773:            [AdminController::class, 'assignCampaignVolunteer']
+774-        );
+775-
+776-        Route::get(
+777-            '/campaigns/{id}/assignments',
+778:            [AdminController::class, 'campaignVolunteerAssignments']
+779-        );
+780-
+781-        // ---------------------------------------------------------
+782-        // CAMPAIGN VOLUNTEER ASSIGNMENT REVIEW
+783-        // ---------------------------------------------------------
+784-
+785-        // Admin reviews a volunteer withdrawal request.
+786-
+787-        Route::patch(
+788-            '/campaigns/assignments/{id}/withdrawal',
+789-            [VolunteerController::class, 'reviewCampaignWithdrawal']
+790-        );
+--
+800-        // DONATIONS
+801-        // =========================================================
+802-
+803-        Route::get(
+804-            '/donations',
+805:            [AdminController::class, 'donations']
+806-        );
+807-
+808-        // =========================================================
+809-        // REPORTS
+810-        // =========================================================
+811-
+812-        Route::get(
+813-            '/reports',
+814:            [AdminController::class, 'reports']
+815-        );
+816-
+817-        // ---------------------------------------------------------
+818-        // CONTACT MESSAGES
+819-        // ---------------------------------------------------------
+820-
+821-        Route::get(
+822-            '/contact-messages',
+823-            [ContactMessageController::class, 'index']
+824-        );
+825-
+826-        Route::get(
+
+========== ADMIN HELP REQUEST API ==========
+import { apiRequest } from "@/api/client";
+
+// --------------------------------
+// Help Requests - List
+// --------------------------------
+
+export const fetchHelpRequests = async () => {
+  return apiRequest("/admin/help-requests");
+};
+
+// --------------------------------
+// Help Requests - View
+// --------------------------------
+
+export const fetchHelpRequest = async (helpRequestId) => {
+  return apiRequest(`/admin/help-requests/${helpRequestId}`);
+};
+
+// --------------------------------
+// Help Requests - Update
+// --------------------------------
+
+export const updateHelpRequest = async (helpRequestId, requestData) => {
+  if (!helpRequestId) {
+    throw new Error("Help request ID is required.");
+  }
+
+  return apiRequest(`/admin/help-requests/${helpRequestId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: requestData.title,
+      description: requestData.description,
+      category: requestData.category,
+      urgency: requestData.urgency,
+      district: requestData.district,
+      address: requestData.address ?? null,
+    }),
+  });
+};
+
+// --------------------------------
+// Help Requests - Verify / Reject
+// --------------------------------
+
+export const updateHelpRequestVerification = async (
+  helpRequestId,
+  status,
+  verificationNote = null,
+) => {
+  return apiRequest(`/admin/help-requests/${helpRequestId}/verification`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      status,
+      verification_note: verificationNote,
+    }),
+  });
+};
+
+// --------------------------------
+// Help Requests - Urgency
+// --------------------------------
+
+export const updateHelpRequestUrgency = async (helpRequestId, urgency) => {
+  return apiRequest(`/admin/help-requests/${helpRequestId}/urgency`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      urgency,
+    }),
+  });
+};
+
+// --------------------------------
+// Help Requests - Assignment
+// --------------------------------
+
+export const assignHelpRequest = async (helpRequestId, assignmentData) => {
+  return apiRequest(`/admin/help-requests/${helpRequestId}/assignment`, {
+    method: "PATCH",
+    body: JSON.stringify(assignmentData),
+  });
+};
+
+// --------------------------------
+// Organizations - Admin List
+// --------------------------------
+
+export const fetchOrganizations = async () => {
+  return apiRequest("/admin/organizations");
+};
+
+// --------------------------------
+// Volunteers - Admin List
+// --------------------------------
+
+export const fetchVolunteers = async () => {
+  return apiRequest("/admin/volunteers");
+};
+
+========== ADMIN HELP REQUEST PAGE ==========
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import {
+    ArrowDown,
+    ArrowUp,
+    ChevronsUpDown,
+    Download,
+    Search,
+    X,
+} from 'lucide-react';
+
+import PageHeader from '@/components/dashboard/PageHeader';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
+
+import { SlidersHorizontal } from 'lucide-react';
+
+import HelpRequestStats from './components/Stats';
+import HelpRequestFilters from './components/Filters';
+import HelpRequestTable from './components/Table';
+import HelpRequestPagination from './components/Pagination';
+
+import HelpRequestVerificationModal from './modals/VerificationModal';
+import HelpRequestAssignmentModal from './modals/AssignmentModal';
+import ActionMessageModal from './modals/ActionMessageModal';
+
+import {
+    fetchHelpRequests,
+    updateHelpRequestVerification,
+    assignHelpRequest,
+    fetchOrganizations,
+    fetchVolunteers,
+} from './api/helpRequestAPI';
+
+const HELP_REQUESTS_PER_PAGE = 25;
+
+const HelpRequests = () => {
+    const navigate = useNavigate();
+
+    const [helpRequests, setHelpRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    // --------------------------------
+    // Filters / Search / Sorting
+    // --------------------------------
+
+    const [activeCategory, setActiveCategory] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [priorityFilter, setPriorityFilter] = useState('all');
+    const [assignmentFilter, setAssignmentFilter] = useState('all');
+    const [statusFilter] = useState('all');
+
+    const [sortConfig, setSortConfig] = useState({
+        key: 'created_at',
+        direction: 'desc',
+    });
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+    // --------------------------------
+    // Verification
+    // --------------------------------
+
+    const [selectedVerificationRequest, setSelectedVerificationRequest] =
+        useState(null);
+
+    const [verificationLoading, setVerificationLoading] = useState(false);
+    const [verificationError, setVerificationError] = useState('');
+
+    // --------------------------------
+    // Initial Assignment
+    // --------------------------------
+
+    const [selectedAssignmentRequest, setSelectedAssignmentRequest] =
+        useState(null);
+
+    const [assignmentLoading, setAssignmentLoading] = useState(false);
+    const [assignmentError, setAssignmentError] = useState('');
+
+    const [organizations, setOrganizations] = useState([]);
+    const [volunteers, setVolunteers] = useState([]);
+    const [assignmentDataLoading, setAssignmentDataLoading] = useState(false);
+
+    // --------------------------------
+    // Action message
+    // --------------------------------
+
+    const [actionMessage, setActionMessage] = useState({
+        show: false,
+        title: '',
+        message: '',
+    });
+
+    const seenRejectedAssignmentsRef = useRef(new Set());
+
+    // --------------------------------
+    // Success toast
+    // --------------------------------
+
+    const [toast, setToast] = useState({
+        show: false,
+        message: '',
+    });
+
+    const showSuccessToast = (message) => {
+        setToast({
+            show: true,
+            message,
+        });
+    };
+
+    // --------------------------------
+    // Action message helpers
+    // --------------------------------
+
+    const showActionMessage = (title, message) => {
+        setActionMessage({
+            show: true,
+            title,
+            message,
+        });
+    };
+
+    const closeActionMessage = () => {
+        setActionMessage({
+            show: false,
+            title: '',
+            message: '',
+        });
+    };
+
+    // --------------------------------
+    // Load help requests
+    // --------------------------------
+
+    const loadHelpRequests = async () => {
+        try {
+            setError('');
+
+            const data = await fetchHelpRequests();
+
+            setHelpRequests(data.helpRequests || []);
+        } catch (err) {
+            setError(
+                err.message ||
+                    'Something went wrong while loading help requests.',
+            );
+        }
+    };
+
+    // --------------------------------
+    // Initial data + polling
+    // --------------------------------
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const checkForUpdates = async (isInitialLoad = false) => {
+            try {
+                const helpRequestData = await fetchHelpRequests();
+
+                if (cancelled) {
+                    return;
+                }
+
+                const requests = helpRequestData.helpRequests || [];
+
+                if (isInitialLoad) {
+                    const existingRejectedIds = new Set();
+
+                    requests.forEach((request) => {
+                        const assignments = Array.isArray(request?.assignments)
+                            ? request.assignments
+                            : [];
+
+                        assignments.forEach((assignment) => {
+                            if (
+                                assignment?.organization_id &&
+                                String(assignment?.status)
+                                    .trim()
+                                    .toLowerCase() === 'rejected'
+                            ) {
+                                existingRejectedIds.add(assignment.id);
+                            }
+                        });
+                    });
+
+                    seenRejectedAssignmentsRef.current = existingRejectedIds;
+
+                    setHelpRequests(requests);
+
+                    return;
+                }
+
+                requests.forEach((request) => {
+                    const assignments = Array.isArray(request?.assignments)
+                        ? request.assignments
+                        : [];
+
+                    assignments.forEach((assignment) => {
+                        const isRejected =
+                            assignment?.organization_id &&
+                            String(assignment?.status).trim().toLowerCase() ===
+                                'rejected';
+
+                        if (
+                            !isRejected ||
+                            seenRejectedAssignmentsRef.current.has(
+                                assignment.id,
+                            )
+                        ) {
+                            return;
+                        }
+
+                        seenRejectedAssignmentsRef.current.add(assignment.id);
+
+                        const organizationName =
+                            assignment?.organization?.name ||
+                            assignment?.organization?.user?.name ||
+                            'The assigned organization';
+
+                        const requestTitle =
+                            request?.title ||
+                            assignment?.help_request?.title ||
+                            'this help request';
+
+                        const rejectionReason =
+                            assignment?.rejection_note ||
+                            'No rejection reason was provided.';
+
+                        showActionMessage(
+                            'Organization rejected assignment',
+                            `${organizationName} rejected "${requestTitle}". Reason: ${rejectionReason}`,
+                        );
+                    });
+                });
+
+                setHelpRequests(requests);
+            } catch (err) {
+                if (!isInitialLoad || cancelled) {
+                    return;
+                }
+
+                setError(
+                    err.message ||
+                        'Something went wrong while loading help requests.',
+                );
+            }
+        };
+
+        const loadInitialRequests = async () => {
+            try {
+                setLoading(true);
+                setError('');
+
+                await checkForUpdates(true);
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadInitialRequests();
+
+        const intervalId = window.setInterval(() => {
+            checkForUpdates(false);
+        }, 10000);
+
+        return () => {
+            cancelled = true;
+            window.clearInterval(intervalId);
+        };
+    }, []);
+
+    // --------------------------------
+    // View / Edit
+    // --------------------------------
+
+    const handleViewRequest = (request) => {
+        if (request?.id == null) return;
+
+        navigate(
+            `/admin/dashboard/help-requests/${encodeURIComponent(request.id)}`,
+        );
+    };
+
+    const handleEditRequest = (request) => {
+        if (request?.id == null) return;
+
+        navigate(
+            `/admin/dashboard/help-requests/${encodeURIComponent(request.id)}/edit`,
+        );
+    };
+
+    // --------------------------------
+    // Verification
+    // --------------------------------
+
+    const handleVerifyRequest = (request) => {
+        setVerificationError('');
+        setSelectedVerificationRequest(request);
+    };
+
+    const closeVerificationModal = () => {
+        if (verificationLoading) {
+            return;
+        }
+
+        setSelectedVerificationRequest(null);
+        setVerificationError('');
+    };
+
+    const handleVerificationChange = async (status) => {
+        if (!selectedVerificationRequest) {
+            return;
+        }
+
+        setVerificationLoading(true);
+        setVerificationError('');
+
+        try {
+            await updateHelpRequestVerification(
+                selectedVerificationRequest.id,
+                status,
+            );
+
+            setSelectedVerificationRequest(null);
+
+            await loadHelpRequests();
+
+            showSuccessToast(
+                status === 'verified'
+                    ? 'Help request verified successfully.'
+                    : 'Help request rejected successfully.',
+            );
+        } catch (err) {
+            setVerificationError(
+                err.message || 'Unable to update help request verification.',
+            );
+        } finally {
+            setVerificationLoading(false);
+        }
+    };
+
+    // --------------------------------
+    // Initial Assignment
+    // --------------------------------
+
+    const handleAssignRequest = async (request) => {
+        setAssignmentError('');
+        setSelectedAssignmentRequest(request);
+        setAssignmentDataLoading(true);
+
+        try {
+            const [organizationData, volunteerData] = await Promise.all([
+                fetchOrganizations(),
+                fetchVolunteers(),
+            ]);
+
+            setOrganizations(organizationData.organizations || []);
+            setVolunteers(volunteerData.volunteers || []);
+        } catch (err) {
+            setOrganizations([]);
+            setVolunteers([]);
+
+            setAssignmentError(
+                err.message ||
+                    'Unable to load organizations and volunteers for assignment.',
+            );
+        } finally {
+            setAssignmentDataLoading(false);
+        }
+    };
+
+    const closeAssignmentModal = () => {
+        if (assignmentLoading || assignmentDataLoading) {
+            return;
+        }
+
+        setSelectedAssignmentRequest(null);
+        setAssignmentError('');
+        setOrganizations([]);
+        setVolunteers([]);
+    };
+
+    const handleAssignment = async (assignmentData) => {
+        if (!selectedAssignmentRequest) {
+            return;
+        }
+
+        setAssignmentLoading(true);
+        setAssignmentError('');
+
+        try {
+            await assignHelpRequest(
+                selectedAssignmentRequest.id,
+                assignmentData,
+            );
+
+            setSelectedAssignmentRequest(null);
+            setOrganizations([]);
+            setVolunteers([]);
+
+            await loadHelpRequests();
+
+            showSuccessToast('Help request assigned successfully.');
+        } catch (err) {
+            setAssignmentError(err.message || 'Unable to assign help request.');
+        } finally {
+            setAssignmentLoading(false);
+        }
+    };
+
+    // --------------------------------
+    // Statistics
+    // --------------------------------
+
+    const statistics = useMemo(() => {
+        return {
+            total: helpRequests.length,
+
+            pending: helpRequests.filter(
+                (request) => request.status === 'pending',
+            ).length,
+
+            verified: helpRequests.filter(
+                (request) => request.status === 'verified',
+            ).length,
+
+            assigned: helpRequests.filter(
+                (request) =>
+                    request.status === 'verified' &&
+                    hasActiveOrganizationAssignment(request),
+            ).length,
+
+            inProgress: helpRequests.filter(
+                (request) => request.status === 'in_progress',
+            ).length,
+
+            completed: helpRequests.filter(
+                (request) => request.status === 'completed',
+            ).length,
+
+            rejected: helpRequests.filter(
+                (request) => request.status === 'rejected',
+            ).length,
+        };
+    }, [helpRequests]);
+
+    // --------------------------------
+    // Category tabs
+    // --------------------------------
+
+    const categoryTabs = useMemo(
+        () => [
+            {
+                key: 'all',
+                label: 'All Requests',
+                count: statistics.total,
+            },
+            {
+                key: 'pending',
+                label: 'Pending',
+                count: statistics.pending,
+            },
+            {
+                key: 'verified',
+                label: 'Verified',
+                count: statistics.verified,
+            },
+            {
+                key: 'in_progress',
+                label: 'In Progress',
+                count: statistics.inProgress,
+            },
+            {
+                key: 'completed',
+                label: 'Completed',
+                count: statistics.completed,
+            },
+            {
+                key: 'rejected',
+                label: 'Rejected',
+                count: statistics.rejected,
+            },
+        ],
+        [statistics],
+    );
+
+    // --------------------------------
+    // Filtering + sorting
+    // --------------------------------
+
+    const filteredHelpRequests = useMemo(() => {
+        let result = [...helpRequests];
+
+        if (activeCategory !== 'all') {
+            result = result.filter((request) => {
+                if (activeCategory === 'pending') {
+                    return request.status === 'pending';
+                }
+
+                return request.status === activeCategory;
+            });
+        }
+
+        if (categoryFilter !== 'all') {
+            result = result.filter(
+                (request) => request.category === categoryFilter,
+            );
+        }
+
+        if (priorityFilter !== 'all') {
+            result = result.filter(
+                (request) =>
+                    (request.priority || request.urgency) === priorityFilter,
+            );
+        }
+
+        if (assignmentFilter !== 'all') {
+            result = result.filter((request) => {
+                const assigned = hasExistingAssignment(request);
+
+                return assignmentFilter === 'assigned' ? assigned : !assigned;
+            });
+        }
+
+        if (statusFilter !== 'all') {
+            result = result.filter(
+                (request) => request.status === statusFilter,
+            );
+        }
+
+        const search = searchTerm.trim().toLowerCase();
+
+        if (search) {
+            result = result.filter((request) => {
+                const requesterName =
+                    request.user?.name || request.requester?.name || '';
+
+                const requesterEmail =
+                    request.user?.email || request.requester?.email || '';
+
+                return (
+                    request.title?.toLowerCase().includes(search) ||
+                    request.description?.toLowerCase().includes(search) ||
+                    request.category?.toLowerCase().includes(search) ||
+                    requesterName.toLowerCase().includes(search) ||
+                    requesterEmail.toLowerCase().includes(search)
+                );
+            });
+        }
+
+        if (!sortConfig.key || !sortConfig.direction) {
+            return result;
+        }
+
+        result.sort((a, b) => {
+            let first = a[sortConfig.key];
+            let second = b[sortConfig.key];
+
+            if (sortConfig.key === 'created_at') {
+                first = new Date(first).getTime();
+                second = new Date(second).getTime();
+            }
+
+            first = first ?? '';
+            second = second ?? '';
+
+            if (typeof first === 'string') {
+                first = first.toLowerCase();
+                second = String(second).toLowerCase();
+            }
+
+            if (first < second) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+
+            if (first > second) {
+                return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+
+            return 0;
+        });
+
+        return result;
+    }, [
+        helpRequests,
+        activeCategory,
+        categoryFilter,
+        priorityFilter,
+        assignmentFilter,
+        statusFilter,
+        searchTerm,
+        sortConfig,
+    ]);
+
+    // --------------------------------
+    // Pagination
+    // --------------------------------
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredHelpRequests.length / HELP_REQUESTS_PER_PAGE),
+    );
+
+    const safeCurrentPage = Math.min(currentPage, totalPages);
+
+    const paginatedHelpRequests = useMemo(() => {
+        const startIndex = (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE;
+
+        return filteredHelpRequests.slice(
+            startIndex,
+            startIndex + HELP_REQUESTS_PER_PAGE,
+        );
+    }, [filteredHelpRequests, safeCurrentPage]);
+
+    // --------------------------------
+    // Controls
+    // --------------------------------
+
+    const handleCategoryChange = (category) => {
+        setActiveCategory(category);
+        setCurrentPage(1);
+    };
+
+    const handleCategoryFilterChange = (event) => {
+        setCategoryFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handlePriorityChange = (event) => {
+        setPriorityFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleAssignmentChange = (event) => {
+        setAssignmentFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleSearchChange = (event) => {
+        setSearchTerm(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleSort = (key) => {
+        setSortConfig((current) => {
+            if (current.key !== key) {
+                return {
+                    key,
+                    direction: 'asc',
+                };
+            }
+
+            if (current.direction === 'asc') {
+                return {
+                    key,
+                    direction: 'desc',
+                };
+            }
+
+            return {
+                key: null,
+                direction: null,
+            };
+        });
+    };
+
+    const getSortIcon = (key) => {
+        if (sortConfig.key !== key) {
+            return <ChevronsUpDown size={14} strokeWidth={1.8} />;
+        }
+
+        if (sortConfig.direction === 'asc') {
+            return <ArrowUp size={14} strokeWidth={2} />;
+        }
+
+        if (sortConfig.direction === 'desc') {
+            return <ArrowDown size={14} strokeWidth={2} />;
+        }
+
+        return <ChevronsUpDown size={14} strokeWidth={1.8} />;
+    };
+
+    // --------------------------------
+    // CSV Export
+    // --------------------------------
+
+    const handleExportCSV = () => {
+        if (filteredHelpRequests.length === 0) {
+            return;
+        }
+
+        const headers = [
+            'Requester',
+            'Request',
+            'Category',
+            'Priority',
+            'Assigned',
+            'Status',
+            'Submitted',
+        ];
+
+        const csvRows = filteredHelpRequests.map((request) => [
+            request.user?.name || request.requester?.name || '',
+            request.title || '',
+            request.category || '',
+            request.priority || request.urgency || '',
+            getAssignedOrganizationName(request),
+            request.status || '',
+            request.created_at
+                ? new Date(request.created_at).toLocaleDateString()
+                : '',
+        ]);
+
+        const csvContent = [headers, ...csvRows]
+            .map((row) =>
+                row
+                    .map(
+                        (value) =>
+                            `"${String(value ?? '').replace(/"/g, '""')}"`,
+                    )
+                    .join(','),
+            )
+            .join('\n');
+
+        const blob = new Blob([csvContent], {
+            type: 'text/csv;charset=utf-8;',
+        });
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = 'stand-for-people-help-requests.csv';
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+
+        showSuccessToast('Help requests exported successfully.');
+    };
+
+    // --------------------------------
+    // Table rows
+    // --------------------------------
+
+    const rows = paginatedHelpRequests.map((request, index) => ({
+        ...request,
+
+        requesterName: request.user?.name || request.requester?.name || '—',
+
+        requesterEmail: request.user?.email || request.requester?.email || '—',
+
+        requesterId:
+            request.user?.id ||
+            request.requester?.id ||
+            request.user_id ||
+            null,
+
+        assignedOrganization: getAssignedOrganizationName(request),
+
+        assignedOrganizationId: getAssignedOrganizationId(request),
+
+        submittedDate: request.created_at
+            ? new Date(request.created_at).toLocaleDateString()
+            : '—',
+
+        serialNumber:
+            (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE + index + 1,
+    }));
+
+    // --------------------------------
+    // Table columns
+    // --------------------------------
+
+    const columns = [
+        {
+            key: 'title',
+            header: 'Help Request Details',
+            sortable: true,
+            sortKey: 'title',
+            width: '420px',
+        },
+
+        {
+            key: 'submittedDate',
+            header: 'Submitted',
+            sortable: true,
+            sortKey: 'created_at',
+            width: '120px',
+        },
+
+        {
+            key: 'priority',
+            header: 'Priority',
+            sortable: true,
+            sortKey: 'priority',
+            width: '120px',
+            render: (value, row) => value || row.urgency || '—',
+        },
+
+        {
+            key: 'assignedOrganization',
+            header: 'Assigned',
+            width: '220px',
+            render: (value) => value || 'Not assigned',
+        },
+
+        {
+            key: 'status',
+            header: 'Status',
+            sortable: true,
+            sortKey: 'status',
+            width: '150px',
+            render: (value) => value || '—',
+        },
+
+        {
+            key: 'id',
+            header: 'Actions',
+            align: 'right',
+            width: '300px',
+
+            render: (_, row) => {
+                const hasAssignment = hasExistingAssignment(row);
+                const hasPendingOrganization =
+                    hasPendingOrganizationAssignment(row);
+
+                return (
+                    <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
+                        {/* VIEW */}
+                        <button
+                            type="button"
+                            onClick={() => handleViewRequest(row)}
+                            className="shrink-0 text-xs font-semibold text-[#A9B7C7] transition-colors hover:text-[#EEF1F5]"
+                        >
+                            View
+                        </button>
+
+                        {/* EDIT */}
+                        <button
+                            type="button"
+                            onClick={() => handleEditRequest(row)}
+                            className="shrink-0 text-xs font-semibold text-[#A9B7C7] transition-colors hover:text-[#EEF1F5]"
+                        >
+                            Edit
+                        </button>
+
+                        {/* VERIFY */}
+                        {row.status === 'pending' && (
+                            <button
+                                type="button"
+                                onClick={() => handleVerifyRequest(row)}
+                                className="shrink-0 text-xs font-semibold text-[#A9B7C7] transition-colors hover:text-[#EEF1F5]"
+                            >
+                                Verify
+                            </button>
+                        )}
+
+                        {/* INITIAL ASSIGNMENT */}
+                        {row.status === 'verified' &&
+                            !hasAssignment &&
+                            !hasPendingOrganization && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleAssignRequest(row)}
+                                    className="shrink-0 text-xs font-semibold text-[#A9B7C7] transition-colors hover:text-[#EEF1F5]"
+                                >
+                                    Assign
+                                </button>
+                            )}
+                    </div>
+                );
+            },
+        },
+    ];
+
+    // --------------------------------
+    // Loading
+    // --------------------------------
+
+    if (loading || error) {
+        return (
+            <div className="space-y-10 lg:space-y-12">
+                <PageHeader
+                    title="Help Requests"
+                    subtitle="Verify requests and coordinate assistance through organizations and SP volunteers."
+                />
+
+                {loading ? (
+                    <LoadingUI
+                        variant="page"
+                        title="Loading help requests..."
+                        description="Please wait while we retrieve the request list."
+                    />
+                ) : (
+                    <LoadingError
+                        title="Unable to load help requests"
+                        message={error}
+                    />
+                )}
+            </div>
+        );
+    }
+
+    // --------------------------------
+    // Render
+    // --------------------------------
+
+    return (
+        <>
+            <div className="space-y-10 lg:space-y-12">
+                <PageHeader
+                    title="Help Requests"
+                    subtitle="Verify requests and coordinate assistance through organizations and SP volunteers."
+                    action={
+                        <button
+                            type="button"
+                            onClick={handleExportCSV}
+                            disabled={filteredHelpRequests.length === 0}
+                            className="inline-flex h-10 items-center gap-2 border border-[#343E4B] bg-transparent px-4 text-[12px] font-medium! text-[#B8C2CF] hover:border-[#4B596A] hover:bg-[#1C232D] disabled:opacity-40"
+                        >
+                            <Download size={16} />
+                            Export
+                        </button>
+                    }
+                />
+
+                <ActionMessageModal
+                    show={actionMessage.show}
+                    title={actionMessage.title}
+                    message={actionMessage.message}
+                    onClose={closeActionMessage}
+                />
+
+                {/* Help Request Overview */}
+
+                <HelpRequestStats
+                    total={statistics.total}
+                    pending={statistics.pending}
+                    verified={statistics.verified}
+                    inProgress={statistics.inProgress}
+                    completed={statistics.completed}
+                    rejected={statistics.rejected}
+                />
+
+                {/* HELP REQUEST MANAGEMENT */}
+
+                <section className="pt-2 lg:pt-3">
+                    <div className="flex flex-col gap-5 pb-5 sm:flex-row sm:items-end sm:justify-between sm:pb-6">
+                        <div className="min-w-0">
+                            <h2 className="font-sans! text-[20px]! font-semibold! leading-tight! tracking-[-0.02em] text-[#EEF1F5]!">
+                                Help Request Directory
+                            </h2>
+
+                            <p className="mt-2 max-w-xl text-[12px] leading-[1.65] text-[#8792A1]">
+                                Browse and manage submitted help requests.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mb-5 xl:hidden">
+                        <button
+                            type="button"
+                            onClick={() => setMobileFiltersOpen(true)}
+                            className="flex h-10 w-full items-center justify-between border border-[#29323E] bg-[#0E1219] px-3.5 text-[11px] text-[#AEB7C3] hover:bg-[#151B24]"
+                        >
+                            <span className="flex items-center gap-2">
+                                <SlidersHorizontal size={14} />
+                                Filters
+                            </span>
+
+                            <span className="text-[#697586]">
+                                Refine requests
+                            </span>
+                        </button>
+                    </div>
+
+                    {mobileFiltersOpen && (
+                        <div className="fixed inset-0 z-50 xl:hidden">
+                            <button
+                                type="button"
+                                aria-label="Close filters"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className="absolute inset-0 bg-black/70"
+                            />
+
+                            <div className="absolute inset-y-0 right-0 w-[min(340px,90vw)] overflow-y-auto border-l border-[#29323E] bg-[#0E1219]">
+                                <div className="flex items-center justify-between border-b border-[#29323E] px-4 py-3 text-[13px] text-[#EEF1F5]">
+                                    Request filters
+                                    <button
+                                        type="button"
+                                        aria-label="Close filters"
+                                        onClick={() =>
+                                            setMobileFiltersOpen(false)
+                                        }
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
+
+                                <HelpRequestFilters
+                                    categoryTabs={categoryTabs}
+                                    activeCategory={activeCategory}
+                                    onCategoryChange={handleCategoryChange}
+                                    categoryFilter={categoryFilter}
+                                    priorityFilter={priorityFilter}
+                                    assignmentFilter={assignmentFilter}
+                                    helpRequests={helpRequests}
+                                    onCategoryFilterChange={
+                                        handleCategoryFilterChange
+                                    }
+                                    onPriorityChange={handlePriorityChange}
+                                    onAssignmentChange={handleAssignmentChange}
+                                    onClearFilters={() => {
+                                        handleCategoryChange('all');
+
+                                        handleCategoryFilterChange({
+                                            target: { value: 'all' },
+                                        });
+
+                                        handlePriorityChange({
+                                            target: { value: 'all' },
+                                        });
+
+                                        handleAssignmentChange({
+                                            target: { value: 'all' },
+                                        });
+                                    }}
+                                />
+
+                                <div className="p-4">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setMobileFiltersOpen(false)
+                                        }
+                                        className="h-10 w-full bg-[#263343] text-[12px] text-[#EEF1F5]"
+                                    >
+                                        Show results
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-stretch xl:gap-7 2xl:grid-cols-[minmax(0,1fr)_320px]">
+                        {/* TABLE */}
+
+                        <div className="relative min-h-0 min-w-0 xl:h-full">
+                            <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border border-[#252D38] bg-[#0E1219] xl:absolute xl:inset-0">
+                                <div className="shrink-0 border-b border-[#252D38] bg-[#1A222D] px-4 py-3.5 sm:px-5">
+                                    <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
+                                        <div className="min-w-0 flex-1">
+                                            <div className="relative">
+                                                <Search
+                                                    size={15}
+                                                    strokeWidth={1.8}
+                                                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#697586]"
+                                                />
+
+                                                <input
+                                                    type="text"
+                                                    value={searchTerm}
+                                                    onChange={
+                                                        handleSearchChange
+                                                    }
+                                                    placeholder="Search by request, requester or email"
+                                                    className="h-10 w-full border border-[#35404E] bg-[#0E1219] pl-9 pr-4 text-[12px] text-[#DCE3EC] outline-none placeholder:text-[#697586] hover:border-[#455160] focus:border-[#455160]"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex shrink-0 items-center gap-3">
+                                            <span className="hidden h-7 border-l border-[#303A47] lg:block" />
+
+                                            <span className="text-[11px] font-medium text-[#AAB3BF]">
+                                                {filteredHelpRequests.length}{' '}
+                                                {filteredHelpRequests.length ===
+                                                1
+                                                    ? 'result'
+                                                    : 'results'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-[#0E1219] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#0A0E14] [&::-webkit-scrollbar-thumb]:bg-[#303A47] hover:[&::-webkit-scrollbar-thumb]:bg-[#465261]">
+                                    <HelpRequestTable
+                                        columns={columns}
+                                        rows={rows}
+                                        onSort={handleSort}
+                                        getSortIcon={getSortIcon}
+                                        resultCount={
+                                            filteredHelpRequests.length
+                                        }
+                                    />
+                                </div>
+
+                                {filteredHelpRequests.length > 0 && (
+                                    <div className="shrink-0 border-t border-[#252D38] bg-[#1A222D]">
+                                        <HelpRequestPagination
+                                            currentPage={safeCurrentPage}
+                                            totalPages={totalPages}
+                                            totalItems={
+                                                filteredHelpRequests.length
+                                            }
+                                            itemsPerPage={
+                                                HELP_REQUESTS_PER_PAGE
+                                            }
+                                            onPageChange={setCurrentPage}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* DESKTOP FILTERS */}
+
+                        <aside className="hidden min-w-0 border border-[#252D38] bg-[#0E1219] xl:block">
+                            <HelpRequestFilters
+                                categoryTabs={categoryTabs}
+                                activeCategory={activeCategory}
+                                onCategoryChange={handleCategoryChange}
+                                categoryFilter={categoryFilter}
+                                priorityFilter={priorityFilter}
+                                assignmentFilter={assignmentFilter}
+                                helpRequests={helpRequests}
+                                onCategoryFilterChange={
+                                    handleCategoryFilterChange
+                                }
+                                onPriorityChange={handlePriorityChange}
+                                onAssignmentChange={handleAssignmentChange}
+                                onClearFilters={() => {
+                                    handleCategoryChange('all');
+
+                                    handleCategoryFilterChange({
+                                        target: { value: 'all' },
+                                    });
+
+                                    handlePriorityChange({
+                                        target: { value: 'all' },
+                                    });
+
+                                    handleAssignmentChange({
+                                        target: { value: 'all' },
+                                    });
+                                }}
+                            />
+                        </aside>
+                    </div>
+                </section>
+            </div>
+
+            {/* SUCCESS TOAST */}
+
+            <SuccessDialog
+                open={toast.show}
+                title="Action completed"
+                message={toast.message}
+                onClose={() => setToast({ show: false, message: '' })}
+            />
+
+            {/* VERIFICATION */}
+
+            <HelpRequestVerificationModal
+                request={selectedVerificationRequest}
+                loading={verificationLoading}
+                error={verificationError}
+                onClose={closeVerificationModal}
+                onConfirm={handleVerificationChange}
+            />
+
+            {/* INITIAL ASSIGNMENT */}
+
+            <HelpRequestAssignmentModal
+                request={selectedAssignmentRequest}
+                organizations={organizations}
+                volunteers={volunteers}
+                loading={assignmentLoading || assignmentDataLoading}
+                error={assignmentError}
+                onClose={closeAssignmentModal}
+                onConfirm={handleAssignment}
+            />
+        </>
+    );
+};
+
+/*
+|--------------------------------------------------------------------------
+| Assignment status helpers
+|--------------------------------------------------------------------------
+*/
+
+const normalizeAssignmentStatus = (status) => {
+    return String(status || '')
+        .trim()
+        .toLowerCase();
+};
+
+const isPendingOrganizationAssignment = (assignment) => {
+    if (!assignment?.organization_id && !assignment?.organization) {
+        return false;
+    }
+
+    return normalizeAssignmentStatus(assignment.status) === 'pending';
+};
+
+const isActiveOrganizationAssignment = (assignment) => {
+    if (!assignment?.organization_id && !assignment?.organization) {
+        return false;
+    }
+
+    return ['assigned', 'accepted', 'in_progress', 'completed'].includes(
+        normalizeAssignmentStatus(assignment.status),
+    );
+};
+
+const getOrganizationAssignments = (request) => {
+    if (!request) {
+        return [];
+    }
+
+    const assignments = [];
+
+    if (Array.isArray(request.assignments)) {
+        assignments.push(...request.assignments);
+    }
+
+    if (request.assignment) {
+        assignments.push(request.assignment);
+    }
+
+    return assignments.filter((assignment, index, array) => {
+        const assignmentId = assignment?.id;
+
+        if (!assignmentId) {
+            return index === array.indexOf(assignment);
+        }
+
+        return index === array.findIndex((item) => item?.id === assignmentId);
+    });
+};
+
+const hasExistingAssignment = (request) => {
+    if (!request) {
+        return false;
+    }
+
+    const organizationAssignments = getOrganizationAssignments(request);
+
+    const hasActiveOrganization = organizationAssignments.some(
+        isActiveOrganizationAssignment,
+    );
+
+    if (hasActiveOrganization) {
+        return true;
+    }
+
+    if (
+        Array.isArray(request.assigned_volunteers) &&
+        request.assigned_volunteers.length > 0
+    ) {
+        return true;
+    }
+
+    if (Array.isArray(request.volunteers) && request.volunteers.length > 0) {
+        return true;
+    }
+
+    return false;
+};
+
+const hasPendingOrganizationAssignment = (request) => {
+    return getOrganizationAssignments(request).some(
+        isPendingOrganizationAssignment,
+    );
+};
+
+const hasActiveOrganizationAssignment = (request) => {
+    return getOrganizationAssignments(request).some(
+        isActiveOrganizationAssignment,
+    );
+};
+
+const getAssignedOrganizationName = (request) => {
+    if (!request) {
+        return 'Not assigned';
+    }
+
+    const organizationAssignments = getOrganizationAssignments(request);
+
+    const pendingAssignment = organizationAssignments.find(
+        isPendingOrganizationAssignment,
+    );
+
+    if (pendingAssignment) {
+        return 'Assignment Pending';
+    }
+
+    const activeAssignment = organizationAssignments.find(
+        isActiveOrganizationAssignment,
+    );
+
+    if (activeAssignment?.organization?.name) {
+        return activeAssignment.organization.name;
+    }
+
+    if (activeAssignment?.organization?.user?.name) {
+        return activeAssignment.organization.user.name;
+    }
+
+    if (
+        organizationAssignments.length === 0 &&
+        request.assigned_organization?.name
+    ) {
+        return request.assigned_organization.name;
+    }
+
+    if (
+        organizationAssignments.length === 0 &&
+        typeof request.assigned_organization === 'string'
+    ) {
+        return request.assigned_organization;
+    }
+
+    return 'Not assigned';
+};
+
+const getAssignedOrganizationId = (request) => {
+    if (!request) {
+        return null;
+    }
+
+    const organizationAssignments = getOrganizationAssignments(request);
+
+    const activeAssignment = organizationAssignments.find(
+        isActiveOrganizationAssignment,
+    );
+
+    if (activeAssignment?.organization?.id) {
+        return activeAssignment.organization.id;
+    }
+
+    if (activeAssignment?.organization_id) {
+        return activeAssignment.organization_id;
+    }
+
+    if (organizationAssignments.length === 0) {
+        if (request.assigned_organization?.id) {
+            return request.assigned_organization.id;
+        }
+
+        if (request.assigned_organization_id) {
+            return request.assigned_organization_id;
+        }
+    }
+
+    return null;
+};
+
+export default HelpRequests;
+
+========== HELP REQUEST DETAILS VIEW ==========
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+    ArrowUpRight,
+    Building2,
+    CalendarDays,
+    Clock3,
+    FileText,
+    MapPin,
+    Pencil,
+    UserRound,
+    ClipboardList,
+    AlertCircle,
+    UsersRound,
+} from 'lucide-react';
+
+import StatusBadge from '@/components/dashboard/StatusBadge';
+
+const PANEL = 'min-w-0 overflow-hidden border border-[#303A47] bg-[#171D26]';
+
+const STATUS_COLORS = {
+    pending: 'border-[#66583D] bg-[#332D22] text-[#E4C995]',
+    active: 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]',
+    approved: 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]',
+    verified: 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]',
+    completed: 'border-[#46586D] bg-[#253242] text-[#C0D0E1]',
+    rejected: 'border-[#75464C] bg-[#322126] text-[#E9B8BD]',
+    cancelled: 'border-[#515967] bg-[#292E37] text-[#C2CAD5]',
+};
+
+function show(value, fallback = 'Not provided') {
+    if (value === null || value === undefined) {
+        return fallback;
+    }
+
+    const result = String(value).trim();
+    return result || fallback;
+}
+
+function titleCase(value) {
+    return show(value, 'Not specified')
+        .replace(/[_-]+/g, ' ')
+        .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function dateText(value, withTime = false) {
+    if (!value) return 'Not set';
+
+    const parsed = new Date(value);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return String(value);
+    }
+
+    const options = {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    };
+
+    if (withTime) {
+        options.hour = 'numeric';
+        options.minute = '2-digit';
+    }
+
+    return parsed.toLocaleString('en-GB', options);
+}
+
+function getAssignments(request) {
+    if (Array.isArray(request.assignments)) {
+        return request.assignments;
+    }
+
+    if (Array.isArray(request.help_request_assignments)) {
+        return request.help_request_assignments;
+    }
+
+    if (Array.isArray(request.helpRequestAssignments)) {
+        return request.helpRequestAssignments;
+    }
+
+    return request.assignment ? [request.assignment] : [];
+}
+
+function getRequester(request) {
+    const requester = request.user || request.requester || {};
+
+    return {
+        id: request.user_id ?? request.requester_id ?? requester.id ?? null,
+
+        name:
+            requester.name ||
+            requester.full_name ||
+            request.requesterName ||
+            'Unknown requester',
+
+        email: requester.email || request.requesterEmail || null,
+
+        image:
+            requester.profile_image ||
+            requester.avatar ||
+            requester.photo ||
+            null,
+    };
+}
+
+function SectionHeader({ icon: Icon, title, subtitle, extra }) {
+    return (
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-[#344150] bg-[#202B38] px-5 py-4 sm:px-7 sm:py-5">
+            <div className="flex min-w-0 items-start gap-3">
+                <span className="flex size-8 shrink-0 items-center justify-center border border-[#3A495B] bg-[#273646] text-[#C3D0DE]">
+                    <Icon size={16} strokeWidth={1.8} />
+                </span>
+
+                <div className="min-w-0">
+                    <h2 className="m-0! font-sans! text-[14px]! font-semibold! leading-5 text-[#EEF1F5]!">
+                        {title}
+                    </h2>
+
+                    {subtitle && (
+                        <p className="mt-1 mb-0! text-[12px] leading-5 text-[#9AAABD]">
+                            {subtitle}
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            {extra}
+        </div>
+    );
+}
+
+function Info({ title, value, className = '' }) {
+    return (
+        <div className={`min-w-0 ${className}`}>
+            <dt className="text-[12px] font-medium text-[#8796A8]">{title}</dt>
+
+            <dd className="mt-1.5 mb-0 wrap-break-word whitespace-pre-wrap text-[14px] leading-6 text-[#E6EBF2]">
+                {show(value)}
+            </dd>
+        </div>
+    );
+}
+
+function Status({ value }) {
+    return <StatusBadge status={value || 'pending'} />;
+}
+
+function Identity({ request, requester, onEdit }) {
+    const [imageFailed, setImageFailed] = useState(false);
+
+    const status = String(request.status || 'pending').toLowerCase();
+
+    return (
+        <section className={PANEL}>
+            <div className="flex flex-col gap-5 px-5 py-5 sm:px-7 sm:py-6 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex min-w-0 items-start gap-4">
+                    <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden border border-[#3A495B] bg-[#253242] text-[#C3D0DE] sm:size-14">
+                        {requester.image && !imageFailed ? (
+                            <img
+                                src={requester.image}
+                                alt={requester.name}
+                                onError={() => setImageFailed(true)}
+                                className="size-full object-cover"
+                            />
+                        ) : (
+                            <FileText size={23} strokeWidth={1.5} />
+                        )}
+                    </div>
+
+                    <div className="min-w-0">
+                        <p className="m-0! text-[12px] font-medium text-[#94A3B4]">
+                            Help request #{show(request.id)}
+                        </p>
+
+                        <h1 className="mt-2 mb-0! wrap-break-word font-sans! text-[19px]! font-semibold! leading-[1.45] tracking-[-0.02em] text-[#F0F3F7]! sm:text-[23px]!">
+                            {show(request.title, 'Untitled help request')}
+                        </h1>
+
+                        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-[#AAB8C7]">
+                            <span className="inline-flex items-center gap-2">
+                                <UserRound size={14} />
+                                {requester.name}
+                            </span>
+
+                            {request.district && (
+                                <span className="inline-flex items-center gap-2">
+                                    <MapPin size={14} />
+                                    {request.district}
+                                </span>
+                            )}
+
+                            {request.created_at && (
+                                <span className="inline-flex items-center gap-2">
+                                    <CalendarDays size={14} />
+                                    {dateText(request.created_at)}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
+                    <span
+                        className={`
+                            inline-flex min-h-9 items-center gap-2
+                            border px-3 text-[12px] font-medium
+                            ${
+                                STATUS_COLORS[status] ||
+                                'border-[#465363] bg-[#253242] text-[#D5DFE9]'
+                            }
+                        `}
+                    >
+                        <span className="size-1.5 rounded-full bg-current" />
+                        {titleCase(status)}
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={onEdit}
+                        className="inline-flex min-h-9 items-center justify-center gap-2 border border-[#586678] bg-[#2B3949] px-3.5 text-[12px] font-medium text-[#EEF1F5] transition-colors hover:bg-[#37495D]"
+                    >
+                        <Pencil size={14} strokeWidth={1.8} />
+                        Edit request
+                    </button>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function RequesterLink({ requester }) {
+    const [imageFailed, setImageFailed] = useState(false);
+
+    const content = (
+        <>
+            <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden border border-[#3A495B] bg-[#253242] text-[#B7C8D9]">
+                {requester.image && !imageFailed ? (
+                    <img
+                        src={requester.image}
+                        alt={requester.name}
+                        onError={() => setImageFailed(true)}
+                        className="size-full object-cover"
+                    />
+                ) : (
+                    <UserRound size={19} strokeWidth={1.7} />
+                )}
+            </span>
+
+            <span className="min-w-0 flex-1">
+                <span className="block truncate text-[14px] font-semibold text-[#E7EDF4]">
+                    {requester.name}
+                </span>
+
+                <span className="mt-1 block truncate text-[13px] text-[#98A8BA]">
+                    {show(requester.email)}
+                </span>
+            </span>
+
+            {requester.id != null && (
+                <ArrowUpRight
+                    size={17}
+                    strokeWidth={1.7}
+                    className="shrink-0 text-[#91A4B8] transition-colors group-hover:text-[#EEF1F5]"
+                />
+            )}
+        </>
+    );
+
+    if (requester.id == null) {
+        return (
+            <div className="flex min-w-0 items-center gap-3 border border-[#344150] bg-[#151D27] px-4 py-3">
+                {content}
+            </div>
+        );
+    }
+
+    return (
+        <Link
+            to={`/admin/dashboard/users/${requester.id}`}
+            title="View requester details"
+            className="group flex min-w-0 items-center gap-3 border border-[#344150] bg-[#151D27] px-4 py-3 transition-colors hover:border-[#526276] hover:bg-[#1D2936]"
+        >
+            {content}
+        </Link>
+    );
+}
+
+function RequestInformation({ request, requester }) {
+    const address = request.address || request.location;
+
+    return (
+        <section className="min-w-0 overflow-hidden border border-[#354354] bg-[#1A222D]">
+            <SectionHeader
+                icon={FileText}
+                title="About this request"
+                subtitle="Request details and assistance requirements"
+            />
+
+            <div className="px-5 py-6 sm:px-7 sm:py-7">
+                <p className="m-0! wrap-break-word whitespace-pre-line text-[14px] leading-[1.95] text-[#D4DDE7]">
+                    {show(
+                        request.description,
+                        'No request description has been provided.',
+                    )}
+                </p>
+
+                <div className="mt-7 border-t border-[#344150] pt-6">
+                    <h3 className="m-0! font-sans! text-[14px]! font-semibold! text-[#E8EDF3]!">
+                        Request information
+                    </h3>
+
+                    <dl className="mt-5 grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+                        <Info
+                            title="Category"
+                            value={titleCase(request.category)}
+                        />
+
+                        <Info
+                            title="Urgency"
+                            value={titleCase(
+                                request.urgency || request.priority,
+                            )}
+                        />
+
+                        <Info title="Request ID" value={request.id} />
+
+                        <Info title="District" value={request.district} />
+
+                        <Info
+                            title="Address"
+                            value={address}
+                            className="sm:col-span-2"
+                        />
+                    </dl>
+                </div>
+
+                <div className="mt-7 border-t border-[#344150] pt-6">
+                    <h3 className="m-0! font-sans! text-[14px]! font-semibold! text-[#E8EDF3]!">
+                        Requester information
+                    </h3>
+
+                    <div className="mt-4">
+                        <RequesterLink requester={requester} />
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function OverviewRow({ title, children }) {
+    return (
+        <div className="flex min-w-0 items-start justify-between gap-4 border-b border-[#303A47] py-4 last:border-b-0">
+            <dt className="shrink-0 text-[13px] text-[#9EADBD]">{title}</dt>
+
+            <dd className="m-0! min-w-0 wrap-break-word text-right text-[13px] font-medium text-[#E2EAF1]">
+                {children}
+            </dd>
+        </div>
+    );
+}
+
+function RequestOverview({ request, assignmentCount }) {
+    return (
+        <section className={PANEL}>
+            <SectionHeader
+                icon={ClipboardList}
+                title="Request overview"
+                subtitle="Status and request classification"
+            />
+
+            <div className="bg-[#0E1219] px-5 py-3 sm:px-6">
+                <dl>
+                    <OverviewRow title="Request status">
+                        <Status value={request.status} />
+                    </OverviewRow>
+
+                    <OverviewRow title="Verification">
+                        <Status value={request.verification_status} />
+                    </OverviewRow>
+
+                    <OverviewRow title="Category">
+                        {titleCase(request.category)}
+                    </OverviewRow>
+
+                    <OverviewRow title="Urgency level">
+                        {titleCase(request.urgency || request.priority)}
+                    </OverviewRow>
+
+                    <OverviewRow title="Assignments">
+                        {assignmentCount}
+                    </OverviewRow>
+                </dl>
+            </div>
+
+            {request.verification_note && (
+                <div className="border-t border-[#303A47] bg-[#151C25] px-5 py-5 sm:px-6">
+                    <div className="flex items-center gap-2">
+                        <AlertCircle size={15} className="text-[#A7B8CA]" />
+
+                        <h3 className="m-0! font-sans! text-[13px]! font-semibold! text-[#E6EDF5]!">
+                            Verification note
+                        </h3>
+                    </div>
+
+                    <p className="mt-3 mb-0! wrap-break-word whitespace-pre-wrap text-[13px] leading-6 text-[#B3C0CE]">
+                        {request.verification_note}
+                    </p>
+                </div>
+            )}
+        </section>
+    );
+}
+
+function RecordHistory({ request }) {
+    return (
+        <section className={PANEL}>
+            <SectionHeader
+                icon={Clock3}
+                title="Record history"
+                subtitle="Creation and last modification"
+            />
+
+            <dl className="grid grid-cols-1 gap-5 px-5 py-6 sm:grid-cols-2 sm:px-6 lg:grid-cols-1">
+                <Info
+                    title="Submitted"
+                    value={dateText(request.created_at, true)}
+                />
+
+                <Info
+                    title="Last updated"
+                    value={dateText(request.updated_at, true)}
+                />
+            </dl>
+        </section>
+    );
+}
+
+function getAssignmentOrganization(assignment) {
+    const organization =
+        assignment.organization ||
+        assignment.organization_user ||
+        assignment.organizationUser ||
+        {};
+
+    const name =
+        organization.name ||
+        assignment.organization_name ||
+        assignment.organizationName ||
+        'Assignment';
+
+    const id =
+        assignment.organization_id ??
+        assignment.organizationId ??
+        organization.id ??
+        null;
+
+    return { id, name };
+}
+
+function AssignmentHistory({ assignments }) {
+    return (
+        <section className={PANEL}>
+            <SectionHeader
+                icon={UsersRound}
+                title="Assignment history"
+                subtitle="Organizations and teams connected to this request"
+                extra={
+                    <span className="border border-[#435064] bg-[#293747] px-2.5 py-1 text-[12px] font-medium tabular-nums text-[#D4DFEA]">
+                        {assignments.length}{' '}
+                        {assignments.length === 1
+                            ? 'assignment'
+                            : 'assignments'}
+                    </span>
+                }
+            />
+
+            {assignments.length === 0 ? (
+                <div className="flex min-h-40 flex-col items-center justify-center px-5 py-8 text-center">
+                    <Building2
+                        size={25}
+                        strokeWidth={1.5}
+                        className="text-[#8294A7]"
+                    />
+
+                    <p className="mt-3 mb-0! text-[14px] font-medium text-[#DCE5EF]">
+                        No assignments recorded
+                    </p>
+
+                    <p className="mt-1 mb-0! text-[13px] text-[#91A0B0]">
+                        This help request has not been assigned yet.
+                    </p>
+                </div>
+            ) : (
+                <div className="divide-y divide-[#303A47]">
+                    {assignments.map((assignment, index) => {
+                        const organization =
+                            getAssignmentOrganization(assignment);
+
+                        return (
+                            <div
+                                key={assignment.id ?? index}
+                                className="flex min-w-0 flex-col gap-4 px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-7"
+                            >
+                                <div className="flex min-w-0 items-start gap-3">
+                                    <span className="flex size-9 shrink-0 items-center justify-center border border-[#3A495B] bg-[#253242] text-[#B7C8D9]">
+                                        <Building2
+                                            size={17}
+                                            strokeWidth={1.7}
+                                        />
+                                    </span>
+
+                                    <div className="min-w-0">
+                                        {organization.id != null ? (
+                                            <Link
+                                                to={`/admin/dashboard/organizations/${organization.id}`}
+                                                className="group inline-flex max-w-full items-center gap-1.5 text-left text-[14px] font-semibold text-[#DCE8F5] transition-colors hover:text-white"
+                                                title="View organization details"
+                                            >
+                                                <span className="wrap-break-word underline decoration-[#70869C] underline-offset-4 group-hover:decoration-white">
+                                                    {organization.name}
+                                                </span>
+
+                                                <ArrowUpRight
+                                                    size={14}
+                                                    className="shrink-0 text-[#94A9BE] group-hover:text-white"
+                                                />
+                                            </Link>
+                                        ) : (
+                                            <p className="m-0! wrap-break-word text-[14px] font-semibold text-[#E7EDF4]">
+                                                {organization.name}
+                                            </p>
+                                        )}
+
+                                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#94A3B4]">
+                                            <span className="inline-flex items-center gap-1.5">
+                                                <CalendarDays size={13} />
+
+                                                {dateText(
+                                                    assignment.assigned_at ||
+                                                        assignment.created_at,
+                                                )}
+                                            </span>
+
+                                            {assignment.id != null && (
+                                                <span>
+                                                    Assignment #{assignment.id}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {assignment.rejection_note && (
+                                            <p className="mt-3 mb-0! wrap-break-word whitespace-pre-wrap text-[13px] leading-6 text-[#D6A9AC]">
+                                                {assignment.rejection_note}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="shrink-0 self-start">
+                                    <Status
+                                        value={assignment.status || 'pending'}
+                                    />
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </section>
+    );
+}
+
+export default function HelpRequestDetailsView({ request, onEdit }) {
+    const requester = getRequester(request);
+    const assignments = getAssignments(request);
+
+    return (
+        <main className="min-w-0 space-y-5 font-sans">
+            <Identity request={request} requester={requester} onEdit={onEdit} />
+
+            <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_290px] xl:grid-cols-[minmax(0,1fr)_350px]">
+                <div className="min-w-0 space-y-5">
+                    <RequestInformation
+                        request={request}
+                        requester={requester}
+                    />
+
+                    <AssignmentHistory assignments={assignments} />
+                </div>
+
+                <aside className="min-w-0 space-y-5">
+                    <RequestOverview
+                        request={request}
+                        assignmentCount={assignments.length}
+                    />
+
+                    <RecordHistory request={request} />
+                </aside>
+            </div>
+        </main>
+    );
+}

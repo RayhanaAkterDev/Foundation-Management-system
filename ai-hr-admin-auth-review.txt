@@ -1,0 +1,497 @@
+========== ADMIN CONTROLLER IMPORTS AND AUTHORIZATION ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use App\Models\Organization;
+use App\Models\OrganizationRegistrationNumber;
+use App\Models\IndividualProfile;
+use App\Models\HelpRequest;
+use App\Models\HelpRequestAssignment;
+use App\Models\Campaign;
+use App\Models\Donation;
+use App\Models\Volunteer;
+use App\Models\VolunteerRequest;
+use App\Models\CampaignVolunteerAssignment;
+use App\Notifications\PlatformNotification;
+use ImageKit\ImageKit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+
+class AdminController extends Controller
+{
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Authorization Helper
+    |--------------------------------------------------------------------------
+    */
+
+    private function authorizeAdmin(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        return $user;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Volunteer Availability Helpers
+    |--------------------------------------------------------------------------
+    |
+    | Availability is DERIVED.
+    |
+    | available:
+    | - volunteer status = active
+    | - no active campaign assignment
+    |
+    | unavailable:
+    | - volunteer status != active
+    | - OR active campaign assignment exists
+    |
+    | The volunteers.availability database column is no longer used.
+    |
+    */
+
+    private function hasActiveCampaignAssignment(int $userId): bool
+    {
+        return CampaignVolunteerAssignment::query()
+            ->where('volunteer_id', $userId)
+            ->whereIn(
+                'status',
+                CampaignVolunteerAssignment::activeStatuses()
+            )
+            ->exists();
+    }
+
+    private function calculateVolunteerAvailability(
+        Volunteer $volunteer
+    ): string {
+        if ($volunteer->status !== Volunteer::STATUS_ACTIVE) {
+            return 'unavailable';
+        }
+
+        return $this->hasActiveCampaignAssignment(
+            (int) $volunteer->user_id
+        )
+            ? 'unavailable'
+            : 'available';
+    }
+
+    private function volunteerWithAvailability(Volunteer $volunteer): array
+    {
+        return [
+            'id' => $volunteer->id,
+
+            'user_id' => $volunteer->user_id,
+
+            'user' => $volunteer->user,
+
+            'phone' => $volunteer->phone
+                ?? $volunteer->user?->phone,
+
+            'district' => $volunteer->district,
+
+========== EXISTING HELP REQUEST ADMIN METHODS ==========
+            if ($organizationUser) {
+                $organizationUser->delete();
+            }
+        });
+
+        return response()->json([
+            'message' =>
+            'Organization and its user account deleted successfully.',
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - List
+    |--------------------------------------------------------------------------
+    */
+
+    public function helpRequests(Request $request)
+    {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequests = HelpRequest::with([
+            'user',
+            'assignments.organization.user:id,email',
+            'assignments.volunteer',
+            'assignments.assignedBy',
+        ])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'helpRequests' => $helpRequests,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - Edit
+    |--------------------------------------------------------------------------
+    */
+
+    public function updateHelpRequest(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'required',
+                'string',
+                'max:1000',
+            ],
+
+            'category' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'district' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
+            'urgency' => [
+                'required',
+                'in:normal,high,critical',
+            ],
+        ]);
+
+        $helpRequest->title = trim($validated['title']);
+        $helpRequest->description = trim($validated['description']);
+        $helpRequest->category = trim($validated['category']);
+        $helpRequest->district = trim($validated['district']);
+        $helpRequest->address = isset($validated['address'])
+            ? trim($validated['address'])
+            : null;
+        $helpRequest->urgency = $validated['urgency'];
+
+        $helpRequest->save();
+
+        return response()->json([
+            'message' => 'Help request updated successfully.',
+
+            'help_request' => $helpRequest
+                ->fresh()
+                ->load([
+                    'user',
+                    'assignments.organization',
+                    'assignments.volunteer',
+                    'assignments.assignedBy',
+                ]),
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - Verify / Reject
+    |--------------------------------------------------------------------------
+    */
+
+    public function updateHelpRequestVerification(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        if ($helpRequest->status !== HelpRequest::STATUS_PENDING) {
+            return response()->json([
+                'message' =>
+                'Only pending help requests can be reviewed.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'status' => [
+                'required',
+                'in:verified,rejected',
+            ],
+
+            'verification_note' => [
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+        ]);
+
+        $helpRequest->update([
+            'status' => $validated['status'],
+
+            'verification_note' =>
+            $validated['verification_note'] ?? null,
+        ]);
+
+        if ($helpRequest->user) {
+            $title = $validated['status'] === HelpRequest::STATUS_VERIFIED
+                ? 'Help request approved'
+                : 'Help request rejected';
+
+            $body = $validated['status'] === HelpRequest::STATUS_VERIFIED
+                ? "Your help request \"{$helpRequest->title}\" has been approved."
+                : "Your help request \"{$helpRequest->title}\" has been rejected.";
+
+            if (
+
+========== API ROUTE MIDDLEWARE AND ADMIN GROUP ==========
+<?php
+
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\IndividualDashboardController;
+use App\Http\Controllers\HelpRequestController;
+use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\VolunteerController;
+use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\DonationController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\PublicCampaignController;
+use App\Http\Controllers\PublicCommunityController;
+use App\Http\Controllers\TestimonialController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\ContactMessageController;
+use Illuminate\Support\Facades\Route;
+
+// =============================================================
+// PUBLIC
+// =============================================================
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/contact-messages', [ContactMessageController::class, 'store'])
+    ->middleware('throttle:5,1');
+
+Route::get(
+    '/campaigns',
+    [CampaignController::class, 'index']
+);
+
+Route::get(
+    '/campaigns/{id}',
+    [CampaignController::class, 'show']
+);
+
+// =============================================================
+// PUBLIC ORGANIZATIONS
+// =============================================================
+//
+// Public directory of registered organizations.
+// This is read-only and does not create a separate
+// partnership workflow.
+//
+
+Route::get(
+    '/organizations',
+    [OrganizationController::class, 'publicIndex']
+);
+
+// =============================================================
+// PUBLIC VOLUNTEERS
+// =============================================================
+//
+// Public directory of active volunteers.
+// Only public-safe volunteer information is returned.
+//
+
+Route::get(
+    '/public/volunteers',
+    [VolunteerController::class, 'publicIndex']
+);
+
+// =============================================================
+// CENTRAL CATEGORIES
+// =============================================================
+//
+// Single source of truth for category names used by
+// public website and dashboards.
+//
+// This route is intentionally outside auth:sanctum.
+//
+
+Route::get(
+    '/categories',
+    [CategoryController::class, 'index']
+);
+
+Route::prefix('public')->group(function () {
+    Route::get(
+        '/campaigns/featured',
+        [PublicCampaignController::class, 'featured']
+    );
+
+    Route::get(
+        '/campaigns',
+        [PublicCampaignController::class, 'index']
+    );
+
+    Route::get(
+        '/campaigns/{id}',
+        [PublicCampaignController::class, 'show']
+    );
+
+    Route::get(
+    Route::get(
+        '/donations/my',
+        [DonationController::class, 'myDonations']
+    );
+});
+
+// =============================================================
+// ADMIN
+// =============================================================
+
+Route::middleware('auth:sanctum')
+    ->prefix('admin')
+    ->group(function () {
+        // ---------------------------------------------------------
+        // DASHBOARD
+        // ---------------------------------------------------------
+
+        Route::get(
+            '/dashboard',
+            [AdminController::class, 'dashboard']
+        );
+
+        // ---------------------------------------------------------
+        // USERS
+        // ---------------------------------------------------------
+
+        Route::get(
+            '/users',
+            [AdminController::class, 'users']
+        );
+
+        Route::get(
+            '/users/{id}',
+            [AdminController::class, 'showUser']
+        );
+
+        Route::post(
+            '/users',
+            [AdminController::class, 'storeUser']
+        );
+
+        Route::put(
+            '/users/{id}',
+            [AdminController::class, 'updateUser']
+        );
+
+        Route::delete(
+            '/users/{id}',
+            [AdminController::class, 'destroyUser']
+        );
+
+        // ---------------------------------------------------------
+        // ORGANIZATIONS
+        // ---------------------------------------------------------
+
+        Route::get(
+            '/organizations',
+            [AdminController::class, 'organizations']
+        );
+
+        Route::post(
+            '/organizations',
+            [AdminController::class, 'storeOrganization']
+        );
+
+        Route::get(
+            '/organizations/{id}',
+            [AdminController::class, 'showOrganization']
+        );
+
+        Route::put(
+            '/organizations/{id}',
+            [AdminController::class, 'updateOrganization']
+        );
+
+        Route::patch(
+            '/organizations/{id}/verification',
+            [AdminController::class, 'updateOrganizationVerification']
+        );
+
+        Route::delete(
+            '/organizations/{id}',
+            [AdminController::class, 'destroyOrganization']
+        );
+
+        // ---------------------------------------------------------
+        // HELP REQUESTS
+        // ---------------------------------------------------------
+
+        Route::get(
+            '/help-requests',
+            [AdminController::class, 'helpRequests']
+        );
+
+        Route::put(
+            '/help-requests/{id}',
+            [AdminController::class, 'updateHelpRequest']
+        );
+
+        Route::patch(
+            '/help-requests/{id}/verification',
+            [AdminController::class, 'updateHelpRequestVerification']
+        );
+
+        Route::patch(
+            '/help-requests/{id}/urgency',

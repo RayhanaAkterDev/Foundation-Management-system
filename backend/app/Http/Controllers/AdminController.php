@@ -14,6 +14,8 @@ use App\Models\Volunteer;
 use App\Models\VolunteerRequest;
 use App\Models\CampaignVolunteerAssignment;
 use App\Notifications\PlatformNotification;
+use App\Models\HelpRequestDuplicateMatch;
+use App\Services\HelpRequestDuplicateDetectionService;
 use ImageKit\ImageKit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -1383,6 +1385,63 @@ class AdminController extends Controller
 
         return response()->json([
             'helpRequests' => $helpRequests,
+        ]);
+    }
+
+    public function checkHelpRequestDuplicates(
+        Request $request,
+        int $id,
+        HelpRequestDuplicateDetectionService $service
+    ) {
+        $admin = $this->authorizeAdmin($request);
+
+        if ($admin instanceof \Illuminate\Http\JsonResponse) {
+            return $admin;
+        }
+
+        $helpRequest = HelpRequest::findOrFail($id);
+
+        $analysis = $service->analyze($helpRequest);
+
+        $matches = HelpRequestDuplicateMatch::query()
+            ->where('help_request_id', $helpRequest->id)
+            ->with([
+                'matchedHelpRequest.user',
+            ])
+            ->orderByDesc('similarity_score')
+            ->get()
+            ->map(function (HelpRequestDuplicateMatch $match) {
+                $matchedRequest = $match->matchedHelpRequest;
+
+                if (!$matchedRequest) {
+                    return null;
+                }
+
+                return [
+                    'id' => $matchedRequest->id,
+                    'title' => $matchedRequest->title,
+                    'description' => $matchedRequest->description,
+                    'category' => $matchedRequest->category,
+                    'district' => $matchedRequest->district,
+                    'status' => $matchedRequest->status,
+                    'created_at' => $matchedRequest->created_at,
+                    'user' => $matchedRequest->user
+                        ? [
+                            'id' => $matchedRequest->user->id,
+                            'name' => $matchedRequest->user->name,
+                        ]
+                        : null,
+                    'similarity_score' => (float) $match->similarity_score,
+                    'match_reasons' => $match->match_reasons,
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return response()->json([
+            'message' => 'Duplicate analysis completed.',
+            'analysis' => $analysis,
+            'matches' => $matches,
         ]);
     }
 

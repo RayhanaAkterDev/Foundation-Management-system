@@ -656,6 +656,11 @@ Route::middleware('auth:sanctum')
             [AdminController::class, 'reassignHelpRequest']
         );
 
+        Route::post(
+            '/help-requests/{id}/duplicate-check',
+            [AdminController::class, 'checkHelpRequestDuplicates']
+        );
+
         // =========================================================
         // VOLUNTEERS
         // =========================================================

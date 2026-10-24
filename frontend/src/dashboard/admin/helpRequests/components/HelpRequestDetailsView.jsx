@@ -1,20 +1,24 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+    AlertCircle,
+    AlertTriangle,
     ArrowUpRight,
     Building2,
     CalendarDays,
     Clock3,
+    ClipboardList,
     FileText,
     MapPin,
     Pencil,
+    RefreshCw,
+    Search,
     UserRound,
-    ClipboardList,
-    AlertCircle,
     UsersRound,
 } from 'lucide-react';
 
 import StatusBadge from '@/components/dashboard/StatusBadge';
+import { checkHelpRequestDuplicates } from '../api/helpRequestAPI';
 
 const PANEL = 'min-w-0 overflow-hidden border border-[#303A47] bg-[#171D26]';
 
@@ -29,9 +33,7 @@ const STATUS_COLORS = {
 };
 
 function show(value, fallback = 'Not provided') {
-    if (value === null || value === undefined) {
-        return fallback;
-    }
+    if (value === null || value === undefined) return fallback;
 
     const result = String(value).trim();
     return result || fallback;
@@ -48,28 +50,20 @@ function dateText(value, withTime = false) {
 
     const parsed = new Date(value);
 
-    if (Number.isNaN(parsed.getTime())) {
-        return String(value);
-    }
+    if (Number.isNaN(parsed.getTime())) return String(value);
 
     const options = {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
+        ...(withTime ? { hour: 'numeric', minute: '2-digit' } : {}),
     };
-
-    if (withTime) {
-        options.hour = 'numeric';
-        options.minute = '2-digit';
-    }
 
     return parsed.toLocaleString('en-GB', options);
 }
 
 function getAssignments(request) {
-    if (Array.isArray(request.assignments)) {
-        return request.assignments;
-    }
+    if (Array.isArray(request.assignments)) return request.assignments;
 
     if (Array.isArray(request.help_request_assignments)) {
         return request.help_request_assignments;
@@ -87,15 +81,12 @@ function getRequester(request) {
 
     return {
         id: request.user_id ?? request.requester_id ?? requester.id ?? null,
-
         name:
             requester.name ||
             requester.full_name ||
             request.requesterName ||
             'Unknown requester',
-
         email: requester.email || request.requesterEmail || null,
-
         image:
             requester.profile_image ||
             requester.avatar ||
@@ -134,7 +125,6 @@ function Info({ title, value, className = '' }) {
     return (
         <div className={`min-w-0 ${className}`}>
             <dt className="text-[12px] font-medium text-[#8796A8]">{title}</dt>
-
             <dd className="mt-1.5 mb-0 wrap-break-word whitespace-pre-wrap text-[14px] leading-6 text-[#E6EBF2]">
                 {show(value)}
             </dd>
@@ -148,7 +138,6 @@ function Status({ value }) {
 
 function Identity({ request, requester, onEdit }) {
     const [imageFailed, setImageFailed] = useState(false);
-
     const status = String(request.status || 'pending').toLowerCase();
 
     return (
@@ -202,14 +191,10 @@ function Identity({ request, requester, onEdit }) {
 
                 <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
                     <span
-                        className={`
-                            inline-flex min-h-9 items-center gap-2
-                            border px-3 text-[12px] font-medium
-                            ${
-                                STATUS_COLORS[status] ||
-                                'border-[#465363] bg-[#253242] text-[#D5DFE9]'
-                            }
-                        `}
+                        className={`inline-flex min-h-9 items-center gap-2 border px-3 text-[12px] font-medium ${
+                            STATUS_COLORS[status] ||
+                            'border-[#465363] bg-[#253242] text-[#D5DFE9]'
+                        }`}
                     >
                         <span className="size-1.5 rounded-full bg-current" />
                         {titleCase(status)}
@@ -251,7 +236,6 @@ function RequesterLink({ requester }) {
                 <span className="block truncate text-[14px] font-semibold text-[#E7EDF4]">
                     {requester.name}
                 </span>
-
                 <span className="mt-1 block truncate text-[13px] text-[#98A8BA]">
                     {show(requester.email)}
                 </span>
@@ -315,18 +299,14 @@ function RequestInformation({ request, requester }) {
                             title="Category"
                             value={titleCase(request.category)}
                         />
-
                         <Info
                             title="Urgency"
                             value={titleCase(
                                 request.urgency || request.priority,
                             )}
                         />
-
                         <Info title="Request ID" value={request.id} />
-
                         <Info title="District" value={request.district} />
-
                         <Info
                             title="Address"
                             value={address}
@@ -353,7 +333,6 @@ function OverviewRow({ title, children }) {
     return (
         <div className="flex min-w-0 items-start justify-between gap-4 border-b border-[#303A47] py-4 last:border-b-0">
             <dt className="shrink-0 text-[13px] text-[#9EADBD]">{title}</dt>
-
             <dd className="m-0! min-w-0 wrap-break-word text-right text-[13px] font-medium text-[#E2EAF1]">
                 {children}
             </dd>
@@ -375,19 +354,15 @@ function RequestOverview({ request, assignmentCount }) {
                     <OverviewRow title="Request status">
                         <Status value={request.status} />
                     </OverviewRow>
-
                     <OverviewRow title="Verification">
                         <Status value={request.verification_status} />
                     </OverviewRow>
-
                     <OverviewRow title="Category">
                         {titleCase(request.category)}
                     </OverviewRow>
-
                     <OverviewRow title="Urgency level">
                         {titleCase(request.urgency || request.priority)}
                     </OverviewRow>
-
                     <OverviewRow title="Assignments">
                         {assignmentCount}
                     </OverviewRow>
@@ -398,7 +373,6 @@ function RequestOverview({ request, assignmentCount }) {
                 <div className="border-t border-[#303A47] bg-[#151C25] px-5 py-5 sm:px-6">
                     <div className="flex items-center gap-2">
                         <AlertCircle size={15} className="text-[#A7B8CA]" />
-
                         <h3 className="m-0! font-sans! text-[13px]! font-semibold! text-[#E6EDF5]!">
                             Verification note
                         </h3>
@@ -427,7 +401,6 @@ function RecordHistory({ request }) {
                     title="Submitted"
                     value={dateText(request.created_at, true)}
                 />
-
                 <Info
                     title="Last updated"
                     value={dateText(request.updated_at, true)}
@@ -444,19 +417,18 @@ function getAssignmentOrganization(assignment) {
         assignment.organizationUser ||
         {};
 
-    const name =
-        organization.name ||
-        assignment.organization_name ||
-        assignment.organizationName ||
-        'Assignment';
-
-    const id =
-        assignment.organization_id ??
-        assignment.organizationId ??
-        organization.id ??
-        null;
-
-    return { id, name };
+    return {
+        name:
+            organization.name ||
+            assignment.organization_name ||
+            assignment.organizationName ||
+            'Assignment',
+        id:
+            assignment.organization_id ??
+            assignment.organizationId ??
+            organization.id ??
+            null,
+    };
 }
 
 function AssignmentHistory({ assignments }) {
@@ -483,11 +455,9 @@ function AssignmentHistory({ assignments }) {
                         strokeWidth={1.5}
                         className="text-[#8294A7]"
                     />
-
                     <p className="mt-3 mb-0! text-[14px] font-medium text-[#DCE5EF]">
                         No assignments recorded
                     </p>
-
                     <p className="mt-1 mb-0! text-[13px] text-[#91A0B0]">
                         This help request has not been assigned yet.
                     </p>
@@ -521,7 +491,6 @@ function AssignmentHistory({ assignments }) {
                                                 <span className="wrap-break-word underline decoration-[#70869C] underline-offset-4 group-hover:decoration-white">
                                                     {organization.name}
                                                 </span>
-
                                                 <ArrowUpRight
                                                     size={14}
                                                     className="shrink-0 text-[#94A9BE] group-hover:text-white"
@@ -536,7 +505,6 @@ function AssignmentHistory({ assignments }) {
                                         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#94A3B4]">
                                             <span className="inline-flex items-center gap-1.5">
                                                 <CalendarDays size={13} />
-
                                                 {dateText(
                                                     assignment.assigned_at ||
                                                         assignment.created_at,
@@ -572,9 +540,225 @@ function AssignmentHistory({ assignments }) {
     );
 }
 
+function DuplicateAnalysis({ request, result, loading, error, onCheck }) {
+    const payload = result?.data ?? result;
+    const matches = Array.isArray(payload?.matches) ? payload.matches : [];
+
+    return (
+        <section className={PANEL}>
+            <SectionHeader
+                icon={Search}
+                title="Duplicate request analysis"
+                subtitle="Compare this request with existing help requests"
+                extra={
+                    <button
+                        type="button"
+                        onClick={onCheck}
+                        disabled={loading || !request.id}
+                        className="inline-flex min-h-9 items-center justify-center gap-2 border border-[#49665F] bg-[#20382F] px-3 text-[12px] font-medium text-[#B9E2D0] transition-colors hover:bg-[#29483C] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        {loading ? (
+                            <RefreshCw size={14} className="animate-spin" />
+                        ) : (
+                            <Search size={14} />
+                        )}
+                        {loading
+                            ? 'Analyzing...'
+                            : result
+                              ? 'Run again'
+                              : 'Check duplicates'}
+                    </button>
+                }
+            />
+
+            <div className="space-y-4 px-5 py-5 sm:px-7 sm:py-6">
+                <p className="m-0! text-[13px] leading-6 text-[#AAB8C7]">
+                    Identifies existing requests with similar descriptions,
+                    categories, or locations. Matches are suggestions for
+                    administrative review, not proof of fraud or duplication.
+                    This analysis never verifies or rejects a request.
+                </p>
+
+                {error && (
+                    <div className="flex items-start gap-3 border border-[#75464C] bg-[#322126] px-4 py-3">
+                        <AlertTriangle
+                            size={17}
+                            className="mt-0.5 shrink-0 text-[#E9B8BD]"
+                        />
+                        <p className="m-0! text-[13px] leading-5 text-[#E9B8BD]">
+                            {error}
+                        </p>
+                    </div>
+                )}
+
+                {loading && (
+                    <div className="flex items-center gap-3 border border-[#344150] bg-[#151D27] px-4 py-4">
+                        <RefreshCw
+                            size={17}
+                            className="shrink-0 animate-spin text-[#A9C7C0]"
+                        />
+                        <p className="m-0! text-[13px] text-[#C4D0DC]">
+                            Comparing this request with existing records...
+                        </p>
+                    </div>
+                )}
+
+                {!loading && result && (
+                    <>
+                        <div className="flex flex-wrap items-center justify-between gap-3 border border-[#344150] bg-[#151D27] px-4 py-3">
+                            <div>
+                                <p className="m-0! text-[13px] font-semibold text-[#E6EDF5]">
+                                    Analysis complete
+                                </p>
+                                <p className="mt-1 mb-0! text-[12px] text-[#98A8BA]">
+                                    {matches.length === 0
+                                        ? 'No potential matches were found.'
+                                        : `${matches.length} potential ${
+                                              matches.length === 1
+                                                  ? 'match'
+                                                  : 'matches'
+                                          } found.`}
+                                </p>
+                            </div>
+
+                            <span className="border border-[#435064] bg-[#293747] px-3 py-1.5 text-[12px] font-semibold tabular-nums text-[#D4DFEA]">
+                                {matches.length}
+                            </span>
+                        </div>
+
+                        {matches.map((match) => {
+                            const score = Math.max(
+                                0,
+                                Math.min(
+                                    100,
+                                    Number(match.similarity_score ?? 0),
+                                ),
+                            );
+                            const reasons = Array.isArray(match.match_reasons)
+                                ? match.match_reasons
+                                : [];
+
+                            return (
+                                <article
+                                    key={match.id}
+                                    className="min-w-0 border border-[#303A47] bg-[#151D27] px-4 py-4 sm:px-5"
+                                >
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div className="min-w-0">
+                                            <p className="m-0! text-[11px] font-medium uppercase tracking-[0.08em] text-[#899BAF]">
+                                                Request #{match.id}
+                                            </p>
+                                            <h3 className="mt-1.5 mb-0! wrap-break-word font-sans! text-[14px]! font-semibold! leading-6 text-[#E8EDF4]!">
+                                                {show(
+                                                    match.title,
+                                                    'Untitled help request',
+                                                )}
+                                            </h3>
+                                            <p className="mt-1 mb-0! text-[12px] leading-5 text-[#A3B1C0]">
+                                                {show(
+                                                    match.user?.name,
+                                                    'Unknown requester',
+                                                )}
+                                            </p>
+                                        </div>
+
+                                        <div className="shrink-0 border border-[#49665F] bg-[#20382F] px-3 py-2">
+                                            <p className="m-0! text-[10px] text-[#A9C7C0]">
+                                                Similarity score
+                                            </p>
+                                            <p className="mt-0.5 mb-0! text-[18px] font-semibold tabular-nums text-[#C1E5D5]">
+                                                {Math.round(score)}%
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <Info
+                                            title="Category"
+                                            value={titleCase(match.category)}
+                                        />
+                                        <Info
+                                            title="District"
+                                            value={match.district}
+                                        />
+                                        <Info
+                                            title="Current status"
+                                            value={titleCase(match.status)}
+                                        />
+                                        <Info
+                                            title="Submitted"
+                                            value={dateText(match.created_at)}
+                                        />
+                                    </div>
+
+                                    {reasons.length > 0 && (
+                                        <div className="mt-4 border-t border-[#303A47] pt-3">
+                                            <p className="m-0! text-[12px] font-medium text-[#CBD6E2]">
+                                                Reasons for matching
+                                            </p>
+                                            <ul className="mt-2 mb-0 flex flex-wrap gap-2 p-0">
+                                                {reasons.map(
+                                                    (reason, index) => (
+                                                        <li
+                                                            key={`${match.id}-${index}`}
+                                                            className="list-none border border-[#3B4959] bg-[#202B38] px-2.5 py-1.5 text-[11px] leading-4 text-[#C1CDD9]"
+                                                        >
+                                                            {reason}
+                                                        </li>
+                                                    ),
+                                                )}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </article>
+                            );
+                        })}
+                    </>
+                )}
+
+                {!loading && !result && !error && (
+                    <div className="border border-dashed border-[#3A4757] px-4 py-6 text-center">
+                        <Search size={22} className="mx-auto text-[#899BAF]" />
+                        <p className="mt-3 mb-0! text-[13px] font-medium text-[#DCE5EF]">
+                            No analysis has been run
+                        </p>
+                        <p className="mt-1 mb-0! text-[12px] leading-5 text-[#98A8BA]">
+                            Run a check to review potentially similar requests.
+                        </p>
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+}
+
 export default function HelpRequestDetailsView({ request, onEdit }) {
     const requester = getRequester(request);
     const assignments = getAssignments(request);
+
+    const [duplicateAnalysis, setDuplicateAnalysis] = useState(null);
+    const [duplicateAnalysisLoading, setDuplicateAnalysisLoading] =
+        useState(false);
+    const [duplicateAnalysisError, setDuplicateAnalysisError] = useState('');
+
+    const handleDuplicateCheck = async () => {
+        if (!request.id || duplicateAnalysisLoading) return;
+
+        setDuplicateAnalysisLoading(true);
+        setDuplicateAnalysisError('');
+
+        try {
+            const response = await checkHelpRequestDuplicates(request.id);
+            setDuplicateAnalysis(response?.data ?? response);
+        } catch (error) {
+            setDuplicateAnalysisError(
+                error?.message ||
+                    'Unable to analyze potential duplicate requests. Please try again.',
+            );
+        } finally {
+            setDuplicateAnalysisLoading(false);
+        }
+    };
 
     return (
         <main className="min-w-0 space-y-5 font-sans">
@@ -587,6 +771,14 @@ export default function HelpRequestDetailsView({ request, onEdit }) {
                         requester={requester}
                     />
 
+                    <DuplicateAnalysis
+                        request={request}
+                        result={duplicateAnalysis}
+                        loading={duplicateAnalysisLoading}
+                        error={duplicateAnalysisError}
+                        onCheck={handleDuplicateCheck}
+                    />
+
                     <AssignmentHistory assignments={assignments} />
                 </div>
 
@@ -595,7 +787,6 @@ export default function HelpRequestDetailsView({ request, onEdit }) {
                         request={request}
                         assignmentCount={assignments.length}
                     />
-
                     <RecordHistory request={request} />
                 </aside>
             </div>

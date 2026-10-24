@@ -55,7 +55,7 @@ function normalizeNotificationResponse(response) {
 }
 
 function isNotificationRead(notification) {
-    return Boolean(notification.read || notification.read_at);
+    return Boolean(notification?.read || notification?.read_at);
 }
 
 function formatNotificationTime(value) {
@@ -82,6 +82,181 @@ function formatNotificationTime(value) {
     });
 }
 
+/**
+ * Resolve a notification's destination.
+ *
+ * Priority:
+ * 1. Explicit frontend URL provided by the backend.
+ * 2. Resource URL provided in the notification data.
+ * 3. A known resource route based on the notification type.
+ * 4. The current user's notifications page.
+ *
+ * Explicit action URLs should be preferred because the actual frontend
+ * detail routes depend on the application's React Router configuration.
+ */
+function getNotificationTarget(notification, role) {
+    const fallback = NOTIFICATION_PATHS[role] || NOTIFICATION_PATHS.individual;
+
+    const data =
+        notification?.data &&
+        typeof notification.data === 'object' &&
+        !Array.isArray(notification.data)
+            ? notification.data
+            : {};
+
+    const explicitUrl =
+        notification?.action_url ||
+        notification?.actionUrl ||
+        notification?.url ||
+        data?.action_url ||
+        data?.actionUrl ||
+        data?.url ||
+        data?.frontend_url;
+
+    if (typeof explicitUrl === 'string' && explicitUrl.trim()) {
+        const value = explicitUrl.trim();
+
+        // Internal React Router destination.
+        if (value.startsWith('/') && !value.startsWith('//')) {
+            return value;
+        }
+
+        // Accept absolute URLs only when they use HTTP(S).
+        try {
+            const target = new URL(value);
+
+            if (target.protocol !== 'http:' && target.protocol !== 'https:') {
+                return fallback;
+            }
+
+            if (target.origin === window.location.origin) {
+                return `${target.pathname}${target.search}${target.hash}`;
+            }
+
+            return target.href;
+        } catch {
+            // Continue to resource-based routing.
+        }
+    }
+
+    const rawType =
+        notification?.type ||
+        notification?.category ||
+        data?.notification_type ||
+        data?.type ||
+        '';
+
+    const normalizeType = (value) =>
+        String(value)
+            .split('\\')
+            .pop()
+            .replace(/([a-z])([A-Z])/g, '$1-$2')
+            .toLowerCase()
+            .replace(/[_\s]+/g, '-');
+
+    const type = normalizeType(rawType);
+
+    const resourceType = normalizeType(
+        data?.resource_type ||
+            data?.entity_type ||
+            data?.related_type ||
+            notification?.notifiable_type ||
+            '',
+    );
+
+    const campaignId = data?.campaign_id ?? notification?.campaign_id;
+
+    const helpRequestId =
+        data?.help_request_id ?? notification?.help_request_id;
+
+    const donationId = data?.donation_id ?? notification?.donation_id;
+
+    const assignmentId = data?.assignment_id ?? notification?.assignment_id;
+
+    const organizationId =
+        data?.organization_id ?? notification?.organization_id;
+
+    const userId = data?.user_id ?? notification?.user_id;
+
+    const definitions = [
+        {
+            match: /campaign/,
+            id: campaignId,
+            paths: {
+                admin: '/admin/dashboard/campaigns',
+                individual: '/individual/dashboard/campaigns',
+                organization: '/organization/dashboard/campaigns',
+            },
+        },
+        {
+            match: /help[-]?request|helprequest/,
+            id: helpRequestId,
+            paths: {
+                admin: '/admin/dashboard/help-requests',
+                individual: '/individual/dashboard/help-requests',
+                organization: '/organization/dashboard/help-requests',
+            },
+        },
+        {
+            match: /donation|payment|transaction/,
+            id: donationId,
+            paths: {
+                admin: '/admin/dashboard/donations',
+                individual: '/individual/dashboard/donations',
+                organization: '/organization/dashboard/donations',
+            },
+        },
+        {
+            match: /volunteer|assignment/,
+            id: assignmentId,
+            paths: {
+                admin: '/admin/dashboard/volunteers',
+                individual: '/individual/dashboard/volunteer',
+                organization: '/organization/dashboard/volunteers',
+            },
+        },
+        {
+            match: /organization/,
+            id: organizationId,
+            paths: {
+                admin: '/admin/dashboard/organizations',
+                individual: '/individual/dashboard/organizations',
+                organization: '/organization/dashboard/profile',
+            },
+        },
+        {
+            match: /user|account|profile/,
+            id: userId,
+            paths: {
+                admin: '/admin/dashboard/users',
+                individual: '/individual/dashboard/profile',
+                organization: '/organization/dashboard/profile',
+            },
+        },
+    ];
+
+    const definition = definitions.find(
+        (item) =>
+            item.match.test(type) ||
+            (resourceType && item.match.test(resourceType)),
+    );
+
+    if (!definition) {
+        return fallback;
+    }
+
+    const basePath = definition.paths[role] || fallback;
+
+    // Navigate to the resource list if no resource ID is available.
+    if (definition.id === undefined || definition.id === null) {
+        return basePath;
+    }
+
+    // The exact detail route should be supplied through action_url whenever
+    // the application's detail route differs from /resource/:id.
+    return `${basePath}/${encodeURIComponent(String(definition.id))}`;
+}
+
 export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
     const navigate = useNavigate();
     const { pathname } = useLocation();
@@ -100,8 +275,6 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
     const [notificationError, setNotificationError] = useState(false);
     const [markingReadIds, setMarkingReadIds] = useState([]);
 
-    // Store the route on which each menu was opened.
-    // Route changes close menus without calling setState inside an effect.
     const [userMenuPath, setUserMenuPath] = useState(null);
     const [notificationMenuPath, setNotificationMenuPath] = useState(null);
 
@@ -143,7 +316,6 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
 
     const userEmail = user?.email || '';
     const userAvatar = user?.photo || null;
-
     const userRole = user?.role || role || 'individual';
 
     const normalizedRole =
@@ -174,7 +346,6 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
     const normalizePath = (path) => path?.replace(/\/+$/, '') || '/';
 
     const currentPath = normalizePath(pathname);
-
     const navigationItems = NAV_CONFIG[normalizedRole] || [];
 
     const matchingItems = navigationItems
@@ -213,11 +384,9 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
             const response = await fetchNotifications();
 
             setNotifications(normalizeNotificationResponse(response));
-
             setNotificationError(false);
         } catch (error) {
             console.error('Failed to load notifications:', error);
-
             setNotificationError(true);
         } finally {
             if (showLoader) {
@@ -242,13 +411,11 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
                 if (!mounted) return;
 
                 setNotifications(normalizeNotificationResponse(response));
-
                 setNotificationError(false);
             } catch (error) {
                 if (!mounted) return;
 
                 console.error('Failed to load notifications:', error);
-
                 setNotificationError(true);
             } finally {
                 if (mounted && showLoader) {
@@ -311,6 +478,8 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
         MAX_VISIBLE_NOTIFICATIONS,
     );
 
+    // MARK AS READ
+
     const handleMarkNotificationRead = async (notification) => {
         if (
             isNotificationRead(notification) ||
@@ -319,7 +488,11 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
             return;
         }
 
-        setMarkingReadIds((current) => [...current, notification.id]);
+        setMarkingReadIds((current) =>
+            current.includes(notification.id)
+                ? current
+                : [...current, notification.id],
+        );
 
         try {
             await markNotificationAsRead(notification.id);
@@ -346,36 +519,48 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
         }
     };
 
-    const handleNotificationClick = async (notification) => {
-        if (!isNotificationRead(notification)) {
-            await handleMarkNotificationRead(notification);
-        }
+    // CLICK NOTIFICATION
 
+    const handleNotificationClick = async (notification) => {
+        const target = getNotificationTarget(notification, normalizedRole);
+
+        // Close the dropdown immediately.
         setNotificationMenuOpen(false);
 
-        if (!notification.action_url) {
-            navigate(notificationPath);
-            return;
+        // Mark as read without blocking navigation on the API response.
+        if (
+            !isNotificationRead(notification) &&
+            !markingReadIds.includes(notification.id)
+        ) {
+            void handleMarkNotificationRead(notification);
         }
 
-        const actionUrl = notification.action_url;
+        // External destination.
+        if (/^https?:\/\//i.test(target)) {
+            try {
+                const externalUrl = new URL(target);
 
-        if (actionUrl.startsWith('/') && !actionUrl.startsWith('//')) {
-            navigate(actionUrl);
-            return;
-        }
-
-        try {
-            const target = new URL(actionUrl, window.location.origin);
-
-            if (target.origin === window.location.origin) {
-                navigate(`${target.pathname}${target.search}${target.hash}`);
-            } else {
-                window.open(target.href, '_blank', 'noopener,noreferrer');
+                if (
+                    externalUrl.protocol === 'http:' ||
+                    externalUrl.protocol === 'https:'
+                ) {
+                    window.open(
+                        externalUrl.href,
+                        '_blank',
+                        'noopener,noreferrer',
+                    );
+                } else {
+                    navigate(notificationPath);
+                }
+            } catch {
+                navigate(notificationPath);
             }
-        } catch {
-            navigate(notificationPath);
+
+            return;
         }
+
+        // Internal destination.
+        navigate(target);
     };
 
     // DROPDOWN HANDLERS
@@ -408,8 +593,7 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
         setNotificationMenuOpen(false);
     };
 
-    // Close on outside click or Escape.
-    // State updates happen inside event handlers, not the effect body.
+    // CLOSE ON OUTSIDE CLICK OR ESCAPE
 
     useEffect(() => {
         if (!isUserMenuVisible && !isNotificationMenuVisible) {
@@ -442,12 +626,10 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
         };
 
         document.addEventListener('keydown', handleKeyDown);
-
         document.addEventListener('mousedown', handleOutsideClick);
 
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
-
             document.removeEventListener('mousedown', handleOutsideClick);
         };
     }, [isUserMenuVisible, isNotificationMenuVisible]);
@@ -781,6 +963,7 @@ export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
                                                                     notification,
                                                                 )
                                                             }
+                                                            aria-label={`Open notification: ${notification.title || 'Notification'}`}
                                                             className="
                                                                 flex w-full
                                                                 gap-3 px-4 py-3.5

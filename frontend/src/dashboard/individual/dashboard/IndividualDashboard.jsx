@@ -1,65 +1,102 @@
-import React, { useEffect, useState } from 'react';
-
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import {
+    Activity,
+    ArrowRight,
     ArrowUpRight,
+    Bell,
     CalendarDays,
     Check,
+    CheckCircle2,
     ChevronRight,
     Clock3,
-    Heart,
-    HeartHandshake,
     HandCoins,
+    HeartHandshake,
     MapPin,
     Megaphone,
-    Sparkles,
+    Plus,
+    Settings2,
+    ShieldCheck,
+    UserRound,
     Users,
+    Wallet,
+    ClipboardList,
+    CircleDot,
 } from 'lucide-react';
 
 import { getIndividualDashboard } from './api/individualDashboardApi';
 import StatusBadge from '@/components/dashboard/StatusBadge';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
 
-const CATEGORY = {
-    Education: {
-        accent: '#0f766e',
-        soft: 'bg-blue-50 text-blue-700',
-    },
-    'Food Assistance': {
-        accent: '#0f766e',
-        soft: 'bg-amber-50 text-amber-700',
-    },
-    'Disaster Relief': {
-        accent: '#0f766e',
-        soft: 'bg-orange-50 text-orange-700',
-    },
-    Healthcare: {
-        accent: '#0f766e',
-        soft: 'bg-emerald-50 text-emerald-700',
-    },
-    Livelihood: {
-        accent: '#0f766e',
-        soft: 'bg-purple-50 text-purple-700',
-    },
+const ROOT = '/individual/dashboard';
+
+const ROUTES = {
+    requests: `${ROOT}/help-requests`,
+    donations: `${ROOT}/donations`,
+    volunteer: `${ROOT}/volunteer`,
+    campaigns: `${ROOT}/campaigns`,
+    profile: `${ROOT}/profile`,
+    notifications: `${ROOT}/notifications`,
+    settings: `${ROOT}/settings`,
 };
 
-const getCategory = (name) =>
-    CATEGORY[name] || {
-        accent: '#64748b',
-        soft: 'bg-slate-100 text-slate-600',
-    };
-
-const formatDate = (date) => {
-    if (!date) return '';
-
-    return new Date(date).toLocaleDateString('en-BD', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-    });
+const THEME = {
+    bg: '#0E1219',
+    surface: '#151C25',
+    raised: '#1A222D',
+    border: '#29323E',
+    text: '#EEF1F5',
+    muted: '#94A2B2',
+    amber: '#D9B47B',
+    blue: '#8FB9DC',
+    green: '#82B9A4',
+    purple: '#B8A2D5',
 };
 
-const getGreeting = () => {
+function Heading({ eyebrow, title, action, onClick }) {
+    return (
+        <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+                <p className={overline}>{eyebrow}</p>
+                <h2 className="mt-2 font-sans! text-[22px] font-semibold! tracking-[-0.035em] text-[#F1F4F8]! sm:text-[25px]">
+                    {title}
+                </h2>
+            </div>
+            {action && (
+                <button
+                    type="button"
+                    onClick={onClick}
+                    className="inline-flex items-center gap-1.5 pb-1 text-[12px] font-semibold text-[#C9D6E4] hover:text-white"
+                >
+                    {action}
+                    <ArrowUpRight size={15} />
+                </button>
+            )}
+        </div>
+    );
+}
+
+const overline =
+    'text-[10px] font-semibold uppercase tracking-[0.19em] text-[#A4B2C3]';
+
+const fmt = (value) => Number(value || 0).toLocaleString('en-BD');
+
+const dateText = (value) => {
+    if (!value) return 'Not provided';
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+        ? 'Not provided'
+        : date.toLocaleDateString('en-BD', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+          });
+};
+
+const greeting = () => {
     const hour = new Date().getHours();
 
     if (hour < 12) return 'Good morning';
@@ -68,1220 +105,1468 @@ const getGreeting = () => {
     return 'Good evening';
 };
 
-const getDaysLeft = (deadline) => {
-    if (!deadline) return 0;
+const daysLeft = (value) => {
+    if (!value) return null;
 
-    return Math.max(
-        0,
-        Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24)),
+    const time = new Date(value).getTime();
+
+    if (Number.isNaN(time)) return null;
+
+    return Math.max(0, Math.ceil((time - Date.now()) / 86400000));
+};
+
+const eyebrow =
+    'text-[10px] font-semibold uppercase tracking-widest text-[#94A2B2]';
+
+/* =========================================================
+   SHARED SECTION HEADING
+========================================================= */
+
+function SectionTitle({ kicker, title, description, action, onAction }) {
+    return (
+        <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="min-w-0">
+                {kicker && <p className={eyebrow}>{kicker}</p>}
+
+                <h2 className="mt-1.5 font-sans! text-[20px]! font-semibold! leading-tight! tracking-tight! text-[#EEF1F5]!">
+                    {title}
+                </h2>
+
+                {description && (
+                    <p className="mt-2 text-[12px] leading-5 text-[#94A2B2]">
+                        {description}
+                    </p>
+                )}
+            </div>
+
+            {action && (
+                <button
+                    type="button"
+                    onClick={onAction}
+                    className="group inline-flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#B8C5D3] transition hover:text-[#D9B47B]"
+                >
+                    {action}
+                    <ArrowUpRight
+                        size={14}
+                        className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    />
+                </button>
+            )}
+        </div>
     );
-};
+}
 
-/*
-|--------------------------------------------------------------------------
-| Help Request Status
-|--------------------------------------------------------------------------
-|
-| These are the ONLY HelpRequest statuses used by the backend:
-|
-| pending
-| verified
-| rejected
-| completed
-|
-| Assignment statuses such as assigned, accepted and in_progress
-| belong to HelpRequestAssignment, NOT HelpRequest.
-|
-*/
+/* =========================================================
+   TOP STATISTICS
+========================================================= */
 
-const getRequestProgress = (status) => {
-    switch (status) {
-        case 'pending':
-            return 0;
+function Metric({ icon: Icon, label, value, detail, color, onClick }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="group relative min-w-0 p-4 text-left transition-colors hover:bg-[#202A36] sm:p-5"
+        >
+            <div className="flex items-center gap-2">
+                <Icon size={16} style={{ color }} className="shrink-0" />
 
-        case 'verified':
-            return 1;
-
-        case 'completed':
-            return 2;
-
-        default:
-            return 0;
-    }
-};
-
-const REQUEST_STAGES = [
-    {
-        key: 'submitted',
-        label: 'Submitted',
-    },
-    {
-        key: 'reviewed',
-        label: 'Reviewed',
-    },
-    {
-        key: 'update',
-        label: 'Update',
-    },
-];
-
-const IndividualDashboard = () => {
-    const navigate = useNavigate();
-
-    const [dashboard, setDashboard] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-
-    useEffect(() => {
-        const loadDashboard = async () => {
-            try {
-                setLoading(true);
-                setError('');
-
-                const data = await getIndividualDashboard();
-
-                setDashboard(data);
-            } catch (err) {
-                console.error('Individual dashboard error:', err);
-
-                setError(err.message || 'Unable to load your dashboard.');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadDashboard();
-    }, []);
-
-    if (loading) {
-        return (
-            <div className="min-h-full bg-[#f8f8f5] text-[#17211e]">
-                <div className="mx-auto max-w-360 px-5 py-10 sm:px-8 lg:px-10">
-                    <p className="text-sm text-slate-400">
-                        Loading your dashboard...
-                    </p>
-                </div>
+                <span className="min-w-0 truncate text-[11px] text-[#AAB6C5]">
+                    {label}
+                </span>
             </div>
-        );
-    }
 
-    if (error) {
-        return (
-            <div className="min-h-full bg-[#f8f8f5] text-[#17211e]">
-                <div className="mx-auto max-w-360 px-5 py-10 sm:px-8 lg:px-10">
-                    <p className="text-sm font-semibold text-red-600">
-                        {error}
-                    </p>
-                </div>
-            </div>
-        );
-    }
+            <p className="mt-3 text-[27px] font-semibold leading-none tracking-tight text-[#EEF1F5]">
+                {value}
+            </p>
 
-    const individualUser = dashboard?.user || {
-        name: 'User',
-        district: null,
-        memberSince: null,
-    };
+            <p className="mt-2 text-[11px] text-[#94A2B2]">{detail}</p>
 
-    const donationSummary = dashboard?.donationSummary || {
-        totalDonated: 0,
-        donationCount: 0,
-    };
+            <ArrowUpRight
+                size={14}
+                className="absolute right-4 top-4 text-[#64748B] opacity-0 transition group-hover:opacity-100"
+            />
+        </button>
+    );
+}
 
-    const volunteerSummary = dashboard?.volunteerSummary || {
-        totalHours: 0,
-        activitiesCount: 0,
-    };
+/* =========================================================
+   ANALYTICS — ACTIVITY DISTRIBUTION
 
-    const helpRequests = dashboard?.helpRequests || [];
+   Compares activity counts only.
+   Monetary totals and volunteer hours remain separate.
+========================================================= */
 
-    const activeCampaigns = dashboard?.activeCampaigns || [];
+function ActivityDonut({ donations, volunteering }) {
+    const total = donations + volunteering;
 
-    const individualActivity = dashboard?.activity || [];
+    const donationShare = total ? (donations / total) * 100 : 0;
 
-    const firstName = individualUser.name?.split(' ')[0] || 'User';
+    const volunteerShare = total ? (volunteering / total) * 100 : 0;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Current Request
-    |--------------------------------------------------------------------------
-    |
-    | Backend explicitly guarantees:
-    |
-    | Index 0 = newest help request.
-    |
-    | Do NOT filter by fake statuses such as assigned,
-    | accepted or in_progress.
-    |
-    | We also intentionally include completed/rejected requests
-    | so their final status can still be displayed on the dashboard.
-    |
-    */
+    const radius = 65;
+    const circumference = 2 * Math.PI * radius;
 
-    const currentRequest = helpRequests[0] || null;
+    const donationLength = (donationShare / 100) * circumference;
 
-    const featuredCampaign = activeCampaigns[0] || null;
-
-    const campaignProgress = featuredCampaign
-        ? Math.min(featuredCampaign.progress || 0, 100)
-        : 0;
-
-    /*
-    |--------------------------------------------------------------------------
-    | Help Request Summary
-    |--------------------------------------------------------------------------
-    |
-    | These counts use actual HelpRequest statuses.
-    |
-    | "Active" currently means verified requests because the
-    | HelpRequest itself does not have an in_progress status.
-    |
-    | Assignment-level progress is intentionally NOT treated as
-    | HelpRequest.status.
-    |
-    */
-
-    const helpRequestSummary = {
-        total: helpRequests.length,
-
-        underReview: helpRequests.filter(
-            (request) => request.status?.toLowerCase() === 'pending',
-        ).length,
-
-        inProgress: helpRequests.filter(
-            (request) => request.status?.toLowerCase() === 'verified',
-        ).length,
-
-        completed: helpRequests.filter(
-            (request) => request.status?.toLowerCase() === 'completed',
-        ).length,
-    };
-
-    /*
-    |--------------------------------------------------------------------------
-    | Recent Updates
-    |--------------------------------------------------------------------------
-    |
-    | Previously this section contained hard-coded fake updates.
-    |
-    | The IndividualDashboardController already returns real
-    | activity data, so use that instead.
-    |
-    */
-
-    const recentUpdates = individualActivity
-        .slice(0, 3)
-        .map((activity, index) => ({
-            id: activity.id || `update-${index}`,
-            title:
-                activity.title ||
-                activity.description ||
-                activity.action ||
-                'Activity update',
-            description:
-                activity.description ||
-                activity.action ||
-                'There is a new update on your SP activity.',
-            date: activity.date ? formatDate(activity.date) : '',
-        }));
+    const volunteerLength = (volunteerShare / 100) * circumference;
 
     return (
-        <div className="min-h-full bg-[#f8f8f5] text-[#17211e]">
-            <div className="mx-auto max-w-360 px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
-                {/* ============================================================
-                    HEADER
-                ============================================================ */}
+        <div className="relative mx-auto h-[188px] w-[188px] shrink-0">
+            <svg
+                viewBox="0 0 188 188"
+                className="h-full w-full"
+                role="img"
+                aria-label={`${donations} donations and ${volunteering} volunteer activities`}
+            >
+                <circle
+                    cx="94"
+                    cy="94"
+                    r={radius}
+                    fill="none"
+                    stroke="#29323E"
+                    strokeWidth="13"
+                />
 
-                <header className="flex items-center justify-between">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/individual/dashboard')}
-                        className="group flex items-center gap-3"
-                    >
-                        <div className="flex h-9 w-9 items-center justify-center bg-primary transition duration-200 group-hover:bg-primary-hover">
-                            <Heart className="h-4 w-4 fill-white text-white!" />
-                        </div>
+                {total > 0 && (
+                    <>
+                        <circle
+                            cx="94"
+                            cy="94"
+                            r={radius}
+                            fill="none"
+                            stroke={THEME.amber}
+                            strokeWidth="13"
+                            strokeDasharray={`${donationLength} ${circumference - donationLength}`}
+                            strokeDashoffset="0"
+                            transform="rotate(-90 94 94)"
+                        />
 
-                        <div className="text-left">
-                            <p className="text-xs font-bold tracking-tight text-[#17211e]">
-                                Stand For People
-                            </p>
+                        <circle
+                            cx="94"
+                            cy="94"
+                            r={radius}
+                            fill="none"
+                            stroke={THEME.green}
+                            strokeWidth="13"
+                            strokeDasharray={`${volunteerLength} ${circumference - volunteerLength}`}
+                            strokeDashoffset={-donationLength}
+                            transform="rotate(-90 94 94)"
+                        />
+                    </>
+                )}
+            </svg>
 
-                            <p className="mt-0.5 text-[10px] text-slate-400">
-                                Individual space
-                            </p>
-                        </div>
-                    </button>
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-[37px] font-semibold leading-none tracking-tighter text-[#EEF1F5]">
+                    {fmt(total)}
+                </span>
 
-                    <button
-                        type="button"
-                        onClick={() =>
-                            navigate('/individual/dashboard/profile')
-                        }
-                        className="group flex items-center gap-3"
-                    >
-                        <div className="hidden text-right sm:block">
-                            <p className="text-xs font-semibold text-slate-700">
-                                {individualUser.name}
-                            </p>
+                <span className="mt-2 text-[11px] text-[#94A2B2]">
+                    Acts of support
+                </span>
+            </div>
+        </div>
+    );
+}
 
-                            <p className="mt-0.5 text-[10px] text-slate-400">
-                                Community member
-                            </p>
-                        </div>
+/* =========================================================
+   CONTRIBUTION OVERVIEW — REDESIGNED
+========================================================= */
 
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#c9dfd9] bg-[#e4f0ec] font-['Fraunces'] text-sm font-semibold text-primary transition duration-200 group-hover:scale-105">
-                            {firstName.charAt(0).toUpperCase()}
-                        </div>
-                    </button>
-                </header>
+function ContributionOverview({ donation, volunteer, onNavigate }) {
+    const donationCount = Math.max(0, Number(donation.donationCount) || 0);
 
-                {/* ============================================================
-                    HERO
-                ============================================================ */}
+    const volunteerCount = Math.max(0, Number(volunteer.activitiesCount) || 0);
 
-                <section className="relative mt-8 border-y border-slate-200">
-                    <div className="grid min-h-107.5 lg:grid-cols-[1.08fr_0.92fr]">
-                        <div className="flex flex-col justify-center py-12 lg:pr-16 lg:py-16">
-                            <div className="flex items-center gap-3">
-                                <span className="h-px w-8 bg-primary" />
+    const totalActs = donationCount + volunteerCount;
 
-                                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
-                                    {getGreeting()}, {firstName}
-                                </span>
-                            </div>
+    const breakdown = [
+        {
+            label: 'Donations',
+            value: donationCount,
+            color: THEME.amber,
+            route: 'donations',
+        },
+        {
+            label: 'Volunteering',
+            value: volunteerCount,
+            color: THEME.green,
+            route: 'volunteer',
+        },
+    ];
 
-                            <h1 className="mt-6 max-w-3xl font-['Fraunces'] text-[48px] font-semibold leading-[0.98] tracking-[-0.045em] text-[#17211e] sm:text-[62px] lg:text-[72px]">
-                                Show up for
-                                <br />
-                                <span className="text-primary">
-                                    something bigger.
-                                </span>
-                            </h1>
+    return (
+        <section>
+            <SectionTitle
+                kicker="Contribution overview"
+                title="Your community impact"
+                description="A closer look at the ways you've contributed."
+            />
 
-                            <p className="mt-6 max-w-xl text-sm leading-7 text-slate-500">
-                                Ask for support when you need it. Give when you
-                                can. Find causes worth caring about and become
-                                part of a community that looks out for one
-                                another.
-                            </p>
+            <div className="mt-5 overflow-hidden border border-[#29323E] bg-[#151C25]">
+                <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+                    {/* MAIN ANALYTICS */}
 
-                            <div className="mt-9 flex flex-wrap items-center gap-x-7 gap-y-4">
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate(
-                                            '/individual/dashboard/help-requests',
-                                        )
-                                    }
-                                    className="group inline-flex items-center gap-2.5 bg-primary px-5 py-3 text-xs font-bold text-white! transition duration-200 hover:bg-primary-hover"
-                                >
-                                    <HeartHandshake className="h-4 w-4" />
-                                    Request support
-                                    <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate(
-                                            '/individual/dashboard/campaigns',
-                                        )
-                                    }
-                                    className="group inline-flex items-center gap-2 text-xs font-bold text-slate-600 transition duration-200 hover:text-primary"
-                                >
-                                    Explore causes
-                                    <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Hero visual */}
-
-                        <div className="relative hidden overflow-hidden border-l border-slate-200 lg:block">
-                            <div className="absolute inset-0">
-                                <div className="absolute bottom-0 left-[14%] top-0 w-px bg-slate-200/70" />
-
-                                <div className="absolute left-[18%] top-[13%] h-52 w-52 rounded-full border border-primary/20" />
-
-                                <div className="absolute -right-10 top-10 h-48 w-48 rounded-full bg-primary/8" />
-
-                                <div className="absolute -bottom-22.5 left-[8%] h-72 w-72 rounded-full border-38 border-amber-400/10" />
-
-                                <div className="absolute bottom-[18%] right-[16%] h-24 w-24 rounded-full bg-primary/10" />
-
-                                <div className="absolute left-[48%] top-[41%] h-20 w-20 rounded-full border border-primary/15" />
-                            </div>
-
-                            <div className="absolute left-1/2 top-[38%] flex h-40 w-40 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#edf4f1]">
-                                <div className="flex h-28 w-28 items-center justify-center rounded-full bg-primary shadow-[0_20px_60px_rgba(15,118,110,0.15)]">
-                                    <Heart className="h-10 w-10 fill-white text-white!" />
-                                </div>
-                            </div>
-
-                            <div className="absolute bottom-10 left-10 max-w-77.5">
-                                <span className="block h-px w-8 bg-primary" />
-
-                                <p className="mt-4 font-['Fraunces'] text-[29px] font-semibold leading-[1.1] tracking-tight text-[#17211e]">
-                                    Communities become stronger when people
-                                    choose to care.
+                    <div className="p-5 sm:p-7">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p className="text-[13px] font-semibold text-[#EEF1F5]">
+                                    Participation overview
                                 </p>
 
-                                <p className="mt-3 text-[11px] leading-5 text-slate-400">
-                                    Small actions can reach further than we
-                                    imagine.
+                                <p className="mt-1 text-[11px] text-[#94A2B2]">
+                                    Breakdown of recorded activities
                                 </p>
                             </div>
-                        </div>
-                    </div>
-                </section>
 
-                {/* CONTRIBUTION */}
-
-                <section className="mt-10 border-y border-slate-200 bg-[#f2f5f1]">
-                    <div className="grid lg:grid-cols-[0.9fr_2.1fr]">
-                        <div className="px-6 py-8 sm:px-8 lg:px-9 lg:py-9">
-                            <Eyebrow>Your contribution</Eyebrow>
-
-                            <h2 className="mt-3 font-['Fraunces'] text-[28px] font-semibold leading-tight tracking-tight text-[#17211e]">
-                                The ways you've
-                                <br className="hidden lg:block" />
-                                shown up.
-                            </h2>
-
-                            <p className="mt-3 max-w-xs text-xs leading-5 text-slate-400">
-                                Every contribution becomes part of a larger
-                                story.
-                            </p>
+                            <span className="border border-[#34404E] px-2.5 py-1 text-[10px] text-[#AAB6C5]">
+                                All time
+                            </span>
                         </div>
 
-                        <div className="grid items-center sm:grid-cols-3">
-                            <ImpactStat
-                                value={
-                                    <>
-                                        ৳
-                                        {donationSummary.totalDonated.toLocaleString()}
-                                    </>
-                                }
-                                label="Total contributed"
+                        <div className="mt-5 flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
+                            <ActivityDonut
+                                donations={donationCount}
+                                volunteering={volunteerCount}
                             />
 
-                            <ImpactStat
-                                value={volunteerSummary.totalHours}
-                                label="Hours volunteered"
-                            />
+                            <div className="w-full min-w-0 flex-1 space-y-4">
+                                {breakdown.map((item) => {
+                                    const percentage = totalActs
+                                        ? Math.round(
+                                              (item.value / totalActs) * 100,
+                                          )
+                                        : 0;
 
-                            <ImpactStat
-                                value={
-                                    donationSummary.donationCount +
-                                    volunteerSummary.activitiesCount
-                                }
-                                label="Acts of support"
-                            />
-                        </div>
-                    </div>
-                </section>
+                                    return (
+                                        <button
+                                            key={item.label}
+                                            type="button"
+                                            onClick={() =>
+                                                onNavigate(item.route)
+                                            }
+                                            className="group block w-full text-left"
+                                        >
+                                            <div className="flex items-center justify-between gap-3">
+                                                <span className="flex items-center gap-2 text-[12px] text-[#B8C5D3]">
+                                                    <span
+                                                        className="h-2.5 w-2.5 shrink-0"
+                                                        style={{
+                                                            backgroundColor:
+                                                                item.color,
+                                                        }}
+                                                    />
 
-                {/* ============================================================
-                    MAIN CONTENT
-                ============================================================ */}
-
-                <div className="mt-20 grid gap-16 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-16">
-                    <main className="min-w-0">
-                        {/* ====================================================
-                            HELP REQUEST SUMMARY
-                        ==================================================== */}
-
-                        <section className="border-b border-slate-200 pb-16">
-                            <SectionHeader
-                                eyebrow="Your support"
-                                title="Request overview"
-                                action="View all requests"
-                                onClick={() =>
-                                    navigate(
-                                        '/individual/dashboard/help-requests',
-                                    )
-                                }
-                            />
-
-                            <div className="mt-9 grid border-y border-slate-200 sm:grid-cols-4">
-                                <HelpRequestStat
-                                    value={helpRequestSummary.total}
-                                    label="Total requests"
-                                />
-
-                                <HelpRequestStat
-                                    value={helpRequestSummary.underReview}
-                                    label="Under review"
-                                />
-
-                                <HelpRequestStat
-                                    value={helpRequestSummary.inProgress}
-                                    label="Active"
-                                />
-
-                                <HelpRequestStat
-                                    value={helpRequestSummary.completed}
-                                    label="Completed"
-                                />
-                            </div>
-                        </section>
-
-                        {/* ====================================================
-                            CURRENT REQUEST
-                        ==================================================== */}
-
-                        <section className="mt-20 border-b border-slate-200 pb-20">
-                            <SectionHeader
-                                eyebrow="Your support"
-                                title="Current request"
-                                action="View all requests"
-                                onClick={() =>
-                                    navigate(
-                                        '/individual/dashboard/help-requests',
-                                    )
-                                }
-                            />
-
-                            {currentRequest ? (
-                                <div className="relative mt-9">
-                                    <div className="absolute bottom-0 left-0 top-0 w-0.75 bg-primary" />
-
-                                    <div className="grid lg:grid-cols-[minmax(0,1fr)_230px]">
-                                        {/* Request content */}
-
-                                        <div className="border-y border-r-0 border-slate-200 bg-transparent py-9 pl-7 pr-0 lg:border-r lg:py-10 lg:pr-10">
-                                            <div className="flex flex-wrap items-center gap-2.5">
-                                                <span
-                                                    className={`inline-flex px-2.5 py-1 text-[10px] font-bold ${
-                                                        getCategory(
-                                                            currentRequest.category,
-                                                        ).soft
-                                                    }`}
-                                                >
-                                                    {currentRequest.category}
+                                                    {item.label}
                                                 </span>
 
-                                                <StatusBadge
-                                                    status={
-                                                        currentRequest.status
-                                                    }
-                                                />
+                                                <span className="text-[13px] font-semibold text-[#EEF1F5]">
+                                                    {percentage}%
+                                                </span>
                                             </div>
 
-                                            <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                                                Submitted{' '}
-                                                {formatDate(
-                                                    currentRequest.submittedDate,
-                                                )}
-                                            </p>
-
-                                            <h3 className="mt-2.5 max-w-2xl font-['Fraunces'] text-[29px] font-semibold leading-[1.15] tracking-tight text-[#17211e]">
-                                                {currentRequest.title}
-                                            </h3>
-
-                                            {currentRequest.notes && (
-                                                <p className="mt-4 max-w-2xl text-[13px] leading-6 text-slate-500">
-                                                    {currentRequest.notes}
-                                                </p>
-                                            )}
-
-                                            <RequestProgress
-                                                status={currentRequest.status}
-                                            />
-                                        </div>
-
-                                        {/* Request status */}
-
-                                        <div className="flex flex-col justify-between border-y border-slate-200 bg-[#edf4f1] px-7 py-9 lg:border-l-0">
-                                            <div>
-                                                <Eyebrow muted>
-                                                    Request status
-                                                </Eyebrow>
-
-                                                <div className="mt-4">
-                                                    <StatusBadge
-                                                        status={
-                                                            currentRequest.status
-                                                        }
-                                                    />
-                                                </div>
-
-                                                <p className="mt-5 max-w-45 text-[11px] leading-5 text-slate-500">
-                                                    We'll keep you updated as
-                                                    your request moves forward.
-                                                </p>
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    navigate(
-                                                        '/individual/dashboard/help-requests',
-                                                    )
-                                                }
-                                                className="group mt-8 inline-flex w-fit items-center gap-2 text-xs font-bold text-primary"
-                                            >
-                                                View request
-                                                <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="mt-9 border-l-[3px] border-primary py-4 pl-6">
-                                    <h3 className="font-['Fraunces'] text-xl font-semibold text-[#17211e]">
-                                        Nothing here yet.
-                                    </h3>
-
-                                    <p className="mt-2 max-w-lg text-xs leading-6 text-slate-400">
-                                        If you need support, submit a request
-                                        and our team will review it with care.
-                                    </p>
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                '/individual/dashboard/help-requests',
-                                            )
-                                        }
-                                        className="group mt-5 inline-flex items-center gap-2 text-xs font-bold text-primary"
-                                    >
-                                        Submit a request
-                                        <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                    </button>
-                                </div>
-                            )}
-                        </section>
-
-                        {/* ====================================================
-                            FEATURED CAMPAIGN
-                        ==================================================== */}
-
-                        {featuredCampaign && (
-                            <section className="mt-20 border-b border-slate-200 pb-20">
-                                <SectionHeader
-                                    eyebrow="Discover a cause"
-                                    title="Worth standing behind"
-                                    action="Browse campaigns"
-                                    onClick={() =>
-                                        navigate(
-                                            '/individual/dashboard/campaigns',
-                                        )
-                                    }
-                                />
-
-                                <article className="mt-9 grid overflow-hidden lg:grid-cols-[0.82fr_1.18fr]">
-                                    {/* Editorial visual */}
-
-                                    <div className="relative min-h-97.5 overflow-hidden bg-[#e8f0ed] p-8 sm:p-10">
-                                        <div className="absolute -left-16 -top-16 h-56 w-56 rounded-full border-28 border-primary/10" />
-
-                                        <div className="absolute -bottom-24 -right-20 h-72 w-72 rounded-full border-46 border-amber-400/10" />
-
-                                        <div className="absolute right-[14%] top-[18%] h-20 w-20 rounded-full bg-primary/10" />
-
-                                        <div className="relative flex h-full flex-col justify-between">
-                                            <span
-                                                className={`w-fit px-3 py-1.5 text-[10px] font-bold ${
-                                                    getCategory(
-                                                        featuredCampaign.category,
-                                                    ).soft
-                                                }`}
-                                            >
-                                                {featuredCampaign.category}
-                                            </span>
-
-                                            <div>
-                                                <div className="flex items-center gap-2 text-[11px] font-medium! text-slate-400">
-                                                    <Clock3 className="h-3.5 w-3.5" />
-                                                    {getDaysLeft(
-                                                        featuredCampaign.deadline,
-                                                    )}{' '}
-                                                    days remaining
-                                                </div>
-
-                                                <p className="mt-5 max-w-[320px] font-['Fraunces'] text-[34px] font-semibold leading-[1.08] tracking-[-0.03em] text-[#17211e]">
-                                                    Change begins when someone
-                                                    decides to show up.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Campaign */}
-
-                                    <div className="flex min-h-97.5 flex-col justify-between bg-[#17211e] px-8 py-9 text-white! sm:px-10 sm:py-11">
-                                        <div>
-                                            <Eyebrow light>
-                                                Active campaign
-                                            </Eyebrow>
-
-                                            <h3 className="mt-5 max-w-2xl font-['Fraunces'] text-[32px] font-semibold leading-[1.12] tracking-[-0.03em] sm:text-[40px]">
-                                                {featuredCampaign.title}
-                                            </h3>
-
-                                            <p className="mt-5 max-w-xl text-[13px] leading-6 text-white!/50">
-                                                Support this campaign and help
-                                                bring meaningful assistance
-                                                closer to the people who need it
-                                                most.
-                                            </p>
-                                        </div>
-
-                                        <div className="mt-12">
-                                            <div className="flex items-end justify-between gap-6">
-                                                <div>
-                                                    <p className="font-['Fraunces'] text-[38px] font-semibold leading-none tracking-[-0.03em]">
-                                                        ৳
-                                                        {featuredCampaign.raised.toLocaleString()}
-                                                    </p>
-
-                                                    <p className="mt-2 text-[11px] text-white!/40">
-                                                        of ৳
-                                                        {featuredCampaign.goal.toLocaleString()}{' '}
-                                                        goal
-                                                    </p>
-                                                </div>
-
-                                                <p className="text-xl font-bold text-[#79c2b7]">
-                                                    {campaignProgress}%
-                                                </p>
-                                            </div>
-
-                                            <div className="mt-5 h-0.75 overflow-hidden bg-white/10">
+                                            <div className="mt-2 h-1.5 bg-[#29323E]">
                                                 <div
-                                                    className="h-full bg-[#79c2b7]"
+                                                    className="h-full"
                                                     style={{
-                                                        width: `${campaignProgress}%`,
+                                                        width: `${percentage}%`,
+                                                        backgroundColor:
+                                                            item.color,
                                                     }}
                                                 />
                                             </div>
 
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    navigate(
-                                                        '/individual/dashboard/campaigns',
-                                                    )
-                                                }
-                                                className="group mt-7 inline-flex items-center gap-3 border-b border-white/20 pb-2 text-xs font-bold text-white! transition hover:border-[#79c2b7] hover:text-[#79c2b7]"
-                                            >
-                                                Support this cause
-                                                <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </article>
-                            </section>
-                        )}
-
-                        {/* ====================================================
-                            ACTIVITY
-                        ==================================================== */}
-
-                        <section className="mt-20">
-                            <SectionHeader
-                                eyebrow="Your journey"
-                                title="Recent activity"
-                            />
-
-                            <div className="mt-9">
-                                {individualActivity?.length ? (
-                                    individualActivity
-                                        .slice(0, 6)
-                                        .map((activity, index) => (
-                                            <div
-                                                key={
-                                                    activity.id ||
-                                                    `activity-${index}`
-                                                }
-                                                className="group grid grid-cols-[34px_minmax(0,1fr)_auto] gap-5 border-b border-slate-200 py-5 first:border-t"
-                                            >
-                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#edf4f1] text-primary">
-                                                    <Check className="h-3.5 w-3.5" />
-                                                </div>
-
-                                                <div className="min-w-0">
-                                                    <p className="text-[13px] font-semibold leading-5 text-slate-700">
-                                                        {activity.title ||
-                                                            activity.description ||
-                                                            activity.action}
-                                                    </p>
-
-                                                    {activity.date && (
-                                                        <div className="mt-2 flex items-center gap-1.5 text-[10px] text-slate-400">
-                                                            <CalendarDays className="h-3.5 w-3.5" />
-
-                                                            {formatDate(
-                                                                activity.date,
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <ChevronRight className="mt-1 h-4 w-4 text-slate-300 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-primary" />
-                                            </div>
-                                        ))
-                                ) : (
-                                    <p className="border-y border-slate-200 py-8 text-xs text-slate-400">
-                                        Your SP activity will appear here.
-                                    </p>
-                                )}
+                                            <p className="mt-1.5 text-[10px] text-[#94A2B2]">
+                                                {fmt(item.value)} recorded
+                                                {item.value === 1
+                                                    ? ' activity'
+                                                    : ' activities'}
+                                            </p>
+                                        </button>
+                                    );
+                                })}
                             </div>
-                        </section>
-                    </main>
+                        </div>
+                    </div>
 
-                    {/* ========================================================
-                        SIDEBAR
-                    ======================================================== */}
+                    {/* FINANCIAL / TIME SUMMARY */}
 
-                    <aside className="border-t border-[#d4e2dd] bg-[#E1EBE7] p-8 pt-12">
-                        {/* ACTIONS */}
+                    <div className="grid grid-cols-2 border-t border-[#29323E] bg-[#1A222D] lg:grid-cols-1 lg:border-l lg:border-t-0">
+                        <button
+                            type="button"
+                            onClick={() => onNavigate('donations')}
+                            className="group min-w-0 p-5 text-left transition hover:bg-[#202B37] sm:p-6"
+                        >
+                            <div className="flex items-center justify-between">
+                                <span className="flex h-9 w-9 items-center justify-center bg-[#3C3328] text-[#D9B47B]">
+                                    <Wallet size={18} />
+                                </span>
 
-                        <section>
-                            <Eyebrow>Take action</Eyebrow>
-
-                            <h2 className="mt-3 font-['Fraunces'] text-[28px] font-semibold tracking-tight text-[#17211e]">
-                                What can you do?
-                            </h2>
-
-                            <div className="mt-6">
-                                <SidebarActionRow
-                                    icon={HeartHandshake}
-                                    title="Request help"
-                                    description="Tell us what support you need"
-                                    iconClass="text-primary"
-                                    onClick={() =>
-                                        navigate(
-                                            '/individual/dashboard/help-requests',
-                                        )
-                                    }
-                                />
-
-                                <SidebarActionRow
-                                    icon={HandCoins}
-                                    title="Give support"
-                                    description="Support a person or cause"
-                                    iconClass="text-primary"
-                                    onClick={() =>
-                                        navigate(
-                                            '/individual/dashboard/donations',
-                                        )
-                                    }
-                                />
-
-                                <SidebarActionRow
-                                    icon={Users}
-                                    title="Give your time"
-                                    description="Find volunteer opportunities"
-                                    iconClass="text-primary"
-                                    onClick={() =>
-                                        navigate(
-                                            '/individual/dashboard/volunteer',
-                                        )
-                                    }
-                                />
-
-                                <SidebarActionRow
-                                    icon={Megaphone}
-                                    title="Discover causes"
-                                    description="See what needs support now"
-                                    iconClass="text-[#b77900]"
-                                    onClick={() =>
-                                        navigate(
-                                            '/individual/dashboard/campaigns',
-                                        )
-                                    }
-                                />
-                            </div>
-                        </section>
-
-                        {/* PROFILE */}
-
-                        <section className="mt-12 border-y border-slate-300 py-10">
-                            <Eyebrow muted>Your profile</Eyebrow>
-
-                            <div className="mt-5 flex items-center gap-4">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#dcebe6] font-['Fraunces'] text-lg font-semibold text-primary">
-                                    {firstName.charAt(0).toUpperCase()}
-                                </div>
-
-                                <div>
-                                    <p className="text-sm font-bold text-[#17211e]">
-                                        {individualUser.name}
-                                    </p>
-
-                                    <p className="mt-1 text-[10px] text-slate-400">
-                                        Community member
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="mt-7 space-y-5">
-                                <SidebarProfileDetail
-                                    icon={MapPin}
-                                    label="Location"
-                                    value={
-                                        individualUser.district ||
-                                        'Not provided'
-                                    }
-                                />
-
-                                <SidebarProfileDetail
-                                    icon={CalendarDays}
-                                    label="Member since"
-                                    value={formatDate(
-                                        individualUser.memberSince,
-                                    )}
+                                <ArrowUpRight
+                                    size={15}
+                                    className="text-[#8792A1] group-hover:text-[#D9B47B]"
                                 />
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    navigate('/individual/dashboard/profile')
-                                }
-                                className="group mt-7 inline-flex items-center gap-2 text-xs font-bold text-primary transition hover:text-primary-hover"
-                            >
-                                View profile
-                                <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                            </button>
-                        </section>
-
-                        {/* ====================================================
-                            RECENT UPDATES / NOTIFICATIONS
-                        ==================================================== */}
-
-                        <section className="mt-12 border-t border-slate-300 pt-10">
-                            <div className="flex items-start justify-between gap-4">
-                                <div>
-                                    <Eyebrow>Stay informed</Eyebrow>
-
-                                    <h2 className="mt-3 font-['Fraunces'] text-[25px] font-semibold tracking-tight text-[#17211e]">
-                                        Recent updates
-                                    </h2>
-                                </div>
-
-                                <div className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#edf4f1] text-primary">
-                                    <Sparkles className="h-3.5 w-3.5" />
-                                </div>
-                            </div>
-
-                            <div className="mt-6">
-                                {recentUpdates.length ? (
-                                    recentUpdates.map((update) => (
-                                        <div
-                                            key={update.id}
-                                            className="border-b border-slate-300 py-5 first:border-t"
-                                        >
-                                            <div className="flex gap-3">
-                                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-
-                                                <div className="min-w-0">
-                                                    <p className="text-[12px] font-bold leading-5 text-[#33443f]">
-                                                        {update.title}
-                                                    </p>
-
-                                                    <p className="mt-1.5 text-[10px] leading-4 text-slate-500">
-                                                        {update.description}
-                                                    </p>
-
-                                                    <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-                                                        {update.date}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="border-y border-slate-300 py-5 text-xs text-slate-400">
-                                        No recent updates yet.
-                                    </p>
-                                )}
-                            </div>
-
-                            <button
-                                type="button"
-                                className="group mt-6 inline-flex items-center gap-2 text-xs font-bold text-primary transition hover:text-primary-hover"
-                            >
-                                View all updates
-                                <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                            </button>
-                        </section>
-
-                        {/* MESSAGE */}
-
-                        <section className="mt-12 border-t border-slate-300 pt-10">
-                            <Sparkles className="h-4 w-4 text-[#d89400]" />
-
-                            <p className="mt-4 font-['Fraunces'] text-[24px] font-semibold leading-[1.18] tracking-[-0.02em] text-[#17211e]">
-                                A little care can travel further than you think.
+                            <p className="mt-4 text-[11px] text-[#AAB6C5]">
+                                Total contributed
                             </p>
 
-                            <p className="mt-3 text-[11px] leading-6 text-slate-500">
-                                A donation, an hour of your time, or simply
-                                asking for help — every action strengthens the
-                                people around us.
+                            <p className="mt-1 text-[25px] font-semibold tracking-tight text-[#D9B47B]">
+                                ৳{fmt(donation.totalDonated)}
                             </p>
-                        </section>
-                    </aside>
+
+                            <p className="mt-1 text-[11px] text-[#94A2B2]">
+                                Across {fmt(donationCount)} donations
+                            </p>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => onNavigate('volunteer')}
+                            className="group min-w-0 border-l border-[#29323E] p-5 text-left transition hover:bg-[#202B37] sm:p-6 lg:border-l-0 lg:border-t"
+                        >
+                            <div className="flex items-center justify-between">
+                                <span className="flex h-9 w-9 items-center justify-center bg-[#273C37] text-[#82B9A4]">
+                                    <Clock3 size={18} />
+                                </span>
+
+                                <ArrowUpRight
+                                    size={15}
+                                    className="text-[#8792A1] group-hover:text-[#82B9A4]"
+                                />
+                            </div>
+
+                            <p className="mt-4 text-[11px] text-[#AAB6C5]">
+                                Time volunteered
+                            </p>
+
+                            <p className="mt-1 text-[25px] font-semibold tracking-tight text-[#82B9A4]">
+                                {fmt(volunteer.totalHours)}
+                                <span className="ml-1 text-[13px] font-normal">
+                                    hours
+                                </span>
+                            </p>
+
+                            <p className="mt-1 text-[11px] text-[#94A2B2]">
+                                {fmt(volunteerCount)} volunteer activities
+                            </p>
+                        </button>
+                    </div>
                 </div>
 
-                {/* ============================================================
-                    FOOTER
-                ============================================================ */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#29323E] px-5 py-3 sm:px-7">
+                    <span className="flex items-center gap-2 text-[11px] text-[#94A2B2]">
+                        <CircleDot size={13} className="text-[#82B9A4]" />
+                        Based on your recorded contributions
+                    </span>
 
-                <footer className="mt-20 border-t border-slate-200 py-7">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-2">
-                            <Heart className="h-3.5 w-3.5 fill-primary text-primary" />
+                    <button
+                        type="button"
+                        onClick={() => onNavigate('donations')}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#D9B47B] hover:text-white"
+                    >
+                        View contributions
+                        <ArrowRight size={13} />
+                    </button>
+                </div>
+            </div>
+        </section>
+    );
+}
 
-                            <span className="text-[10px] font-semibold text-slate-400">
-                                Stand For People
-                            </span>
+/* =========================================================
+   HELP REQUEST STATUS JOURNEY
+========================================================= */
+
+function SupportJourney({ pending, verified, completed }) {
+    const stages = [
+        {
+            label: 'Pending review',
+            value: pending,
+            color: THEME.amber,
+            icon: Clock3,
+            description: 'Awaiting review',
+        },
+        {
+            label: 'Verified',
+            value: verified,
+            color: THEME.blue,
+            icon: ShieldCheck,
+            description: 'Review completed',
+        },
+        {
+            label: 'Completed',
+            value: completed,
+            color: THEME.green,
+            icon: CheckCircle2,
+            description: 'Support delivered',
+        },
+    ];
+
+    return (
+        <div className="relative grid grid-cols-3 gap-2 sm:gap-5">
+            <div className="pointer-events-none absolute left-[16.66%] right-[16.66%] top-5 h-px bg-[#34404E]" />
+
+            {stages.map((stage) => {
+                const Icon = stage.icon;
+
+                return (
+                    <div key={stage.label} className="relative min-w-0">
+                        <div
+                            className="relative z-10 flex h-10 w-10 items-center justify-center border border-[#34404E] bg-[#1A222D]"
+                            style={{ color: stage.color }}
+                        >
+                            <Icon size={18} />
                         </div>
 
-                        <p className="text-[10px] text-slate-400">
-                            Together, we make support easier to reach.
+                        <p className="mt-4 text-[25px] font-semibold leading-none text-[#EEF1F5]">
+                            {fmt(stage.value)}
+                        </p>
+
+                        <p className="mt-2 text-[12px] font-medium text-[#E0E6ED]">
+                            {stage.label}
+                        </p>
+
+                        <p className="mt-1 text-[10px] leading-4 text-[#94A2B2]">
+                            {stage.description}
                         </p>
                     </div>
-                </footer>
-            </div>
+                );
+            })}
         </div>
     );
-};
+}
 
-/* ================================================================
-   COMPONENTS
-================================================================ */
+/* =========================================================
+   REQUEST TRACK
+========================================================= */
 
-const Eyebrow = ({ children, light = false, muted = false }) => (
-    <p
-        className={`text-[10px] font-bold uppercase tracking-[0.22em] ${
-            light ? 'text-[#8fcac1]' : muted ? 'text-slate-400' : 'text-primary'
-        }`}
-    >
-        {children}
-    </p>
-);
+function RequestTrack({ status }) {
+    const value = String(status || '').toLowerCase();
 
-const SectionHeader = ({ eyebrow, title, action, onClick }) => (
-    <div className="flex items-end justify-between gap-6">
-        <div>
-            <Eyebrow>{eyebrow}</Eyebrow>
+    if (value === 'rejected') {
+        return (
+            <p className="mt-4 border-l-2 border-[#D29BA5] pl-3 text-[11px] text-[#D9ADB5]">
+                Request rejected. View your request for details.
+            </p>
+        );
+    }
 
-            <h2 className="mt-3 font-['Fraunces'] text-[30px] font-semibold leading-tight tracking-tight text-[#17211e]">
-                {title}
-            </h2>
+    const stage =
+        value === 'completed'
+            ? 2
+            : ['verified', 'approved', 'in_progress', 'in progress'].includes(
+                    value,
+                )
+              ? 1
+              : 0;
+
+    return (
+        <div className="mt-4 grid grid-cols-3 gap-2">
+            {['Submitted', 'Reviewed', 'Completed'].map((label, index) => (
+                <div key={label}>
+                    <div
+                        className={`h-1 ${
+                            index <= stage ? 'bg-[#82B9A4]' : 'bg-[#34404E]'
+                        }`}
+                    />
+
+                    <p
+                        className={`mt-1.5 text-[10px] ${
+                            index === stage
+                                ? 'font-semibold text-[#EEF1F5]'
+                                : 'text-[#94A2B2]'
+                        }`}
+                    >
+                        {index < stage ? '✓ ' : ''}
+                        {label}
+                    </p>
+                </div>
+            ))}
         </div>
+    );
+}
 
-        {action && (
+/* =========================================================
+   YOUR SUPPORT — REDESIGNED
+========================================================= */
+
+function SupportOverview({ pending, verified, completed, latest, onNavigate }) {
+    return (
+        <section>
+            <SectionTitle
+                kicker="Your support"
+                title="Help requests"
+                description="Follow your requests from submission to resolution."
+                action="View all"
+                onAction={() => onNavigate('requests')}
+            />
+
+            <div className="mt-5 border-t border-[#29323E] pt-6">
+                <SupportJourney
+                    pending={pending}
+                    verified={verified}
+                    completed={completed}
+                />
+            </div>
+
+            <div className="mt-6 border-t border-[#29323E] pt-5">
+                {latest ? (
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <p className={eyebrow}>Latest request</p>
+
+                                <StatusBadge status={latest.status} />
+                            </div>
+
+                            <h3 className="mt-2 text-[15px] font-semibold text-[#EEF1F5]">
+                                {latest.title || 'Help request'}
+                            </h3>
+
+                            <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-[#94A2B2]">
+                                {latest.category && (
+                                    <span>{latest.category}</span>
+                                )}
+
+                                {latest.submittedDate && (
+                                    <span>
+                                        Submitted{' '}
+                                        {dateText(latest.submittedDate)}
+                                    </span>
+                                )}
+                            </div>
+
+                            {latest.notes && (
+                                <p className="mt-3 text-[12px] leading-5 text-[#AAB6C5]">
+                                    {latest.notes}
+                                </p>
+                            )}
+
+                            <RequestTrack status={latest.status} />
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => onNavigate('requests')}
+                            className="inline-flex shrink-0 items-center gap-2 text-[12px] font-semibold text-[#D9B47B] hover:text-white"
+                        >
+                            View request
+                            <ArrowUpRight size={14} />
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex min-w-0 items-start gap-3">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#223447] text-[#8FB9DC]">
+                                <HeartHandshake size={20} />
+                            </div>
+
+                            <div>
+                                <h3 className="text-[13px] font-semibold text-[#EEF1F5]">
+                                    No support requests yet
+                                </h3>
+
+                                <p className="mt-1 text-[12px] leading-5 text-[#94A2B2]">
+                                    When you need assistance, you can submit a
+                                    request here.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={() => onNavigate('requests')}
+                            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 bg-[#D9B47B] px-4 text-[12px] font-semibold text-[#151C25] transition hover:bg-[#E8C994]"
+                        >
+                            <Plus size={15} />
+                            Create request
+                        </button>
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+}
+
+/* =========================================================
+   QUICK ACCESS
+========================================================= */
+
+function NavAction({ icon: Icon, title, detail, tint, onClick }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="group flex w-full items-center gap-3 border-b border-[#29323E] py-3 text-left transition-colors last:border-b-0 hover:bg-[#202A36]"
+        >
+            <span
+                className={`flex h-9 w-9 shrink-0 items-center justify-center ${tint}`}
+            >
+                <Icon size={17} />
+            </span>
+
+            <span className="min-w-0 flex-1">
+                <span className="block text-[12px] font-semibold text-[#EEF1F5]">
+                    {title}
+                </span>
+
+                <span className="mt-0.5 block text-[10px] leading-4 text-[#94A2B2]">
+                    {detail}
+                </span>
+            </span>
+
+            <ChevronRight
+                size={15}
+                className="shrink-0 text-[#8792A1] transition group-hover:translate-x-0.5 group-hover:text-white"
+            />
+        </button>
+    );
+}
+
+/* =========================================================
+   RECENT ACTIVITY
+========================================================= */
+
+function RecentActivity({ activities }) {
+    return (
+        <section>
+            <SectionTitle kicker="Your journey" title="Recent activity" />
+
+            <div className="mt-4 border-t border-[#29323E]">
+                {activities.length ? (
+                    activities.slice(0, 5).map((item, index) => (
+                        <div
+                            key={item.id || `activity-${index}`}
+                            className="flex items-center gap-3 border-b border-[#29323E] py-3.5 transition hover:bg-[#1A222D] sm:px-2"
+                        >
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#223447] text-[#8FB9DC]">
+                                <Activity size={16} />
+                            </span>
+
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-[12px] font-medium text-[#EEF1F5]">
+                                    {item.title ||
+                                        item.description ||
+                                        item.action ||
+                                        'Activity update'}
+                                </p>
+
+                                {item.description &&
+                                    item.title &&
+                                    item.description !== item.title && (
+                                        <p className="mt-1 truncate text-[11px] text-[#94A2B2]">
+                                            {item.description}
+                                        </p>
+                                    )}
+                            </div>
+
+                            <div className="flex shrink-0 items-center gap-2">
+                                {item.date && (
+                                    <span className="hidden text-[10px] text-[#8792A1] sm:inline">
+                                        {dateText(item.date)}
+                                    </span>
+                                )}
+
+                                <Check size={14} className="text-[#82B9A4]" />
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="py-6">
+                        <p className="text-[12px] text-[#94A2B2]">
+                            Your recent activity will appear here.
+                        </p>
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+}
+
+/* =========================================================
+   SIDEBAR REQUEST SUMMARY
+========================================================= */
+
+function RequestSummary({ total, pending, verified, completed, onNavigate }) {
+    const items = [
+        {
+            label: 'Pending',
+            value: pending,
+            color: THEME.amber,
+        },
+        {
+            label: 'Verified',
+            value: verified,
+            color: THEME.blue,
+        },
+        {
+            label: 'Completed',
+            value: completed,
+            color: THEME.green,
+        },
+    ];
+
+    return (
+        <section className="border-t border-[#29323E] pt-5">
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className={eyebrow}>Request overview</p>
+
+                    <h3 className="mt-1.5 text-[16px] font-semibold text-[#EEF1F5]">
+                        Request summary
+                    </h3>
+                </div>
+
+                <ClipboardList size={19} className="text-[#8FB9DC]" />
+            </div>
+
+            <div className="mt-5 flex items-end justify-between">
+                <div>
+                    <p className="text-[11px] text-[#94A2B2]">
+                        Total submitted
+                    </p>
+
+                    <p className="mt-1 text-[28px] font-semibold leading-none text-[#EEF1F5]">
+                        {fmt(total)}
+                    </p>
+                </div>
+
+                <span className="text-[11px] text-[#94A2B2]">All time</span>
+            </div>
+
+            <div className="mt-5 flex h-2 overflow-hidden bg-[#29323E]">
+                {items.map((item) => (
+                    <div
+                        key={item.label}
+                        style={{
+                            width: `${total ? (item.value / total) * 100 : 0}%`,
+                            backgroundColor: item.color,
+                        }}
+                    />
+                ))}
+            </div>
+
+            <div className="mt-4 space-y-3">
+                {items.map((item) => (
+                    <div
+                        key={item.label}
+                        className="flex items-center justify-between text-[11px]"
+                    >
+                        <span className="flex items-center gap-2 text-[#AAB6C5]">
+                            <span
+                                className="h-2 w-2"
+                                style={{
+                                    backgroundColor: item.color,
+                                }}
+                            />
+                            {item.label}
+                        </span>
+
+                        <span className="font-semibold text-[#EEF1F5]">
+                            {fmt(item.value)}
+                        </span>
+                    </div>
+                ))}
+            </div>
+
             <button
                 type="button"
-                onClick={onClick}
-                className="group hidden items-center gap-2 text-xs font-bold text-slate-500 transition hover:text-primary sm:inline-flex"
+                onClick={() => onNavigate('requests')}
+                className="mt-5 inline-flex items-center gap-2 text-[11px] font-semibold text-[#D9B47B] hover:text-white"
             >
-                {action}
-
-                <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                Manage requests
+                <ArrowRight size={14} />
             </button>
-        )}
-    </div>
-);
+        </section>
+    );
+}
 
-const ImpactStat = ({ value, label }) => (
-    <div className="m-4 flex flex-col items-center justify-center border-l border-slate-200 bg-[#F8F8F5] px-0 py-5 sm:px-7 sm:first:pl-0">
-        <p className="font-['Fraunces'] text-[38px] font-semibold leading-none tracking-[-0.035em] text-[#17211e]">
-            {value}
-        </p>
+/* =========================================================
+   INDIVIDUAL DASHBOARD
+========================================================= */
 
-        <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
-            {label}
-        </p>
-    </div>
-);
+export default function IndividualDashboard() {
+    const navigate = useNavigate();
 
-const HelpRequestStat = ({ value, label }) => (
-    <div className="border-l border-slate-200 px-5 py-6 first:border-l-0 sm:px-6 lg:px-7">
-        <p className="font-['Fraunces'] text-[30px] font-semibold leading-none tracking-[-0.03em] text-[#17211e]">
-            {value}
-        </p>
+    const [attempt, setAttempt] = useState(0);
 
-        <p className="mt-2.5 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">
-            {label}
-        </p>
-    </div>
-);
+    const [result, setResult] = useState({
+        loading: true,
+        error: '',
+        data: null,
+    });
 
-/*
-|--------------------------------------------------------------------------
-| Dynamic Request Progress
-|--------------------------------------------------------------------------
-|
-| UI structure/styling is kept the same.
-|
-| Actual HelpRequest statuses:
-|
-| pending   -> Submitted is current
-| verified  -> Reviewed is current
-| completed -> Update is current/final
-| rejected  -> special rejected UI
-|
-*/
+    useEffect(() => {
+        let mounted = true;
 
-const RequestProgress = ({ status }) => {
-    const normalizedStatus = status?.toLowerCase();
+        getIndividualDashboard()
+            .then((data) => {
+                if (mounted) {
+                    setResult({
+                        loading: false,
+                        error: '',
+                        data,
+                    });
+                }
+            })
+            .catch((error) => {
+                if (mounted) {
+                    setResult({
+                        loading: false,
+                        error:
+                            error?.message || 'Unable to load your dashboard.',
+                        data: null,
+                    });
+                }
+            });
 
-    const progressIndex = getRequestProgress(normalizedStatus);
+        return () => {
+            mounted = false;
+        };
+    }, [attempt]);
 
-    const isRejected = normalizedStatus === 'rejected';
+    const retry = () => {
+        setResult({
+            loading: true,
+            error: '',
+            data: null,
+        });
 
-    if (isRejected) {
+        setAttempt((number) => number + 1);
+    };
+
+    if (result.loading) {
         return (
-            <div className="mt-9 max-w-xl">
-                <div className="flex items-center">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white!">
-                        <span className="text-xs font-bold">!</span>
-                    </div>
+            <LoadingUI
+                variant="page"
+                title="Loading dashboard..."
+                description="Retrieving your contributions and community activity."
+            />
+        );
+    }
 
-                    <div className="h-px flex-1 bg-red-200" />
+    if (result.error) {
+        return (
+            <div className="p-4 sm:p-7">
+                <LoadingError
+                    title="Unable to load dashboard"
+                    message={result.error}
+                />
 
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-500">
-                        <span className="text-xs font-bold">×</span>
-                    </div>
-                </div>
-
-                <div className="mt-3 grid grid-cols-2 text-[9px] font-bold uppercase tracking-[0.12em]">
-                    <span className="text-slate-400">Submitted</span>
-
-                    <span className="text-right text-red-500">Rejected</span>
-                </div>
+                <button
+                    type="button"
+                    onClick={retry}
+                    className="mt-4 inline-flex min-h-10 items-center gap-2 border border-[#343E4B] bg-[#151C25] px-5 text-[13px] font-medium text-[#EEF1F5] hover:bg-[#202A36]"
+                >
+                    Try again
+                    <ArrowRight size={15} />
+                </button>
             </div>
         );
     }
 
-    return (
-        <div className="mt-9 max-w-xl">
-            <div className="flex items-center">
-                {REQUEST_STAGES.map((stage, index) => {
-                    const isCompleted = index <= progressIndex;
+    const data = result.data || {};
 
-                    return (
-                        <React.Fragment key={stage.key}>
-                            <div
-                                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
-                                    isCompleted
-                                        ? 'bg-primary text-white!'
-                                        : 'border border-slate-300 bg-[#f8f8f5] text-slate-300'
-                                }`}
-                            >
-                                {isCompleted ? (
-                                    <Check className="h-3.5 w-3.5" />
-                                ) : (
-                                    <Clock3 className="h-3.5 w-3.5" />
-                                )}
+    const user = data.user || { name: 'User' };
+    const donation = data.donationSummary || {};
+    const volunteer = data.volunteerSummary || {};
+
+    const requests = Array.isArray(data.helpRequests) ? data.helpRequests : [];
+
+    const campaigns = Array.isArray(data.activeCampaigns)
+        ? data.activeCampaigns
+        : [];
+
+    const activities = Array.isArray(data.activity) ? data.activity : [];
+
+    const firstName =
+        String(user.name || 'User')
+            .trim()
+            .split(/\s+/)[0] || 'User';
+
+    const latest = requests[0] || null;
+    const campaign = campaigns[0] || null;
+
+    const pending = requests.filter(
+        (item) => String(item.status || '').toLowerCase() === 'pending',
+    ).length;
+
+    const verified = requests.filter(
+        (item) => String(item.status || '').toLowerCase() === 'verified',
+    ).length;
+
+    const completed = requests.filter(
+        (item) => String(item.status || '').toLowerCase() === 'completed',
+    ).length;
+
+    const progress = Math.max(
+        0,
+        Math.min(100, Number(campaign?.progress) || 0),
+    );
+
+    const remaining = daysLeft(campaign?.deadline);
+
+    const supportCount =
+        Number(donation.donationCount || 0) +
+        Number(volunteer.activitiesCount || 0);
+
+    const go = (key) => navigate(ROUTES[key]);
+
+    return (
+        <div className="min-h-full text-[#E0E6ED]">
+            <div className="mx-auto max-w-382.5">
+                {/* =====================================
+                    WELCOME HEADER
+                ===================================== */}
+
+                <section className="overflow-hidden border border-[#29323E] bg-[#151C25]">
+                    <div className="grid lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_350px]">
+                        <div className="flex flex-col items-start px-6 py-7 sm:px-9 sm:py-9 lg:px-10 lg:py-10">
+                            <div className="flex items-center gap-3">
+                                <span className="h-0.5 w-7 bg-[#D9B47B]" />
+
+                                <p className={eyebrow}>
+                                    Your space at Stand For People
+                                </p>
                             </div>
 
-                            {index < REQUEST_STAGES.length - 1 && (
-                                <div
-                                    className={`h-px flex-1 transition-colors duration-300 ${
-                                        index < progressIndex
-                                            ? 'bg-primary'
-                                            : 'bg-slate-300'
-                                    }`}
+                            <h1 className="mt-5 font-['Fraunces']! text-[33px]! font-semibold! leading-[1.15]! tracking-[-0.035em]! text-[#EEF1F5]! sm:text-[42px]!">
+                                {greeting()},{' '}
+                                <span className="text-[#D9B47B]">
+                                    {firstName}.
+                                </span>
+                            </h1>
+
+                            <p className="mt-3 max-w-140 text-[13px] leading-6 text-[#AAB6C5]">
+                                Your contributions, support requests and the
+                                causes you care about — together in one place.
+                            </p>
+
+                            <div className="mt-6 flex flex-wrap gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => go('requests')}
+                                    className="inline-flex min-h-10 items-center justify-center gap-2 bg-[#D9B47B] px-4 py-2.5 text-[12px] font-semibold text-[#151C25] transition hover:bg-[#E8C994]"
+                                >
+                                    <Plus size={15} />
+                                    Request support
+                                    <ArrowUpRight size={14} />
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => go('campaigns')}
+                                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#343E4B] px-4 py-2.5 text-[12px] font-semibold text-[#E0E6ED] transition hover:bg-[#202A36]"
+                                >
+                                    Explore causes
+                                    <ArrowUpRight size={14} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* HERO MEMBERSHIP */}
+
+                        {/* <div className="flex flex-col justify-between border-t border-[#29323E] bg-[#1B2938] px-6 py-6 sm:px-7 lg:border-l lg:border-t-0">
+                            <div className="flex items-center justify-between">
+                                <p className={eyebrow}>Your membership</p>
+
+                                <ShieldCheck
+                                    size={18}
+                                    className="text-[#8FB9DC]"
                                 />
-                            )}
-                        </React.Fragment>
-                    );
-                })}
-            </div>
+                            </div>
 
-            <div className="mt-3 grid grid-cols-3 text-[9px] font-bold uppercase tracking-[0.12em]">
-                {REQUEST_STAGES.map((stage, index) => {
-                    const isCurrent = index === progressIndex;
+                            <div className="my-6">
+                                <p className="text-[36px] font-semibold leading-none tracking-tight text-[#EEF1F5]">
+                                    {fmt(supportCount)}
+                                </p>
 
-                    const isCompleted = index < progressIndex;
+                                <p className="mt-2 text-[13px] font-medium text-[#E0E6ED]">
+                                    Acts of support
+                                </p>
 
-                    return (
-                        <span
-                            key={stage.key}
-                            className={
-                                index === 0
-                                    ? 'text-left'
-                                    : index === REQUEST_STAGES.length - 1
-                                      ? 'text-right'
-                                      : 'text-center'
-                            }
-                        >
-                            <span
-                                className={
-                                    isCurrent
-                                        ? 'text-primary'
-                                        : isCompleted
-                                          ? 'text-slate-500'
-                                          : 'text-slate-400'
-                                }
+                                <p className="mt-2 text-[12px] leading-5 text-[#94A2B2]">
+                                    Donations and volunteer activities in your
+                                    community.
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={() => go('volunteer')}
+                                className="inline-flex items-center gap-2 border-t border-[#344353] pt-3 text-[12px] font-medium text-[#D9B47B] hover:text-white"
                             >
-                                {stage.label}
-                            </span>
-                        </span>
-                    );
-                })}
+                                <HeartHandshake size={15} />
+                                Explore your involvement
+                                <ArrowUpRight size={14} />
+                            </button>
+                        </div> */}
+
+                        <div className="relative flex min-h-[200px] flex-col justify-between overflow-hidden border-t border-[#344353] bg-[#222F3D] px-7 py-7 lg:min-h-0 lg:border-l lg:border-t-0">
+                            <div
+                                className="pointer-events-none absolute -right-20 -top-28 h-64 w-64 rounded-full border-[40px] border-[#34465A]/60"
+                                aria-hidden="true"
+                            />
+                            <div
+                                className="pointer-events-none absolute -bottom-20 -left-12 h-48 w-48 rounded-full border-[28px] border-[#3B4A59]/40"
+                                aria-hidden="true"
+                            />
+                            <div className="relative flex items-center justify-between gap-3">
+                                <p className={overline}>Your membership</p>
+                                <ShieldCheck
+                                    size={18}
+                                    className="text-[#B5C8D9]"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => go(ROUTES.profile)}
+                                className="group relative mt-8 flex items-center gap-4 text-left"
+                            >
+                                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-[#5B7186] bg-[#35495E] text-[22px] font-semibold text-[#F4F6F8]">
+                                    {firstName.charAt(0).toUpperCase()}
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                    <span className="block truncate text-[15px] font-semibold text-[#F1F4F7]">
+                                        {user.name || 'User'}
+                                    </span>
+                                    <span className="mt-1 block text-[12px] text-[#B0BFCF]">
+                                        Community member
+                                    </span>
+                                </span>
+                                <ArrowUpRight
+                                    size={17}
+                                    className="text-[#B4C3D3] group-hover:text-white"
+                                />
+                            </button>
+                            <div className="relative mt-7 flex flex-wrap gap-x-5 gap-y-2 border-t border-[#455567] pt-4 text-[11px] text-[#B4C3D2]">
+                                <span className="inline-flex items-center gap-1.5">
+                                    <MapPin size={13} />
+                                    {user.district || 'Location not provided'}
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                    <CalendarDays size={13} />
+                                    {dateText(user.memberSince)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* =====================================
+                    MAIN GRID
+                ===================================== */}
+
+                <div className="mt-6 grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-6 xl:grid-cols-[minmax(0,1fr)_350px] xl:gap-8">
+                    <main className="min-w-0 space-y-10">
+                        {/* TOP STATISTICS */}
+
+                        <section
+                            aria-label="Your contribution statistics"
+                            className="grid grid-cols-2 divide-x divide-y divide-[#29323E] border border-[#29323E] bg-[#1A222D] md:grid-cols-4 md:divide-y-0"
+                        >
+                            <Metric
+                                icon={Wallet}
+                                label="Total donated"
+                                value={`৳${fmt(donation.totalDonated)}`}
+                                detail={`${fmt(donation.donationCount)} donations`}
+                                color={THEME.amber}
+                                onClick={() => go('donations')}
+                            />
+
+                            <Metric
+                                icon={Clock3}
+                                label="Volunteer hours"
+                                value={fmt(volunteer.totalHours)}
+                                detail={`${fmt(volunteer.activitiesCount)} activities`}
+                                color={THEME.green}
+                                onClick={() => go('volunteer')}
+                            />
+
+                            <Metric
+                                icon={HeartHandshake}
+                                label="Acts of support"
+                                value={fmt(supportCount)}
+                                detail="Giving and volunteering"
+                                color={THEME.purple}
+                                onClick={() => go('volunteer')}
+                            />
+
+                            <Metric
+                                icon={Users}
+                                label="Help requests"
+                                value={fmt(requests.length)}
+                                detail={`${pending} awaiting review`}
+                                color={THEME.blue}
+                                onClick={() => go('requests')}
+                            />
+                        </section>
+
+                        {/* FEATURED CAMPAIGN */}
+
+                        <section>
+                            <Heading
+                                eyebrow="Discover a cause"
+                                title="Featured campaign"
+                                action="Browse campaigns"
+                                onClick={() => go(ROUTES.campaigns)}
+                            />
+                            <div className="mt-5 overflow-hidden border border-[#344150] bg-[#1D2935]">
+                                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_385px]">
+                                    <div className="flex min-h-[250px] flex-col justify-between px-6 py-7 sm:px-8 sm:py-9">
+                                        <div>
+                                            <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#D7B783]">
+                                                <Megaphone size={15} />
+                                                {campaign?.category ||
+                                                    'Community initiative'}
+                                            </span>
+                                            <h3 className="mt-5 max-w-2xl font-['Fraunces'] text-[25px] font-semibold leading-[1.28] tracking-[-0.025em] text-[#F3F5F7]! sm:text-[30px]">
+                                                {campaign?.title ||
+                                                    'Help build stronger communities.'}
+                                            </h3>
+                                            <p className="mt-4 max-w-xl text-[13px] leading-6 text-[#ADBDCD]">
+                                                {campaign
+                                                    ? 'Help this community initiative reach more people with practical support.'
+                                                    : 'Discover active campaigns and find a cause you would like to support.'}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => go(ROUTES.campaigns)}
+                                            className="mt-7 inline-flex w-fit items-center gap-2 text-[12px] font-semibold text-[#E7C38F] hover:text-[#FFE0B2]"
+                                        >
+                                            Explore campaign{' '}
+                                            <ArrowRight size={15} />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex flex-col justify-between border-t border-[#344353] bg-[#263544] px-6 py-7 lg:border-l lg:border-t-0">
+                                        <div>
+                                            <p className={overline}>
+                                                Campaign funding
+                                            </p>
+                                            <p className="mt-5 text-[28px] font-semibold tracking-[-0.045em] text-[#F5F6F8]">
+                                                ৳{fmt(campaign?.raised)}
+                                            </p>
+                                            <p className="mt-1 text-[12px] text-[#B2C0CF]">
+                                                of ৳{fmt(campaign?.goal)} goal
+                                            </p>
+                                        </div>
+                                        <div className="mt-10">
+                                            <div className="flex items-center justify-between gap-3 text-[12px] text-[#C4D0DC]">
+                                                <span>Progress</span>
+                                                <strong className="text-[#F0F3F7]">
+                                                    {progress}%
+                                                </strong>
+                                            </div>
+                                            <div className="mt-3 h-1.5 bg-[#465667]">
+                                                <div
+                                                    className="h-full bg-[#D9B783]"
+                                                    style={{
+                                                        width: `${progress}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                            {remaining !== null && (
+                                                <p className="mt-3 flex items-center gap-1.5 text-[11px] text-[#AFC0D0]">
+                                                    <Clock3 size={13} />
+                                                    {remaining === 0
+                                                        ? 'Deadline reached'
+                                                        : `${remaining} days remaining`}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* <section>
+                            <SectionTitle
+                                kicker="Discover a cause"
+                                title="Featured campaign"
+                                action="Browse campaigns"
+                                onAction={() => go('campaigns')}
+                            />
+
+                            <div className="mt-4 overflow-hidden border border-[#29323E] bg-[#1A222D]">
+                                <div className="grid sm:grid-cols-[minmax(0,1fr)_205px]">
+                                    <div className="flex min-w-0 flex-col items-start justify-between p-5 sm:p-6">
+                                        <div className="min-w-0">
+                                            <p className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-[#D9B47B]">
+                                                <Megaphone size={14} />
+                                                {campaign?.category ||
+                                                    'Community initiative'}
+                                            </p>
+
+                                            <h3 className="mt-4 font-['Fraunces']! text-[22px]! font-semibold! leading-[1.3]! text-[#EEF1F5]!">
+                                                {campaign?.title ||
+                                                    'Discover a community cause to support'}
+                                            </h3>
+
+                                            <p className="mt-2 text-[12px] leading-5 text-[#AAB6C5]">
+                                                {campaign
+                                                    ? 'Help this initiative reach its funding goal and support people in need.'
+                                                    : 'Explore humanitarian initiatives and choose a cause that matters to you.'}
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => go('campaigns')}
+                                            className="group mt-5 inline-flex items-center gap-2 text-[12px] font-semibold text-[#D9B47B] hover:text-white"
+                                        >
+                                            Explore campaign
+                                            <ArrowRight
+                                                size={14}
+                                                className="transition-transform group-hover:translate-x-1"
+                                            />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex flex-col justify-between border-t border-[#34404E] bg-[#202F3E] p-5 sm:border-l sm:border-t-0">
+                                        <div>
+                                            <p className={eyebrow}>
+                                                Funding raised
+                                            </p>
+
+                                            <p className="mt-4 text-[25px] font-semibold tracking-tight text-[#EEF1F5]">
+                                                ৳{fmt(campaign?.raised)}
+                                            </p>
+
+                                            <p className="mt-1 text-[11px] text-[#AAB6C5]">
+                                                of ৳{fmt(campaign?.goal)}
+                                            </p>
+                                        </div>
+
+                                        <div className="mt-6">
+                                            <div className="flex justify-between text-[11px]">
+                                                <span className="text-[#AAB6C5]">
+                                                    Progress
+                                                </span>
+
+                                                <span className="font-semibold text-[#EEF1F5]">
+                                                    {progress}%
+                                                </span>
+                                            </div>
+
+                                            <div
+                                                className="mt-2 h-1.5 bg-[#344353]"
+                                                role="progressbar"
+                                                aria-label="Campaign funding progress"
+                                                aria-valuenow={progress}
+                                                aria-valuemin={0}
+                                                aria-valuemax={100}
+                                            >
+                                                <div
+                                                    className="h-full bg-[#D9B47B]"
+                                                    style={{
+                                                        width: `${progress}%`,
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {remaining !== null && (
+                                                <p className="mt-3 flex items-center gap-1.5 text-[10px] text-[#AAB6C5]">
+                                                    <Clock3 size={12} />
+
+                                                    {remaining === 0
+                                                        ? 'Deadline reached'
+                                                        : `${remaining} days remaining`}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section> */}
+
+                        {/* YOUR SUPPORT */}
+
+                        <SupportOverview
+                            pending={pending}
+                            verified={verified}
+                            completed={completed}
+                            latest={latest}
+                            onNavigate={go}
+                        />
+
+                        {/* CONTRIBUTION OVERVIEW */}
+
+                        <ContributionOverview
+                            donation={donation}
+                            volunteer={volunteer}
+                            onNavigate={go}
+                        />
+
+                        {/* RECENT ACTIVITY */}
+
+                        <RecentActivity activities={activities} />
+                    </main>
+
+                    {/* =====================================
+                        RIGHT SIDEBAR
+                    ===================================== */}
+
+                    <aside className="min-w-0 space-y-7">
+                        {/* QUICK ACCESS */}
+
+                        <section>
+                            <SectionTitle
+                                kicker="Your workspace"
+                                title="Quick access"
+                            />
+
+                            <div className="mt-4 border-t border-[#29323E]">
+                                <NavAction
+                                    icon={HeartHandshake}
+                                    title="Help requests"
+                                    detail="Manage support requests"
+                                    tint="bg-[#253C50] text-[#8FB9DC]"
+                                    onClick={() => go('requests')}
+                                />
+
+                                <NavAction
+                                    icon={HandCoins}
+                                    title="Donations"
+                                    detail="Your giving and contributions"
+                                    tint="bg-[#273C37] text-[#82B9A4]"
+                                    onClick={() => go('donations')}
+                                />
+
+                                <NavAction
+                                    icon={Users}
+                                    title="Volunteer activities"
+                                    detail="Your time and involvement"
+                                    tint="bg-[#393047] text-[#B8A2D5]"
+                                    onClick={() => go('volunteer')}
+                                />
+
+                                <NavAction
+                                    icon={Megaphone}
+                                    title="Campaigns"
+                                    detail="Explore humanitarian initiatives"
+                                    tint="bg-[#403526] text-[#D9B47B]"
+                                    onClick={() => go('campaigns')}
+                                />
+                            </div>
+
+                            <div className="mt-4 grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => go('notifications')}
+                                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#29323E] text-[11px] text-[#B8C5D3] hover:bg-[#1A222D]"
+                                >
+                                    <Bell size={14} />
+                                    Notifications
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => go('settings')}
+                                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#29323E] text-[11px] text-[#B8C5D3] hover:bg-[#1A222D]"
+                                >
+                                    <Settings2 size={14} />
+                                    Settings
+                                </button>
+                            </div>
+                        </section>
+
+                        {/* REQUEST SUMMARY */}
+
+                        <RequestSummary
+                            total={requests.length}
+                            pending={pending}
+                            verified={verified}
+                            completed={completed}
+                            onNavigate={go}
+                        />
+
+                        {/* PROFILE */}
+
+                        <section className="overflow-hidden border border-[#29323E] bg-[#151C25]">
+                            <div className="bg-[#202F3E] p-5">
+                                <div className="flex items-center justify-between">
+                                    <p className={eyebrow}>Your membership</p>
+
+                                    <ShieldCheck
+                                        size={17}
+                                        className="text-[#8FB9DC]"
+                                    />
+                                </div>
+
+                                <div className="mt-4 flex items-center gap-3">
+                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#40556B] bg-[#344A60] text-[17px] font-semibold text-[#EEF1F5]">
+                                        {firstName.charAt(0).toUpperCase()}
+                                    </span>
+
+                                    <div className="min-w-0">
+                                        <p className="truncate text-[13px] font-semibold text-[#EEF1F5]">
+                                            {user.name || 'User'}
+                                        </p>
+
+                                        <p className="mt-1 text-[11px] text-[#AAB6C5]">
+                                            Community member
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-5">
+                                <div className="flex items-center justify-between gap-3 border-b border-[#29323E] py-3 text-[11px]">
+                                    <span className="flex items-center gap-2 text-[#94A2B2]">
+                                        <MapPin size={13} />
+                                        District
+                                    </span>
+
+                                    <span className="text-right font-medium text-[#EEF1F5]">
+                                        {user.district || 'Not provided'}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-3 py-3 text-[11px]">
+                                    <span className="flex items-center gap-2 text-[#94A2B2]">
+                                        <CalendarDays size={13} />
+                                        Member since
+                                    </span>
+
+                                    <span className="text-right font-medium text-[#EEF1F5]">
+                                        {dateText(user.memberSince)}
+                                    </span>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => go('profile')}
+                                    className="mt-2 flex min-h-10 w-full items-center justify-between border border-[#344353] bg-[#263747] px-3.5 text-[11px] font-semibold text-[#EEF1F5] transition hover:bg-[#30475B]"
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <UserRound size={14} />
+                                        View your profile
+                                    </span>
+
+                                    <ArrowUpRight size={14} />
+                                </button>
+                            </div>
+                        </section>
+
+                        <footer className="mt-12 flex flex-wrap justify-between gap-3 border-t border-[#303B49] pt-6 text-[11px] text-[#8F9FAF]">
+                            <span>Stand For People · Individual workspace</span>
+                            <span>Community support and coordination</span>
+                        </footer>
+                    </aside>
+                </div>
+
+                {/* FOOTER */}
+
+                <footer className="mt-10 flex flex-wrap justify-between gap-3 border-t border-[#29323E] pt-5 text-[10px] text-[#8792A1]">
+                    <span>Stand For People · Individual workspace</span>
+
+                    <span>Community support and coordination</span>
+                </footer>
             </div>
         </div>
     );
-};
-
-const SidebarActionRow = ({
-    icon: Icon,
-    title,
-    description,
-    iconClass,
-    onClick,
-}) => (
-    <button
-        type="button"
-        onClick={onClick}
-        className="group flex w-full items-center gap-4 border-b border-slate-200 py-5 text-left"
-    >
-        <span
-            className={`flex h-10 w-10 shrink-0 items-center justify-center bg-[#edf4f1] ${iconClass}`}
-        >
-            <Icon className="h-4 w-4" />
-        </span>
-
-        <span className="min-w-0 flex-1">
-            <span className="block text-[13px] font-bold text-[#17211e] transition-colors duration-200 group-hover:text-primary">
-                {title}
-            </span>
-
-            <span className="mt-1 block text-[10px] leading-4 text-slate-500">
-                {description}
-            </span>
-        </span>
-
-        <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-300 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary" />
-    </button>
-);
-
-const SidebarProfileDetail = ({ icon: Icon, label, value }) => (
-    <div className="flex gap-3.5">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#edf4f1] text-primary">
-            <Icon className="h-3.5 w-3.5" />
-        </div>
-
-        <div className="pt-0.5">
-            <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">
-                {label}
-            </p>
-
-            <p className="mt-1.5 text-xs font-semibold text-[#33443f]">
-                {value}
-            </p>
-        </div>
-    </div>
-);
-
-export default IndividualDashboard;
+}

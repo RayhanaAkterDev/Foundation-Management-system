@@ -4,15 +4,15 @@ namespace App\Services;
 
 use App\Models\HelpRequest;
 use App\Models\HelpRequestDuplicateMatch;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 class HelpRequestDuplicateDetectionService
 {
     /**
-     * Compare one help request with existing requests and save matches.
+     * Compare a help request against existing requests.
      *
-     * This service never changes a help request's verification status.
+     * Results are suggestions for administrative review only.
+     * This service never changes a help request's status.
      */
     public function analyze(HelpRequest $helpRequest): array
     {
@@ -42,7 +42,8 @@ class HelpRequestDuplicateDetectionService
         foreach ($candidates as $candidate) {
             $result = $this->compare($helpRequest, $candidate);
 
-            if ($result['score'] < 45) {
+            // Weak overlaps alone should not appear as potential matches.
+            if ($result['score'] < 40) {
                 continue;
             }
 
@@ -75,7 +76,17 @@ class HelpRequestDuplicateDetectionService
     }
 
     /**
-     * Compare the meaningful details of two requests.
+     * Calculate a weighted similarity score.
+     *
+     * Weights:
+     * - Address: 20
+     * - Title similarity: 25
+     * - Description similarity: 20
+     * - Category: 15
+     * - District: 10
+     * - Same requester: 10
+     *
+     * Maximum score: 100.
      */
     private function compare(
         HelpRequest $request,
@@ -84,48 +95,73 @@ class HelpRequestDuplicateDetectionService
         $score = 0;
         $reasons = [];
 
+        /*
+         * Title similarity: up to 25 points.
+         */
         $titleSimilarity = $this->textSimilarity(
             $request->title,
             $candidate->title
         );
 
-        if ($titleSimilarity >= 0.75) {
-            $score += 35;
+        $score += (int) round(25 * $titleSimilarity);
+
+        if ($titleSimilarity >= 0.65) {
             $reasons[] = 'Very similar titles';
-        } elseif ($titleSimilarity >= 0.45) {
-            $score += 20;
+        } elseif ($titleSimilarity >= 0.30) {
             $reasons[] = 'Partially similar titles';
         }
 
+        /*
+         * Description similarity: up to 20 points.
+         */
         $descriptionSimilarity = $this->textSimilarity(
             $request->description,
             $candidate->description
         );
 
-        if ($descriptionSimilarity >= 0.70) {
-            $score += 30;
+        $score += (int) round(20 * $descriptionSimilarity);
+
+        if ($descriptionSimilarity >= 0.60) {
             $reasons[] = 'Very similar descriptions';
-        } elseif ($descriptionSimilarity >= 0.40) {
-            $score += 15;
+        } elseif ($descriptionSimilarity >= 0.25) {
             $reasons[] = 'Partially similar descriptions';
         }
 
+        /*
+         * Same category: 15 points.
+         */
+        $requestCategory = $this->normalize($request->category);
+        $candidateCategory = $this->normalize($candidate->category);
+
         if (
-            $this->normalize($request->category) ===
-            $this->normalize($candidate->category)
+            $requestCategory !== '' &&
+            $requestCategory === $candidateCategory
         ) {
             $score += 15;
             $reasons[] = 'Same help category';
         }
 
+        /*
+         * Same normalized district: 10 points.
+         */
+        $requestDistrict = $this->normalizeDistrict($request->district);
+        $candidateDistrict = $this->normalizeDistrict($candidate->district);
+
         if (
-            $this->normalize($request->district) ===
-            $this->normalize($candidate->district)
+            $requestDistrict !== '' &&
+            $requestDistrict === $candidateDistrict
         ) {
             $score += 10;
             $reasons[] = 'Same district';
         }
 
+        /*
+         * Same exact normalized address: 20 points.
+         *
+         * This intentionally requires an exact normalized match.
+         * A broad or partially matching address should not receive
+         * the full address score.
+         */
         $address = $this->normalize($request->address);
         $candidateAddress = $this->normalize($candidate->address);
 
@@ -134,8 +170,23 @@ class HelpRequestDuplicateDetectionService
             $candidateAddress !== '' &&
             $address === $candidateAddress
         ) {
-            $score += 10;
+            $score += 20;
             $reasons[] = 'Same address';
+        }
+
+        /*
+         * Same requester: 10 points.
+         *
+         * A repeat submission is a review signal, not proof of fraud.
+         * Guest requests without a user ID receive no points here.
+         */
+        if (
+            $request->user_id !== null &&
+            $candidate->user_id !== null &&
+            (int) $request->user_id === (int) $candidate->user_id
+        ) {
+            $score += 10;
+            $reasons[] = 'Same requester submitted both requests';
         }
 
         return [
@@ -145,7 +196,66 @@ class HelpRequestDuplicateDetectionService
     }
 
     /**
-     * Calculate basic token-based text similarity.
+     * Normalize common English and Bengali district spellings.
+     */
+    private function normalizeDistrict(?string $district): string
+    {
+        $normalized = $this->normalize($district);
+
+        $aliases = [
+            'কুমিল্লা' => 'comilla',
+            'comilla' => 'comilla',
+            'cumilla' => 'comilla',
+            'kumilla' => 'comilla',
+            'kumillla' => 'comilla',
+
+            'চট্টগ্রাম' => 'chattogram',
+            'চাটগাঁ' => 'chattogram',
+            'chittagong' => 'chattogram',
+            'chattogram' => 'chattogram',
+
+            'ঢাকা' => 'dhaka',
+            'dhaka' => 'dhaka',
+
+            'রাজশাহী' => 'rajshahi',
+            'rajshahi' => 'rajshahi',
+
+            'খুলনা' => 'khulna',
+            'khulna' => 'khulna',
+
+            'বরিশাল' => 'barishal',
+            'barisal' => 'barishal',
+            'barishal' => 'barishal',
+
+            'সিলেট' => 'sylhet',
+            'sylhet' => 'sylhet',
+
+            'রংপুর' => 'rangpur',
+            'rangpur' => 'rangpur',
+
+            'ময়মনসিংহ' => 'mymensingh',
+            'ময়মনসিংহ' => 'mymensingh',
+            'mymensingh' => 'mymensingh',
+
+            'বগুড়া' => 'bogura',
+            'বগুড়া' => 'bogura',
+            'bogra' => 'bogura',
+            'bogura' => 'bogura',
+
+            'যশোর' => 'jashore',
+            'যশোর জেলা' => 'jashore',
+            'jessore' => 'jashore',
+            'jashore' => 'jashore',
+        ];
+
+        return $aliases[$normalized] ?? $normalized;
+    }
+
+    /**
+     * Calculate lexical similarity between two text values.
+     *
+     * This is not semantic AI matching and cannot reliably determine
+     * whether different-language descriptions have the same meaning.
      */
     private function textSimilarity(
         ?string $first,
@@ -168,7 +278,17 @@ class HelpRequestDuplicateDetectionService
             $secondTokens
         )));
 
-        return $union > 0 ? $intersection / $union : 0;
+        $jaccard = $union > 0
+            ? $intersection / $union
+            : 0;
+
+        // A shorter title may be substantially contained in a longer one.
+        $containment = $intersection / min(
+            count($firstTokens),
+            count($secondTokens)
+        );
+
+        return min(1, max($jaccard, $containment * 0.75));
     }
 
     /**
@@ -177,12 +297,16 @@ class HelpRequestDuplicateDetectionService
     private function normalize(?string $value): string
     {
         return Str::lower(
-            preg_replace('/\s+/u', ' ', trim($value ?? '')) ?? ''
+            preg_replace(
+                '/\s+/u',
+                ' ',
+                trim($value ?? '')
+            ) ?? ''
         );
     }
 
     /**
-     * Convert text into unique, normalized tokens.
+     * Convert text into unique normalized tokens.
      */
     private function tokens(?string $value): array
     {

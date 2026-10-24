@@ -9,11 +9,13 @@ use Illuminate\Support\Str;
 class HelpRequestDuplicateDetectionService
 {
     /**
-     * Compare a help request against existing requests.
+     * Analyze existing requests and save potential matches.
      *
-     * Results are suggestions for administrative review only.
-     * This service never changes a help request's status.
+     * Results are review suggestions only.
+     * This service never changes request verification status.
      */
+    private const MINIMUM_MATCH_SCORE = 30;
+
     public function analyze(HelpRequest $helpRequest): array
     {
         $candidates = HelpRequest::query()
@@ -42,8 +44,7 @@ class HelpRequestDuplicateDetectionService
         foreach ($candidates as $candidate) {
             $result = $this->compare($helpRequest, $candidate);
 
-            // Weak overlaps alone should not appear as potential matches.
-            if ($result['score'] < 40) {
+            if ($result['score'] < self::MINIMUM_MATCH_SCORE) {
                 continue;
             }
 
@@ -68,6 +69,11 @@ class HelpRequestDuplicateDetectionService
             ];
         }
 
+        usort(
+            $matches,
+            fn(array $a, array $b) => $b['score'] <=> $a['score']
+        );
+
         return [
             'help_request_id' => $helpRequest->id,
             'matches_found' => count($matches),
@@ -76,17 +82,16 @@ class HelpRequestDuplicateDetectionService
     }
 
     /**
-     * Calculate a weighted similarity score.
+     * Score content and contextual overlaps.
      *
-     * Weights:
-     * - Address: 20
-     * - Title similarity: 25
-     * - Description similarity: 20
-     * - Category: 15
-     * - District: 10
-     * - Same requester: 10
+     * Maximum possible score: 100.
      *
-     * Maximum score: 100.
+     * Title similarity:       25
+     * Description similarity: 20
+     * Same category:          15
+     * Same district:          10
+     * Same address:           20
+     * Same requester:         10
      */
     private function compare(
         HelpRequest $request,
@@ -96,14 +101,15 @@ class HelpRequestDuplicateDetectionService
         $reasons = [];
 
         /*
-         * Title similarity: up to 25 points.
+         * Titles: up to 25 points.
          */
         $titleSimilarity = $this->textSimilarity(
             $request->title,
             $candidate->title
         );
 
-        $score += (int) round(25 * $titleSimilarity);
+        $titlePoints = (int) round(25 * $titleSimilarity);
+        $score += $titlePoints;
 
         if ($titleSimilarity >= 0.65) {
             $reasons[] = 'Very similar titles';
@@ -112,14 +118,15 @@ class HelpRequestDuplicateDetectionService
         }
 
         /*
-         * Description similarity: up to 20 points.
+         * Descriptions: up to 20 points.
          */
         $descriptionSimilarity = $this->textSimilarity(
             $request->description,
             $candidate->description
         );
 
-        $score += (int) round(20 * $descriptionSimilarity);
+        $descriptionPoints = (int) round(20 * $descriptionSimilarity);
+        $score += $descriptionPoints;
 
         if ($descriptionSimilarity >= 0.60) {
             $reasons[] = 'Very similar descriptions';
@@ -128,7 +135,7 @@ class HelpRequestDuplicateDetectionService
         }
 
         /*
-         * Same category: 15 points.
+         * Same assistance category: 15 points.
          */
         $requestCategory = $this->normalize($request->category);
         $candidateCategory = $this->normalize($candidate->category);
@@ -157,28 +164,21 @@ class HelpRequestDuplicateDetectionService
 
         /*
          * Same exact normalized address: 20 points.
-         *
-         * This intentionally requires an exact normalized match.
-         * A broad or partially matching address should not receive
-         * the full address score.
          */
-        $address = $this->normalize($request->address);
-        $candidateAddress = $this->normalize($candidate->address);
+        $requestAddress = $this->normalizeAddress($request->address);
+        $candidateAddress = $this->normalizeAddress($candidate->address);
 
         if (
-            $address !== '' &&
+            $requestAddress !== '' &&
             $candidateAddress !== '' &&
-            $address === $candidateAddress
+            $requestAddress === $candidateAddress
         ) {
             $score += 20;
             $reasons[] = 'Same address';
         }
 
         /*
-         * Same requester: 10 points.
-         *
-         * A repeat submission is a review signal, not proof of fraud.
-         * Guest requests without a user ID receive no points here.
+         * Same authenticated requester: 10 points.
          */
         if (
             $request->user_id !== null &&
@@ -196,7 +196,54 @@ class HelpRequestDuplicateDetectionService
     }
 
     /**
-     * Normalize common English and Bengali district spellings.
+     * Symmetric token similarity.
+     *
+     * Combines Jaccard similarity and overlap coefficient.
+     * Comparing A with B produces the same result as B with A.
+     *
+     * This measures shared wording, not semantic meaning.
+     */
+    private function textSimilarity(
+        ?string $first,
+        ?string $second
+    ): float {
+        $firstTokens = $this->tokens($first);
+        $secondTokens = $this->tokens($second);
+
+        if ($firstTokens === [] || $secondTokens === []) {
+            return 0;
+        }
+
+        $intersection = count(array_intersect(
+            $firstTokens,
+            $secondTokens
+        ));
+
+        if ($intersection === 0) {
+            return 0;
+        }
+
+        $union = count(array_unique(array_merge(
+            $firstTokens,
+            $secondTokens
+        )));
+
+        $smallerCount = min(
+            count($firstTokens),
+            count($secondTokens)
+        );
+
+        $jaccard = $union > 0
+            ? $intersection / $union
+            : 0;
+
+        $overlap = $intersection / $smallerCount;
+
+        return ($jaccard + $overlap) / 2;
+    }
+
+    /**
+     * Normalize known English and Bengali district spellings.
      */
     private function normalizeDistrict(?string $district): string
     {
@@ -243,7 +290,6 @@ class HelpRequestDuplicateDetectionService
             'bogura' => 'bogura',
 
             'যশোর' => 'jashore',
-            'যশোর জেলা' => 'jashore',
             'jessore' => 'jashore',
             'jashore' => 'jashore',
         ];
@@ -252,47 +298,19 @@ class HelpRequestDuplicateDetectionService
     }
 
     /**
-     * Calculate lexical similarity between two text values.
-     *
-     * This is not semantic AI matching and cannot reliably determine
-     * whether different-language descriptions have the same meaning.
+     * Normalize address formatting without equating different addresses.
      */
-    private function textSimilarity(
-        ?string $first,
-        ?string $second
-    ): float {
-        $firstTokens = $this->tokens($first);
-        $secondTokens = $this->tokens($second);
+    private function normalizeAddress(?string $address): string
+    {
+        $normalized = $this->normalize($address);
 
-        if ($firstTokens === [] || $secondTokens === []) {
-            return 0;
-        }
-
-        $intersection = count(array_intersect(
-            $firstTokens,
-            $secondTokens
-        ));
-
-        $union = count(array_unique(array_merge(
-            $firstTokens,
-            $secondTokens
-        )));
-
-        $jaccard = $union > 0
-            ? $intersection / $union
-            : 0;
-
-        // A shorter title may be substantially contained in a longer one.
-        $containment = $intersection / min(
-            count($firstTokens),
-            count($secondTokens)
-        );
-
-        return min(1, max($jaccard, $containment * 0.75));
+        return preg_replace('/[[:punct:]]+/u', ' ', $normalized) !== null
+            ? trim(preg_replace('/[[:punct:]]+/u', ' ', $normalized) ?? '')
+            : $normalized;
     }
 
     /**
-     * Normalize text for comparison.
+     * Normalize whitespace and letter case.
      */
     private function normalize(?string $value): string
     {
@@ -306,7 +324,7 @@ class HelpRequestDuplicateDetectionService
     }
 
     /**
-     * Convert text into unique normalized tokens.
+     * Extract unique word tokens, including Bengali text.
      */
     private function tokens(?string $value): array
     {

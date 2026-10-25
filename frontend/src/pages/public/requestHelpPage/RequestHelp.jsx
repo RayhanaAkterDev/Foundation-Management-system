@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-
 import {
-    TbArrowDown,
-    TbArrowUpRight,
-    TbClipboardCheck,
+    TbCheck,
+    TbClipboardText,
     TbHeartHandshake,
+    TbLockCheck,
     TbSearch,
     TbShieldCheck,
 } from 'react-icons/tb';
@@ -12,269 +11,72 @@ import {
 import RequestForm from './components/RequestForm';
 import RequestSuccessModal from './components/RequestSuccessModal';
 
+const pageWidth = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8 lg:px-10';
+
 const steps = [
     {
-        icon: TbClipboardCheck,
         number: '০১',
+        icon: TbClipboardText,
         title: 'প্রয়োজন জানান',
-        description:
-            'কী ধরনের সহায়তা প্রয়োজন এবং বর্তমান পরিস্থিতি সম্পর্কে প্রয়োজনীয় তথ্য দিন।',
+        description: 'আপনার পরিস্থিতি ও প্রয়োজন লিখুন।',
     },
     {
-        icon: TbSearch,
         number: '০২',
+        icon: TbSearch,
         title: 'তথ্য যাচাই করুন',
-        description:
-            'আবেদন পাঠানোর আগে আপনার দেওয়া তথ্য দেখে প্রয়োজন হলে সংশোধন করুন।',
+        description: 'বিশ্লেষিত তথ্য দেখে সংশোধন করুন।',
     },
     {
-        icon: TbHeartHandshake,
         number: '০৩',
+        icon: TbCheck,
         title: 'আবেদন পাঠান',
-        description:
-            'আবেদন পর্যালোচনার পর প্রাসঙ্গিক সহায়তার সঙ্গে সংযোগ তৈরির প্রক্রিয়া শুরু হবে।',
+        description: 'সব তথ্য নিশ্চিত করে জমা দিন।',
     },
 ];
 
-const RequestHelp = () => {
+export default function RequestHelp() {
     const [success, setSuccess] = useState(false);
 
     return (
         <main
             lang="bn"
-            className="
-                min-h-screen
-                bg-background
-                pt-20
-                font-bengali
-            "
+            className="min-h-screen bg-[#f7faf8] pt-20 font-bengali text-[#0f172a]"
         >
-            {/* =========================================================
-                HERO
-            ========================================================== */}
-
-            <section
-                className="
-                    border-b
-                    border-border
-                    bg-surface
-                "
-            >
-                <div className="container-width">
-                    <div
-                        className="
-                            grid
-                            gap-8
-
-                            py-12
-
-                            sm:py-14
-                            md:py-16
-
-                            lg:grid-cols-[minmax(0,1fr)_300px]
-                            lg:items-center
-                            lg:gap-14
-                            lg:py-[72px]
-
-                            xl:grid-cols-[minmax(0,1fr)_330px]
-                            xl:gap-20
-                            xl:py-20
-                        "
-                    >
-                        {/* Main copy */}
-
-                        <div className="max-w-[820px]">
-                            <div
-                                className="
-                                    mb-4
-                                    flex
-                                    items-center
-                                    gap-3
-
-                                    sm:mb-5
-                                "
-                            >
-                                <span
-                                    className="
-                                        h-px
-                                        w-8
-                                        bg-primary
-
-                                        sm:w-10
-                                    "
-                                />
-
-                                <p
-                                    className="
-                                        text-[12px]
-                                        font-medium!
-                                        text-primary
-
-                                        sm:text-[13px]
-                                    "
-                                >
-                                    সাহায্যের আবেদন
-                                </p>
+            <section className="relative overflow-hidden bg-white">
+                <div className={pageWidth}>
+                    <div className="grid gap-9 py-14 sm:py-20 lg:grid-cols-[minmax(0,1fr)_285px] lg:items-end lg:gap-16 lg:py-24">
+                        <div className="min-w-0">
+                            <div className="mb-6 flex items-center gap-3 text-[13px] font-semibold text-[#0f766e]">
+                                <span className="h-px w-9 bg-[#0f766e]" />{' '}
+                                সাহায্যের আবেদন
                             </div>
-
-                            <h1
-                                className="
-                                    font-bengali
-                                    text-[2.1rem]
-                                    font-medium!
-                                    leading-[1.4]
-                                    tracking-normal
-                                    text-text-primary
-
-                                    sm:text-[2.65rem]
-                                    sm:leading-[1.38]
-
-                                    md:text-[3rem]
-
-                                    lg:text-[3.35rem]
-                                    lg:leading-[1.34]
-
-                                    xl:text-[3.6rem]
-                                "
-                            >
+                            <h1 className="max-w-[820px] text-[2.15rem] font-semibold leading-[1.45] tracking-tight sm:text-[2.8rem] lg:text-[3.15rem]">
                                 আপনার প্রয়োজনের কথা জানান।
-                                <br className="hidden sm:block" />
-                                <span className="text-primary">
-                                    {' '}
+                                <span className="block text-[#0f766e]">
                                     আমরা পাশে আছি।
                                 </span>
                             </h1>
-
-                            <p
-                                className="
-                                    mt-5
-                                    max-w-[650px]
-
-                                    text-[14px]
-                                    leading-7
-                                    text-text-secondary
-
-                                    sm:mt-6
-                                    sm:text-[15px]
-                                    sm:leading-8
-
-                                    lg:text-base
-                                "
-                            >
-                                কী ধরনের সহায়তা প্রয়োজন এবং বর্তমান পরিস্থিতি
-                                সম্পর্কে সংক্ষেপে জানান। প্রয়োজনীয় তথ্য দিয়ে
-                                আবেদনটি পূরণ করুন।
+                            <p className="mt-7 max-w-[660px] text-[15px] leading-[2.05] text-[#64748b] sm:text-[16px]">
+                                আপনার পরিস্থিতি ও প্রয়োজন নিজের ভাষায় জানান।
+                                তথ্য বিশ্লেষণ ও পর্যালোচনার পর সহজেই সাহায্যের
+                                আবেদন জমা দিতে পারবেন।
                             </p>
-
-                            <a
-                                href="#request-form"
-                                className="
-                                    mt-7
-                                    inline-flex
-                                    w-fit
-                                    items-center
-                                    gap-2
-
-                                    rounded-lg
-                                    bg-primary
-                                    px-5
-                                    py-3
-
-                                    text-[13px]
-                                    font-medium!
-                                    text-white!
-
-                                    transition-all
-                                    duration-200
-
-                                    hover:bg-primary-hover
-                                    hover:-translate-y-0.5
-
-                                    focus:outline-none
-                                    focus-visible:ring-2
-                                    focus-visible:ring-primary
-                                    focus-visible:ring-offset-2
-
-                                    sm:mt-8
-                                    sm:px-5.5
-                                    sm:py-3.5
-                                    sm:text-[14px]
-                                "
-                            >
-                                আবেদন শুরু করুন
-                                <TbArrowDown size={17} strokeWidth={1.8} />
-                            </a>
                         </div>
-
-                        {/* Trust note */}
-
-                        <div
-                            className="
-                                border-t
-                                border-border
-                                pt-5
-
-                                sm:max-w-md
-
-                                lg:border-l
-                                lg:border-t-0
-                                lg:pl-7
-                                lg:pt-0
-
-                                xl:pl-8
-                            "
-                        >
-                            <div
-                                className="
-                                    flex
-                                    items-start
-                                    gap-3.5
-                                "
-                            >
-                                <div
-                                    className="
-                                        flex
-                                        size-10
-                                        shrink-0
-                                        items-center
-                                        justify-center
-                                        rounded-lg
-                                        bg-primary-soft
-                                        text-primary
-                                    "
-                                >
+                        <div className="border-t border-[#dce8e2] pt-6 lg:border-l lg:border-t-0 lg:py-2 lg:pl-7">
+                            <div className="flex items-start gap-4">
+                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#eaf4f2] text-[#0f766e]">
                                     <TbShieldCheck
-                                        size={21}
+                                        size={24}
                                         strokeWidth={1.7}
                                     />
-                                </div>
-
+                                </span>
                                 <div>
-                                    <p
-                                        className="
-                                            text-[13px]
-                                            font-medium!
-                                            text-text-primary
-
-                                            sm:text-[14px]
-                                        "
-                                    >
-                                        আপনার তথ্য আপনার নিয়ন্ত্রণে
-                                    </p>
-
-                                    <p
-                                        className="
-                                            mt-1.5
-
-                                            text-[12px]
-                                            leading-6
-                                            text-text-secondary
-
-                                            sm:text-[13px]
-                                        "
-                                    >
-                                        আবেদন পাঠানোর আগে দেওয়া তথ্য পর্যালোচনা
-                                        ও প্রয়োজন হলে সংশোধন করতে পারবেন।
+                                    <h2 className="text-[15px] font-semibold">
+                                        নিরাপদ ও স্বচ্ছ আবেদন
+                                    </h2>
+                                    <p className="mt-2 text-[13px] leading-[1.95] text-[#64748b]">
+                                        আবেদন পাঠানোর আগে তথ্য যাচাই ও
+                                        প্রয়োজনমতো সংশোধন করার সুযোগ রয়েছে।
                                     </p>
                                 </div>
                             </div>
@@ -282,411 +84,128 @@ const RequestHelp = () => {
                     </div>
                 </div>
             </section>
-
-            {/* =========================================================
-                PROCESS
-            ========================================================== */}
-
-            <section
-                className="
-                    border-b
-                    border-border
-                    bg-background-warm
-                "
-            >
-                <div
-                    className="
-                        container-width
-
-                        py-10
-
-                        sm:py-12
-                        md:py-14
-
-                        lg:py-16
-                    "
-                >
-                    {/* Section heading */}
-
-                    <div
-                        className="
-                            flex
-                            flex-col
-                            gap-2.5
-
-                            border-b
-                            border-border
-                            pb-6
-
-                            sm:flex-row
-                            sm:items-end
-                            sm:justify-between
-                            sm:gap-8
-
-                            sm:pb-7
-                        "
-                    >
-                        <div>
-                            <p
-                                className="
-                                    text-[12px]
-                                    font-medium!
-                                    text-primary
-
-                                    sm:text-[13px]
-                                "
-                            >
-                                কীভাবে করবেন
-                            </p>
-
-                            <h2
-                                className="
-                                    mt-1.5
-
-                                    font-bengali
-                                    text-[1.6rem]
-                                    font-medium!
-                                    leading-[1.4]
-                                    text-text-primary
-
-                                    sm:text-[1.8rem]
-
-                                    lg:text-[2rem]
-                                "
-                            >
-                                আবেদন করার ধাপ
-                            </h2>
-                        </div>
-
-                        <p
-                            className="
-                                max-w-[300px]
-
-                                text-[12.5px]
-                                leading-6
-                                text-text-secondary
-
-                                sm:text-right
-                                sm:text-[13px]
-                            "
-                        >
-                            তিনটি সহজ ধাপে আপনার আবেদন সম্পন্ন করুন।
-                        </p>
-                    </div>
-
-                    {/* Steps */}
-
-                    <div
-                        className="
-                            divide-y
-                            divide-border
-
-                            md:grid
-                            md:grid-cols-3
-                            md:divide-x
-                            md:divide-y-0
-                        "
-                    >
-                        {steps.map((step, index) => {
-                            const Icon = step.icon;
-
-                            return (
-                                <article
-                                    key={step.number}
-                                    className={`
-                                        relative
-                                        py-6
-
-                                        sm:py-7
-
-                                        md:px-6
-                                        md:py-8
-
-                                        lg:px-7
-                                        lg:py-9
-
-                                        ${index === 0 ? 'md:pl-0' : ''}
-
-                                        ${
-                                            index === steps.length - 1
-                                                ? 'md:pr-0'
-                                                : ''
-                                        }
-                                    `}
-                                >
-                                    <div
-                                        className="
-                                            flex
-                                            items-center
-                                            justify-between
-                                            gap-4
-                                        "
-                                    >
-                                        <div
-                                            className="
-                                                flex
-                                                size-10
-                                                shrink-0
-                                                items-center
-                                                justify-center
-                                                rounded-lg
-                                                bg-primary-soft
-                                                text-primary
-
-                                                sm:size-11
-                                            "
-                                        >
-                                            <Icon size={20} strokeWidth={1.7} />
-                                        </div>
-
-                                        <span
-                                            className="
-                                                text-[1.7rem]
-                                                font-medium!
-                                                leading-none
-                                                text-primary/20
-
-                                                sm:text-[1.9rem]
-                                            "
-                                        >
-                                            {step.number}
-                                        </span>
-                                    </div>
-
-                                    <h3
-                                        className="
-                                            mt-5
-
-                                            font-bengali
-                                            text-[15px]
-                                            font-medium!
-                                            leading-6
-                                            text-text-primary
-
-                                            sm:text-[16px]
-
-                                            md:mt-6
-                                        "
-                                    >
-                                        {step.title}
-                                    </h3>
-
-                                    <p
-                                        className="
-                                            mt-1.5
-                                            max-w-[300px]
-
-                                            text-[12px]
-                                            leading-6
-                                            text-text-secondary
-
-                                            sm:text-[13px]
-                                        "
-                                    >
-                                        {step.description}
-                                    </p>
-                                </article>
-                            );
-                        })}
-                    </div>
-                </div>
-            </section>
-
-            {/* =========================================================
-                REQUEST FORM
-            ========================================================== */}
 
             <section
                 id="request-form"
-                className="
-                    scroll-mt-24
-                    bg-background
-                "
+                className="scroll-mt-24 border-t border-[#e5ece8]"
             >
-                <div
-                    className="
-                        container-width
+                <div className={`${pageWidth} py-14 sm:py-20 lg:py-24`}>
+                    <div className="mb-11 max-w-[750px] sm:mb-14">
+                        <div className="mb-5 flex items-center gap-2.5 text-[13px] font-semibold text-[#0f766e]">
+                            <span className="h-2 w-2 rounded-full bg-[#f59e0b]" />{' '}
+                            আবেদনপত্র
+                        </div>
+                        <h2 className="text-[2rem] font-semibold leading-[1.5] sm:text-[2.4rem]">
+                            আপনার সাহায্যের আবেদন
+                        </h2>
+                        <p className="mt-4 text-[15px] leading-[2] text-[#64748b]">
+                            আপনার প্রয়োজন সম্পর্কে জানান। আবেদন তৈরির প্রতিটি
+                            ধাপে প্রয়োজনীয় নির্দেশনা পাবেন।
+                        </p>
+                    </div>
 
-                        py-11
-
-                        sm:py-14
-                        md:py-16
-
-                        lg:py-20
-                    "
-                >
-                    {/* Form intro */}
-
-                    <div
-                        className="
-                            flex
-                            flex-col
-                            gap-3
-
-                            lg:flex-row
-                            lg:items-end
-                            lg:justify-between
-                            lg:gap-10
-                        "
-                    >
-                        <div className="max-w-[700px]">
-                            <div
-                                className="
-                                    mb-3
-                                    flex
-                                    items-center
-                                    gap-2.5
-                                "
-                            >
-                                <span
-                                    className="
-                                        size-1.5
-                                        rounded-full
-                                        bg-accent
-                                    "
-                                />
-
-                                <p
-                                    className="
-                                        text-[12px]
-                                        font-medium!
-                                        text-primary
-
-                                        sm:text-[13px]
-                                    "
-                                >
-                                    আবেদনপত্র
+                    <div className="grid items-start gap-10 lg:grid-cols-[285px_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[310px_minmax(0,1fr)] xl:gap-16">
+                        <aside className="order-2 lg:order-1 lg:sticky lg:top-28">
+                            <div className="border-t-[3px] border-[#0f766e] pt-7">
+                                <p className="text-[13px] font-semibold text-[#0f766e]">
+                                    আবেদনের প্রক্রিয়া
+                                </p>
+                                <h3 className="mt-3 text-[1.65rem] font-semibold leading-[1.5]">
+                                    তিনটি সহজ ধাপ
+                                </h3>
+                                <p className="mt-3 text-[14px] leading-[1.95] text-[#64748b]">
+                                    আপনার আবেদন সম্পন্ন করার প্রক্রিয়া।
                                 </p>
                             </div>
+                            <div className="relative mt-9 space-y-8 before:absolute before:bottom-6 before:left-[21px] before:top-5 before:w-px before:bg-[#d9e8e1]">
+                                {steps.map((step) => {
+                                    const Icon = step.icon;
+                                    return (
+                                        <div
+                                            key={step.number}
+                                            className="relative flex items-start gap-4"
+                                        >
+                                            <span className="z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#d9e8e1] bg-white text-[#0f766e]">
+                                                <Icon
+                                                    size={21}
+                                                    strokeWidth={1.7}
+                                                />
+                                            </span>
+                                            <div className="min-w-0 pt-0.5">
+                                                <span className="text-[12px] font-semibold text-[#0f766e]">
+                                                    ধাপ {step.number}
+                                                </span>
+                                                <h4 className="mt-1 text-[15px] font-semibold">
+                                                    {step.title}
+                                                </h4>
+                                                <p className="mt-2 text-[13px] leading-[1.9] text-[#64748b]">
+                                                    {step.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="mt-10 border-t border-[#dfe9e4] pt-7">
+                                <div className="flex items-start gap-3">
+                                    <TbHeartHandshake
+                                        size={23}
+                                        strokeWidth={1.6}
+                                        className="mt-0.5 shrink-0 text-[#0f766e]"
+                                    />
+                                    <div>
+                                        <p className="text-[14px] font-semibold">
+                                            আমরা আপনার পাশে আছি
+                                        </p>
+                                        <p className="mt-2 text-[13px] leading-[1.95] text-[#64748b]">
+                                            Stand For People প্রয়োজন ও সহায়তার
+                                            মধ্যে সংযোগ তৈরিতে কাজ করে।
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
 
-                            <h2
-                                className="
-                                    font-bengali
-                                    text-[1.7rem]
-                                    font-medium!
-                                    leading-[1.42]
-                                    text-text-primary
-
-                                    sm:text-[2rem]
-
-                                    lg:text-[2.25rem]
-                                "
-                            >
-                                প্রয়োজনীয় তথ্য দিন
-                            </h2>
-
-                            <p
-                                className="
-                                    mt-2
-                                    max-w-[620px]
-
-                                    text-[13px]
-                                    leading-7
-                                    text-text-secondary
-
-                                    sm:text-[14px]
-                                "
-                            >
-                                সঠিক ও প্রয়োজনীয় তথ্য দিয়ে নিচের ফর্মটি পূরণ
-                                করুন।
-                            </p>
+                        <div className="order-1 min-w-0 lg:order-2">
+                            <div className="overflow-hidden rounded-2xl border border-[#dce8e1] bg-white shadow-[0_14px_45px_rgba(15,55,45,0.045)]">
+                                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#e4ede8] px-6 py-6 sm:px-10 lg:px-12">
+                                    <div className="flex items-center gap-3.5">
+                                        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#eaf4f2] text-[#0f766e]">
+                                            <TbClipboardText
+                                                size={22}
+                                                strokeWidth={1.7}
+                                            />
+                                        </span>
+                                        <h3 className="text-[17px] font-semibold">
+                                            সাহায্যের আবেদনপত্র
+                                        </h3>
+                                    </div>
+                                    <span className="inline-flex items-center gap-2 text-[12px] text-[#64748b]">
+                                        <TbLockCheck
+                                            size={17}
+                                            className="text-[#0f766e]"
+                                        />{' '}
+                                        নিরাপদ আবেদন
+                                    </span>
+                                </div>
+                                <RequestForm setSuccess={setSuccess} />
+                            </div>
+                            <div className="mt-6 flex items-start gap-3 px-1">
+                                <TbShieldCheck
+                                    size={20}
+                                    className="mt-0.5 shrink-0 text-[#0f766e]"
+                                />
+                                <p className="text-[13px] leading-[1.95] text-[#64748b]">
+                                    আবেদন পাঠানোর আগে সব তথ্য যাচাই করুন।
+                                    প্রয়োজন ছাড়া সংবেদনশীল ব্যক্তিগত তথ্য শেয়ার
+                                    করবেন না।
+                                </p>
+                            </div>
                         </div>
-
-                        <p
-                            className="
-                                hidden
-                                max-w-[300px]
-
-                                text-[12px]
-                                leading-6
-                                text-text-muted
-
-                                lg:block
-                                lg:text-right
-                            "
-                        >
-                            আবেদন পাঠানোর আগে আপনার দেওয়া তথ্য আবার যাচাই করার
-                            সুযোগ থাকবে।
-                        </p>
-                    </div>
-
-                    {/* Form */}
-
-                    <div
-                        className="
-                            mt-7
-                            overflow-hidden
-                            rounded-xl
-                            border
-                            border-border
-                            bg-surface
-                            shadow-[0_10px_35px_rgba(15,23,42,0.035)]
-
-                            sm:mt-8
-                            sm:rounded-2xl
-
-                            lg:mt-10
-                        "
-                    >
-                        <div
-                            aria-hidden="true"
-                            className="
-                                h-[3px]
-                                w-full
-                                bg-primary
-                            "
-                        />
-
-                        <RequestForm setSuccess={setSuccess} />
-                    </div>
-
-                    {/* Bottom note */}
-
-                    <div
-                        className="
-                            mt-5
-                            flex
-                            items-start
-                            gap-2.5
-
-                            sm:mt-6
-                        "
-                    >
-                        <TbShieldCheck
-                            size={17}
-                            strokeWidth={1.7}
-                            className="
-                                mt-[3px]
-                                shrink-0
-                                text-primary
-                            "
-                        />
-
-                        <p
-                            className="
-                                max-w-2xl
-
-                                text-[11.5px]
-                                leading-6
-                                text-text-muted
-
-                                sm:text-[12.5px]
-                            "
-                        >
-                            আবেদন জমা দেওয়ার আগে তথ্যগুলো আরেকবার যাচাই করে নিন।
-                            প্রয়োজন নেই এমন ব্যক্তিগত তথ্য দেওয়া এড়িয়ে চলুন।
-                        </p>
                     </div>
                 </div>
             </section>
-
-            {/* =========================================================
-                SUCCESS MODAL
-            ========================================================== */}
-
             {success && <RequestSuccessModal />}
         </main>
     );
-};
-
-export default RequestHelp;
+}

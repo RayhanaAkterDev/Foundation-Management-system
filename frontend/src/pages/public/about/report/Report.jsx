@@ -16,21 +16,21 @@ import {
 
 const reportPrinciples = [
     {
-        number: '01',
+        number: '০১',
         title: 'কাজের নথি',
         description:
             'কোনো কার্যক্রম বা উদ্যোগ প্রকাশযোগ্য পর্যায়ে এলে তার প্রয়োজনীয় তথ্য সংরক্ষণ করা হবে।',
         icon: TbFileText,
     },
     {
-        number: '02',
+        number: '০২',
         title: 'মানুষের অংশগ্রহণ',
         description:
             'স্বেচ্ছাসেবক, সংগঠন এবং সহায়তাপ্রাপ্ত মানুষের সঙ্গে যুক্ত কার্যক্রমের প্রাসঙ্গিক তথ্য নথিভুক্ত করা হবে।',
         icon: TbUsers,
     },
     {
-        number: '03',
+        number: '০৩',
         title: 'জবাবদিহিতা',
         description:
             'প্রকাশযোগ্য তথ্য এমনভাবে উপস্থাপন করা হবে, যাতে প্ল্যাটফর্মের কাজ সম্পর্কে একটি পরিষ্কার ধারণা পাওয়া যায়।',
@@ -40,34 +40,32 @@ const reportPrinciples = [
 
 const reportAreas = [
     {
-        number: '01',
+        number: '০১',
         title: 'কার্যক্রম ও অগ্রগতি',
         description:
             'কোনো উদ্যোগ কোথায় দাঁড়িয়েছে, কী কাজ হয়েছে এবং প্রকাশযোগ্য পর্যায়ে কী তথ্য পাওয়া যায়—তার নথি।',
     },
     {
-        number: '02',
+        number: '০২',
         title: 'সহায়তা ও অংশগ্রহণ',
         description:
             'মানুষ, স্বেচ্ছাসেবক ও সংগঠন কীভাবে একটি উদ্যোগের সঙ্গে যুক্ত হয়েছে—তার প্রাসঙ্গিক তথ্য।',
     },
     {
-        number: '03',
-        title: 'গুরুত্বপূর্ণ আপডেট',
+        number: '০৩',
+        title: 'গুরুত্বপূর্ণ হালনাগাদ',
         description:
-            'Stand For People-এর কার্যক্রম বা জনসেবামূলক ব্যবস্থায় গুরুত্বপূর্ণ পরিবর্তন ও প্রকাশযোগ্য আপডেট।',
+            'Stand For People-এর কার্যক্রম বা জনসেবামূলক ব্যবস্থায় গুরুত্বপূর্ণ পরিবর্তন ও প্রকাশযোগ্য হালনাগাদ।',
     },
     {
-        number: '04',
+        number: '০৪',
         title: 'প্রকাশযোগ্য নথি',
         description:
-            'যেসব ডকুমেন্ট বা তথ্য জনসাধারণের জন্য প্রকাশ করা উপযুক্ত, সেগুলোর সংরক্ষিত সংস্করণ।',
+            'যেসব নথি বা তথ্য জনসাধারণের জন্য প্রকাশ করা উপযুক্ত, সেগুলোর সংরক্ষিত সংস্করণ।',
     },
 ];
 
-const pageWidth =
-    'mx-auto w-full max-w-[1440px] px-5 sm:px-8 md:px-10 lg:px-14 xl:px-16 2xl:px-20';
-
+const pageWidth = 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-10';
 const Report = () => {
     return (
         <main
@@ -84,18 +82,18 @@ const Report = () => {
                         className="
                             relative
                             grid
-                            gap-14
-                            py-16
+                            gap-9
+                            py-12
 
-                            sm:py-20
+                            sm:py-16
 
-                            lg:min-h-[650px]
-                            lg:grid-cols-[minmax(0,1fr)_390px]
+                            lg:min-h-[490px]
+                            lg:grid-cols-[minmax(0,1fr)_330px]
                             lg:items-center
-                            lg:gap-20
-                            lg:py-24
+                            lg:gap-12
+                            lg:py-20
 
-                            xl:grid-cols-[minmax(0,1fr)_430px]
+                            xl:grid-cols-[minmax(0,1fr)_365px]
                         "
                     >
                         {/* LEFT */}
@@ -116,22 +114,22 @@ const Report = () => {
                             >
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#e58a52]" />
 
-                                <span>REPORTS &amp; TRANSPARENCY</span>
+                                <span>প্রতিবেদন ও স্বচ্ছতা</span>
                             </div>
 
                             <h1
                                 className="
-                                    mt-8
-                                    max-w-[850px]
-                                    text-[2.7rem]
+                                    mt-6
+                                    max-w-[750px]
+                                    text-[1.75rem]
                                     font-medium!
-                                    leading-[1.18]
+                                    leading-[1.42]
 
-                                    sm:text-[3.5rem]
+                                    sm:text-[2.65rem]
 
-                                    lg:text-[4.1rem]
+                                    lg:text-[2.5rem]
 
-                                    xl:text-[4.55rem]
+                                    xl:text-[3.35rem]
                                 "
                             >
                                 কাজের শুধু গল্প নয়,
@@ -142,13 +140,13 @@ const Report = () => {
 
                             <div
                                 className="
-                                    mt-9
+                                    mt-7
                                     grid
                                     max-w-[780px]
-                                    gap-6
+                                    gap-4
                                     border-t
                                     border-black/10
-                                    pt-7
+                                    pt-5
 
                                     sm:grid-cols-[1fr_auto]
                                     sm:items-start
@@ -158,11 +156,11 @@ const Report = () => {
                                 <p
                                     className="
                                         max-w-[590px]
-                                        text-[15px]
-                                        leading-[1.95]
+                                        text-[14px]
+                                        leading-[1.85]
                                         text-text-secondary
 
-                                        sm:text-[17px]
+                                        sm:text-[15px]
                                     "
                                 >
                                     Stand For People-এর কাজ, মানুষের অংশগ্রহণ
@@ -180,7 +178,7 @@ const Report = () => {
                                         text-text-muted
                                     "
                                 >
-                                    PUBLIC RECORD / 2026
+                                    উন্মুক্ত নথি / ২০২৬
                                 </span>
                             </div>
                         </div>
@@ -191,14 +189,14 @@ const Report = () => {
                             className="
                                 relative
                                 mx-auto
-                                h-[340px]
+                                h-[290px]
                                 w-full
                                 max-w-[350px]
 
-                                sm:h-[390px]
+                                sm:h-[330px]
 
                                 lg:mx-0
-                                lg:h-[430px]
+                                lg:h-[365px]
                                 lg:max-w-none
                             "
                         >
@@ -248,7 +246,7 @@ const Report = () => {
                                                 text-text-muted
                                             "
                                         >
-                                            STAND FOR PEOPLE
+                                            Stand For People
                                         </span>
 
                                         <span
@@ -261,7 +259,7 @@ const Report = () => {
                                                 text-text-muted/70
                                             "
                                         >
-                                            PUBLIC RECORD
+                                            উন্মুক্ত নথি
                                         </span>
                                     </div>
 
@@ -272,7 +270,7 @@ const Report = () => {
                                             text-primary/40
                                         "
                                     >
-                                        00
+                                        ০০
                                     </span>
                                 </div>
 
@@ -310,7 +308,7 @@ const Report = () => {
                                                 text-text-muted
                                             "
                                         >
-                                            ARCHIVE / 2026
+                                            সংরক্ষণাগার / ২০২৬
                                         </span>
                                     </div>
                                 </div>
@@ -337,7 +335,7 @@ const Report = () => {
                                         text-primary/60
                                     "
                                 >
-                                    RECORD
+                                    নথি
                                 </span>
 
                                 <p
@@ -361,12 +359,12 @@ const Report = () => {
             </section>
 
             {/* =====================================================
-                WHY REPORT
+                WHY প্রতিবেদন
             ====================================================== */}
 
             <section className="bg-background">
                 <div className={pageWidth}>
-                    <div className="py-20 sm:py-24 lg:py-32">
+                    <div className="py-14 sm:py-16 lg:py-20">
                         {/* small label */}
 
                         <div
@@ -391,26 +389,26 @@ const Report = () => {
 
                         <div
                             className="
-                                mt-12
+                                mt-8
                                 grid
-                                gap-10
+                                gap-7
 
                                 lg:grid-cols-[0.85fr_1.15fr]
-                                lg:gap-20
+                                lg:gap-12
 
-                                xl:gap-28
+                                xl:gap-16
                             "
                         >
                             <h2
                                 className="
                                     max-w-[620px]
-                                    text-[2.1rem]
+                                    text-[1.75rem]
                                     font-medium!
                                     leading-[1.38]
 
-                                    sm:text-[2.7rem]
+                                    sm:text-[1.75rem]
 
-                                    lg:text-[3.1rem]
+                                    lg:text-[2.5rem]
                                 "
                             >
                                 একটি মানবিক প্ল্যাটফর্মের কাজ শুধু
@@ -432,11 +430,11 @@ const Report = () => {
                             >
                                 <p
                                     className="
-                                        text-[15px]
-                                        leading-[1.95]
+                                        text-[14px]
+                                        leading-[1.85]
                                         text-text-secondary
 
-                                        sm:text-[17px]
+                                        sm:text-[15px]
                                     "
                                 >
                                     Stand For People এমন একটি জায়গা তৈরি করতে
@@ -450,16 +448,17 @@ const Report = () => {
                                 <p
                                     className="
                                         mt-6
-                                        text-[15px]
-                                        leading-[1.95]
+                                        text-[14px]
+                                        leading-[1.85]
                                         text-text-secondary
 
-                                        sm:text-[17px]
+                                        sm:text-[15px]
                                     "
                                 >
-                                    তাই এই পেজটি শুধু একটি রিপোর্টের তালিকা নয়।
-                                    এটি SP-এর প্রকাশযোগ্য কাজ ও তথ্যের জন্য একটি
-                                    উন্মুক্ত রেকর্ড রাখার জায়গা।
+                                    তাই এই পাতাটি শুধু প্রতিবেদনের তালিকা নয়।
+                                    এটি Stand For People-এর প্রকাশযোগ্য কাজ ও
+                                    তথ্যের জন্য একটি উন্মুক্ত রেকর্ড রাখার
+                                    জায়গা।
                                 </p>
                             </div>
                         </div>
@@ -473,7 +472,7 @@ const Report = () => {
 
             <section className="border-y border-black/[0.07] bg-white">
                 <div className={pageWidth}>
-                    <div className="py-20 sm:py-24 lg:py-28">
+                    <div className="py-14 sm:py-16 lg:py-20">
                         {/* heading */}
 
                         <div
@@ -483,13 +482,13 @@ const Report = () => {
                                 gap-7
                                 border-b
                                 border-black/10
-                                pb-10
+                                pb-7
 
                                 md:flex-row
                                 md:items-end
                                 md:justify-between
 
-                                lg:pb-12
+                                lg:pb-9
                             "
                         >
                             <div>
@@ -513,13 +512,13 @@ const Report = () => {
                                     className="
                                         mt-6
                                         max-w-[610px]
-                                        text-[2rem]
+                                        text-[1.75rem]
                                         font-medium!
                                         leading-[1.4]
 
-                                        sm:text-[2.5rem]
+                                        sm:text-[2.1rem]
 
-                                        lg:text-[2.85rem]
+                                        lg:text-[2.45rem]
                                     "
                                 >
                                     তথ্য রাখা হবে
@@ -537,7 +536,7 @@ const Report = () => {
                                     leading-[1.85]
                                     text-text-secondary
 
-                                    sm:text-[15px]
+                                    sm:text-[14px]
                                 "
                             >
                                 প্রকাশযোগ্য তথ্য কীভাবে সংরক্ষণ ও উপস্থাপন করা
@@ -556,11 +555,11 @@ const Report = () => {
                                         key={item.number}
                                         className={`
                                             relative
-                                            py-10
+                                            py-7
 
-                                            lg:min-h-[320px]
-                                            lg:px-9
-                                            lg:py-11
+                                            lg:min-h-[255px]
+                                            lg:px-7
+                                            lg:py-6
 
                                             ${
                                                 index > 0
@@ -570,7 +569,7 @@ const Report = () => {
 
                                             ${
                                                 index === 0
-                                                    ? 'lg:pl-0 lg:pr-10'
+                                                    ? 'lg:pl-0 lg:pr-8'
                                                     : ''
                                             }
                                         `}
@@ -595,7 +594,7 @@ const Report = () => {
                                             </span>
                                         </div>
 
-                                        <div className="mt-14 lg:mt-20">
+                                        <div className="mt-9 lg:mt-12">
                                             <h3
                                                 className="
                                                     text-[19px]
@@ -631,16 +630,16 @@ const Report = () => {
 
             <section className="bg-[#164f49] text-white!">
                 <div className={pageWidth}>
-                    <div className="py-20 sm:py-24 lg:py-32">
+                    <div className="py-14 sm:py-16 lg:py-20">
                         <div
                             className="
                                 grid
-                                gap-12
+                                gap-8
 
                                 lg:grid-cols-[0.8fr_1.2fr]
-                                lg:gap-20
+                                lg:gap-12
 
-                                xl:gap-28
+                                xl:gap-16
                             "
                         >
                             {/* statement */}
@@ -664,16 +663,16 @@ const Report = () => {
 
                                 <h2
                                     className="
-                                        mt-8
+                                        mt-6
                                         max-w-[520px]
-                                        text-[2.15rem]
+                                        text-[1.8rem]
                                         font-medium!
                                         leading-[1.4]
                                         text-white!
 
-                                        sm:text-[2.75rem]
+                                        sm:text-[2.2rem]
 
-                                        lg:text-[3.1rem]
+                                        lg:text-[2.5rem]
                                     "
                                 >
                                     কাজের বিভিন্ন দিকের
@@ -690,7 +689,7 @@ const Report = () => {
                                         leading-[1.9]
                                         text-white!/55
 
-                                        sm:text-[15px]
+                                        sm:text-[14px]
                                     "
                                 >
                                     প্রতিটি কার্যক্রমের সব তথ্য নয়—মানুষের জন্য
@@ -711,12 +710,12 @@ const Report = () => {
                                             gap-4
                                             border-b
                                             border-white/15
-                                            py-7
+                                            py-5
 
                                             sm:grid-cols-[52px_1fr]
                                             sm:gap-6
 
-                                            lg:py-8
+                                            lg:py-6
                                         "
                                     >
                                         <span
@@ -779,7 +778,7 @@ const Report = () => {
 
             <section className="bg-[#f4f1e9]">
                 <div className={pageWidth}>
-                    <div className="py-20 sm:py-24 lg:py-32">
+                    <div className="py-14 sm:py-16 lg:py-20">
                         {/* archive heading */}
 
                         <div
@@ -788,7 +787,7 @@ const Report = () => {
                                 gap-8
 
                                 lg:grid-cols-[0.65fr_1.35fr]
-                                lg:gap-20
+                                lg:gap-12
                             "
                         >
                             <div>
@@ -829,18 +828,18 @@ const Report = () => {
                                             text-[#a66e32]
                                         "
                                     >
-                                        PUBLIC REPORT ARCHIVE
+                                        প্রকাশিত প্রতিবেদনের সংরক্ষণাগার
                                     </span>
 
                                     <h2
                                         className="
                                             mt-4
-                                            text-[2.2rem]
+                                            text-[1.85rem]
                                             font-medium!
 
-                                            sm:text-[2.8rem]
+                                            sm:text-[2.25rem]
 
-                                            lg:text-[3.1rem]
+                                            lg:text-[2.5rem]
                                         "
                                     >
                                         প্রতিবেদন
@@ -858,7 +857,7 @@ const Report = () => {
                                         sm:block
                                     "
                                 >
-                                    00 DOCUMENTS
+                                    ০০টি নথি
                                 </span>
                             </div>
                         </div>
@@ -867,14 +866,14 @@ const Report = () => {
 
                         <div
                             className="
-                                mt-12
+                                mt-8
                                 grid
-                                gap-14
+                                gap-8
 
                                 lg:grid-cols-[1fr_0.9fr]
                                 lg:items-center
-                                lg:gap-24
-                                lg:pl-[calc(32.5%+1rem)]
+                                lg:gap-12
+                                lg:pl-0
                             "
                         >
                             <div>
@@ -889,7 +888,7 @@ const Report = () => {
                                             text-text-muted
                                         "
                                     >
-                                        ARCHIVE / EMPTY
+                                        সংরক্ষণাগার / বর্তমানে খালি
                                     </span>
                                 </div>
 
@@ -901,7 +900,7 @@ const Report = () => {
                                         font-medium!
                                         leading-[1.45]
 
-                                        sm:text-[2.3rem]
+                                        sm:text-[1.95rem]
                                     "
                                 >
                                     প্রথম প্রকাশিত প্রতিবেদনটি
@@ -914,15 +913,15 @@ const Report = () => {
                                     className="
                                         mt-6
                                         max-w-[550px]
-                                        text-[15px]
-                                        leading-[1.95]
+                                        text-[14px]
+                                        leading-[1.85]
                                         text-text-secondary
                                     "
                                 >
-                                    বর্তমানে এই আর্কাইভে কোনো প্রকাশিত প্রতিবেদন
-                                    নেই। নতুন কোনো প্রতিবেদন প্রকাশের উপযোগী হলে
-                                    তার বিষয়, সময়কাল এবং প্রয়োজনীয় নথি এখানে
-                                    সংরক্ষিত হবে।
+                                    বর্তমানে এই সংরক্ষণাগারে কোনো প্রকাশিত
+                                    প্রতিবেদন নেই। নতুন কোনো প্রতিবেদন প্রকাশের
+                                    উপযোগী হলে তার বিষয়, সময়কাল এবং প্রয়োজনীয়
+                                    নথি এখানে সংরক্ষিত হবে।
                                 </p>
                             </div>
 
@@ -936,7 +935,7 @@ const Report = () => {
                                     w-full
                                     max-w-[340px]
 
-                                    sm:h-[340px]
+                                    sm:h-[290px]
 
                                     lg:mx-0
                                 "
@@ -985,7 +984,7 @@ const Report = () => {
                                                 text-text-muted
                                             "
                                         >
-                                            SP
+                                            Stand For People
                                         </span>
 
                                         <span
@@ -995,7 +994,7 @@ const Report = () => {
                                                 text-text-muted
                                             "
                                         >
-                                            00
+                                            ০০
                                         </span>
                                     </div>
 
@@ -1035,7 +1034,7 @@ const Report = () => {
                                                 text-text-muted
                                             "
                                         >
-                                            REPORT
+                                            প্রতিবেদন
                                         </span>
                                     </div>
                                 </div>
@@ -1053,12 +1052,12 @@ const Report = () => {
                                     <span
                                         className="
                                             font-display
-                                            text-[2.7rem]
+                                            text-[1.75rem]
                                             leading-none
                                             text-primary
                                         "
                                     >
-                                        00
+                                        ০০
                                     </span>
 
                                     <span
@@ -1070,7 +1069,7 @@ const Report = () => {
                                             text-text-muted
                                         "
                                     >
-                                        RECORDS
+                                        নথি
                                     </span>
                                 </div>
                             </div>
@@ -1078,7 +1077,7 @@ const Report = () => {
 
                         <div
                             className="
-                                mt-14
+                                mt-10
                                 flex
                                 flex-wrap
                                 items-center
@@ -1090,11 +1089,11 @@ const Report = () => {
                             "
                         >
                             <span className="font-nav text-[9px] tracking-[0.14em] text-text-muted">
-                                STAND FOR PEOPLE
+                                Stand For People
                             </span>
 
                             <span className="font-nav text-[9px] tracking-[0.14em] text-text-muted">
-                                PUBLIC / DOCUMENTATION
+                                উন্মুক্ত / নথিপত্র
                             </span>
                         </div>
                     </div>
@@ -1107,14 +1106,14 @@ const Report = () => {
 
             <section className="bg-white">
                 <div className={pageWidth}>
-                    <div className="py-20 sm:py-24 lg:py-32">
+                    <div className="py-14 sm:py-16 lg:py-20">
                         <div
                             className="
                                 grid
-                                gap-12
+                                gap-8
 
                                 lg:grid-cols-[0.65fr_1.35fr]
-                                lg:gap-20
+                                lg:gap-12
                             "
                         >
                             {/* left */}
@@ -1138,7 +1137,7 @@ const Report = () => {
 
                                 <div
                                     className="
-                                        mt-12
+                                        mt-8
                                         flex
                                         h-14
                                         w-14
@@ -1161,16 +1160,16 @@ const Report = () => {
                             <div className="max-w-[820px]">
                                 <h2
                                     className="
-                                        text-[2.1rem]
+                                        text-[1.75rem]
                                         font-medium!
                                         leading-[1.4]
 
-                                        sm:text-[2.7rem]
+                                        sm:text-[1.75rem]
 
-                                        lg:text-[3.05rem]
+                                        lg:text-[2.5rem]
                                     "
                                 >
-                                    একটি রিপোর্ট শুধু
+                                    একটি প্রতিবেদন শুধু
                                     <span className="text-primary">
                                         {' '}
                                         সংখ্যার নথি নয়।
@@ -1194,11 +1193,11 @@ const Report = () => {
                                     <p
                                         className="
                                             max-w-[640px]
-                                            text-[15px]
-                                            leading-[1.95]
+                                            text-[14px]
+                                            leading-[1.85]
                                             text-text-secondary
 
-                                            sm:text-[17px]
+                                            sm:text-[15px]
                                         "
                                     >
                                         এর পেছনে থাকে মানুষের প্রয়োজন, কোনো
@@ -1210,7 +1209,7 @@ const Report = () => {
                                     </p>
 
                                     <Link
-                                        to="/team"
+                                        to="/community"
                                         className="
                                             group
                                             inline-flex
@@ -1260,14 +1259,14 @@ const Report = () => {
                             gap-10
                             border-t
                             border-black/[0.07]
-                            py-16
+                            py-12
 
-                            sm:py-20
+                            sm:py-16
 
                             lg:flex-row
                             lg:items-end
                             lg:justify-between
-                            lg:py-24
+                            lg:py-20
                         "
                     >
                         <div>
@@ -1284,20 +1283,20 @@ const Report = () => {
                             >
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#e58a52]" />
 
-                                <span>STAND FOR PEOPLE</span>
+                                <span>Stand For People</span>
                             </div>
 
                             <h2
                                 className="
                                     mt-6
                                     max-w-[680px]
-                                    text-[2rem]
+                                    text-[1.75rem]
                                     font-medium!
                                     leading-[1.4]
 
-                                    sm:text-[2.5rem]
+                                    sm:text-[2.1rem]
 
-                                    lg:text-[2.9rem]
+                                    lg:text-[2.45rem]
                                 "
                             >
                                 কাজ কীভাবে এগোয়,

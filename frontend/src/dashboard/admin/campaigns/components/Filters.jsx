@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import {
-    Building2,
     Check,
     ChevronDown,
     ClipboardList,
@@ -9,6 +8,7 @@ import {
     Layers3,
     MapPin,
     RotateCcw,
+    Star,
     UsersRound,
 } from 'lucide-react';
 
@@ -25,10 +25,207 @@ const CAMPAIGN_TYPES = [
     { value: 'global_situation', label: 'Global situation', icon: Globe2 },
 ];
 
-const formatLabel = (value) =>
+const CLASSIFICATION_OPTIONS = [
+    { value: 'all', label: 'All classifications' },
+    { value: 'featured', label: 'Featured campaigns' },
+    { value: 'urgent', label: 'Urgent campaigns' },
+    {
+        value: 'unclassified',
+        label: 'Neither featured nor urgent',
+    },
+];
+
+/*
+ * Known Bangla-to-English category equivalents.
+ *
+ * These mappings are used only for category normalization.
+ * The dropdown always displays English names.
+ */
+const CATEGORY_TRANSLATIONS = {
+    শিক্ষা: 'Education',
+    শিক্ষার: 'Education',
+    স্বাস্থ্য: 'Health',
+    চিকিৎসা: 'Healthcare',
+    স্বাস্থ্যসেবা: 'Healthcare',
+    খাদ্য: 'Food',
+    খাদ্যসহায়তা: 'Food Support',
+    'খাদ্য সহায়তা': 'Food Support',
+    আশ্রয়: 'Shelter',
+    বাসস্থান: 'Housing',
+    দুর্যোগ: 'Disaster Relief',
+    'দুর্যোগ সহায়তা': 'Disaster Relief',
+    'দুর্যোগ ত্রাণ': 'Disaster Relief',
+    জরুরি: 'Emergency',
+    'জরুরি সহায়তা': 'Emergency Relief',
+    পানি: 'Water',
+    'বিশুদ্ধ পানি': 'Clean Water',
+    স্যানিটেশন: 'Sanitation',
+    পরিবেশ: 'Environment',
+    জীবিকা: 'Livelihood',
+    কর্মসংস্থান: 'Employment',
+    দারিদ্র্য: 'Poverty',
+    'দারিদ্র্য বিমোচন': 'Poverty Alleviation',
+    শিশু: 'Children',
+    'শিশু সহায়তা': 'Child Support',
+    নারী: 'Women',
+    'নারী ক্ষমতায়ন': 'Women Empowerment',
+    প্রবীণ: 'Elderly',
+    প্রতিবন্ধী: 'Disability Support',
+    'প্রতিবন্ধী সহায়তা': 'Disability Support',
+    মানবিক: 'Humanitarian',
+    'মানবিক সহায়তা': 'Humanitarian Aid',
+    সমাজকল্যাণ: 'Social Welfare',
+    অন্যান্য: 'Other',
+    সাধারণ: 'General',
+};
+
+const CATEGORY_ALIASES = {
+    education: 'Education',
+    educational: 'Education',
+
+    health: 'Health',
+
+    healthcare: 'Healthcare',
+    'health care': 'Healthcare',
+    medical: 'Healthcare',
+    'medical support': 'Healthcare',
+    'medical assistance': 'Healthcare',
+
+    food: 'Food',
+    'food support': 'Food Support',
+    'food assistance': 'Food Support',
+
+    shelter: 'Shelter',
+    housing: 'Housing',
+
+    disaster: 'Disaster Relief',
+    'disaster relief': 'Disaster Relief',
+    'disaster support': 'Disaster Relief',
+
+    emergency: 'Emergency',
+    'emergency relief': 'Emergency Relief',
+    'emergency support': 'Emergency Relief',
+
+    water: 'Water',
+    'clean water': 'Clean Water',
+
+    sanitation: 'Sanitation',
+    environment: 'Environment',
+    livelihood: 'Livelihood',
+    employment: 'Employment',
+    poverty: 'Poverty',
+    'poverty alleviation': 'Poverty Alleviation',
+
+    children: 'Children',
+    'child support': 'Child Support',
+
+    women: 'Women',
+    'women empowerment': 'Women Empowerment',
+
+    elderly: 'Elderly',
+
+    disability: 'Disability Support',
+    'disability support': 'Disability Support',
+
+    humanitarian: 'Humanitarian',
+    'humanitarian aid': 'Humanitarian Aid',
+
+    'social welfare': 'Social Welfare',
+    other: 'Other',
+    others: 'Other',
+    general: 'General',
+};
+
+const containsBangla = (value) => /[\u0980-\u09FF]/.test(value);
+
+const formatEnglishLabel = (value) =>
     String(value ?? '')
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+
+const normalizeCategory = (value) => {
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    const raw = String(value).trim().replace(/\s+/g, ' ');
+
+    if (!raw) return '';
+
+    const normalizedKey = raw
+        .toLowerCase()
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    if (CATEGORY_TRANSLATIONS[raw]) {
+        return CATEGORY_TRANSLATIONS[raw];
+    }
+
+    if (CATEGORY_ALIASES[normalizedKey]) {
+        return CATEGORY_ALIASES[normalizedKey];
+    }
+
+    if (containsBangla(raw)) {
+        return '';
+    }
+
+    return formatEnglishLabel(raw);
+};
+
+const buildCategoryOptions = (campaigns) => {
+    const categoryMap = new Map();
+
+    (Array.isArray(campaigns) ? campaigns : []).forEach((campaign) => {
+        const rawCategory = campaign?.category;
+
+        if (!rawCategory) return;
+
+        const englishLabel = normalizeCategory(rawCategory);
+
+        if (!englishLabel) return;
+
+        const key = englishLabel.toLowerCase();
+
+        const existing = categoryMap.get(key);
+
+        const rawValue = String(rawCategory).trim();
+
+        /*
+         * Prefer an English API value when both English and
+         * Bangla values represent the same category.
+         *
+         * This avoids changing the existing filtering contract
+         * for English category values.
+         */
+        if (!existing) {
+            categoryMap.set(key, {
+                value: rawValue,
+                label: englishLabel,
+                isEnglish: !containsBangla(rawValue),
+            });
+
+            return;
+        }
+
+        if (!existing.isEnglish && !containsBangla(rawValue)) {
+            categoryMap.set(key, {
+                value: rawValue,
+                label: englishLabel,
+                isEnglish: true,
+            });
+        }
+    });
+
+    return [...categoryMap.values()]
+        .sort((a, b) => a.label.localeCompare(b.label, 'en'))
+        .map(({ value, label }) => ({
+            value,
+            label,
+        }));
+};
 
 const FilterOption = ({ label, active, onClick, icon: Icon }) => (
     <button
@@ -45,6 +242,7 @@ const FilterOption = ({ label, active, onClick, icon: Icon }) => (
                 className="absolute inset-y-0 left-0 w-0.5 bg-[#8493A6]"
             />
         )}
+
         {Icon && (
             <Icon
                 size={15}
@@ -56,6 +254,7 @@ const FilterOption = ({ label, active, onClick, icon: Icon }) => (
                 }`}
             />
         )}
+
         <span
             className={`min-w-0 flex-1 truncate text-[12px] leading-5 ${
                 active
@@ -65,6 +264,7 @@ const FilterOption = ({ label, active, onClick, icon: Icon }) => (
         >
             {label}
         </span>
+
         <span
             className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
                 active ? 'border-[#8493A6] bg-[#8493A6]' : 'border-[#455160]'
@@ -89,10 +289,12 @@ const FilterSection = ({ title, icon: Icon, children, className = '' }) => (
                     className="shrink-0 text-[#697586]"
                 />
             )}
+
             <h4 className="text-[10px] font-semibold uppercase tracking-[0.08em] !text-[#8792A1]">
                 {title}
             </h4>
         </div>
+
         {children}
     </section>
 );
@@ -116,6 +318,7 @@ const DropdownFilter = ({ label, value, options, onChange, icon: Icon }) => (
                     </option>
                 ))}
             </select>
+
             <ChevronDown
                 size={15}
                 strokeWidth={1.7}
@@ -133,46 +336,52 @@ const Filters = ({
     typeFilter = 'all',
     categoryFilter = 'all',
     organizationFilter = 'all',
+    classificationFilter = 'all',
     campaigns = [],
     onTypeChange,
     onCategoryChange,
     onOrganizationChange,
+    onClassificationChange,
     activeFilterCount,
     onClearFilters,
 }) => {
     const categories = useMemo(
-        () =>
-            [
-                ...new Set(
-                    campaigns
-                        .map((campaign) => campaign?.category)
-                        .filter(Boolean),
-                ),
-            ]
-                .sort((a, b) => String(a).localeCompare(String(b)))
-                .map((value) => ({ value, label: formatLabel(value) })),
+        () => buildCategoryOptions(campaigns),
         [campaigns],
     );
 
-    const organizations = useMemo(() => {
-        const map = new Map();
-        campaigns.forEach((campaign) => {
-            const organization =
-                campaign?.organization || campaign?.assigned_organization;
-            if (organization?.id != null && organization?.name) {
-                map.set(String(organization.id), organization.name);
-            }
-        });
-        return [...map.entries()]
-            .map(([value, label]) => ({ value, label }))
-            .sort((a, b) => String(a.label).localeCompare(String(b.label)));
-    }, [campaigns]);
+    /*
+     * Resolve a previously selected Bangla value to its
+     * English equivalent when possible.
+     */
+    const resolvedCategoryFilter = useMemo(() => {
+        if (!categoryFilter || categoryFilter === 'all') {
+            return 'all';
+        }
+
+        const selectedLabel = normalizeCategory(categoryFilter);
+
+        if (!selectedLabel) {
+            return categoryFilter;
+        }
+
+        const match = categories.find(
+            (category) =>
+                category.label.toLowerCase() === selectedLabel.toLowerCase(),
+        );
+
+        return match?.value ?? categoryFilter;
+    }, [categoryFilter, categories]);
 
     const activeCount =
         activeFilterCount ??
-        [activeCategory, typeFilter, categoryFilter, organizationFilter].filter(
-            (value) => value && value !== 'all',
-        ).length;
+        [
+            activeCategory,
+            typeFilter,
+            categoryFilter,
+            organizationFilter,
+            classificationFilter,
+        ].filter((value) => value && value !== 'all').length;
 
     const emitChange = (handler, value) => handler?.({ target: { value } });
 
@@ -181,18 +390,21 @@ const Filters = ({
             onClearFilters();
             return;
         }
+
         onStatusCategoryChange?.('all');
         emitChange(onTypeChange, 'all');
         emitChange(onCategoryChange, 'all');
         emitChange(onOrganizationChange, 'all');
+        emitChange(onClassificationChange, 'all');
     };
 
     return (
         <aside className="flex h-full min-h-full w-full flex-col overflow-hidden bg-[#0E1219]">
             <div className="flex min-h-14 shrink-0 items-center justify-between gap-3 border-b border-[#252D38] bg-[#1A222D] px-4 sm:px-5">
                 <h3 className="text-[15px] font-semibold !text-[#EEF1F5]">
-                    Filter
+                    Filters
                 </h3>
+
                 {activeCount > 0 && (
                     <button
                         type="button"
@@ -205,7 +417,7 @@ const Filters = ({
                 )}
             </div>
 
-            <div className="min-h-0 flex-1">
+            <div className="min-h-0 flex-1 overflow-y-auto">
                 <FilterSection
                     title="Campaign status"
                     icon={ClipboardList}
@@ -235,7 +447,7 @@ const Filters = ({
                 <DropdownFilter
                     label="Category"
                     icon={FolderOpen}
-                    value={categoryFilter}
+                    value={resolvedCategoryFilter}
                     options={[
                         { value: 'all', label: 'All categories' },
                         ...categories,
@@ -244,14 +456,11 @@ const Filters = ({
                 />
 
                 <DropdownFilter
-                    label="Organization"
-                    icon={Building2}
-                    value={organizationFilter}
-                    options={[
-                        { value: 'all', label: 'All organizations' },
-                        ...organizations,
-                    ]}
-                    onChange={onOrganizationChange}
+                    label="Classification"
+                    icon={Star}
+                    value={classificationFilter}
+                    options={CLASSIFICATION_OPTIONS}
+                    onChange={onClassificationChange}
                 />
             </div>
         </aside>

@@ -14,9 +14,9 @@ const CategoryLoading = () => {
             className="bg-white"
             aria-label="সহায়তার ক্ষেত্রসমূহ লোড হচ্ছে"
         >
-            <div className="section-gap container-width">
+            <div className="container-width py-10 sm:py-12 lg:py-14">
                 {/* SECTION HEADING */}
-                <div className="mb-9 flex items-end justify-between gap-8 sm:mb-11">
+                <div className="mb-6 flex items-end justify-between gap-5 sm:mb-8">
                     <div>
                         <div className="mb-4 flex items-center gap-3">
                             <span className="h-1.5 w-1.5 rounded-full bg-[#07877e]" />
@@ -72,10 +72,10 @@ const CategoryLoading = () => {
                     className="
                         hidden
                         md:grid
-                        md:auto-rows-[68px]
+                        md:auto-rows-[55px]
                         md:grid-cols-12
                         md:gap-3
-                        lg:auto-rows-[74px]
+                        lg:auto-rows-[65px]
                     "
                     aria-hidden="true"
                 >
@@ -206,19 +206,22 @@ const CategoriesPage = () => {
                 <div
                     className="
                         container-width
-                        section-gap
                         mt-20
                         grid
-                        gap-12
-                        lg:grid-cols-[minmax(0,1.08fr)_minmax(21rem,0.72fr)]
+                        gap-6
+                        py-11
+                        sm:gap-8
+                        sm:py-14
+                        lg:grid-cols-[minmax(0,1.08fr)_minmax(19rem,0.72fr)]
                         lg:items-end
-                        lg:gap-24
+                        lg:gap-12
+                        lg:py-16
                     "
                 >
                     {/* LEFT */}
 
                     <div>
-                        <div className="mb-7 flex items-center gap-3">
+                        <div className="mb-4 flex items-center gap-3">
                             <span
                                 aria-hidden="true"
                                 className="h-px w-10 bg-[#f59e0b]"
@@ -241,14 +244,14 @@ const CategoriesPage = () => {
                             className="
                                 max-w-[800px]
                                 font-bengali
-                                text-[2.25rem]
+                                text-[1.85rem]
                                 font-semibold
-                                tracking-[-0.028em]
+                                tracking-[-0.025em]
                                 !text-[#0f1b2d]
-                                leading-22!
-                                sm:text-[2.85rem]
-                                lg:text-[3.55rem]
-                                xl:text-[3.9rem]
+                                leading-[1.38]!
+                                sm:text-[2.25rem]
+                                lg:text-[2.6rem]
+                                xl:text-[2.85rem]
                             "
                         >
                             প্রয়োজনের গল্পগুলো ভিন্ন,
@@ -263,22 +266,22 @@ const CategoriesPage = () => {
 
                     <div
                         className="
-                            lg:max-w-[460px]
+                            lg:max-w-[400px]
                             lg:justify-self-end
                             lg:pb-1
-                            xl:max-w-[490px]
+                            xl:max-w-[430px]
                         "
                     >
-                        <div className="border-l-2 border-[#0f766e]/20 pl-7 sm:pl-8">
+                        <div className="border-l-2 border-[#0f766e]/20 pl-5 sm:pl-6">
                             <p
                                 className="
                                     font-bengali
-                                    text-[15px]
+                                    text-[14px]
                                     font-normal
-                                    leading-[2.15]
+                                    leading-[1.9]
                                     !text-[#59697d]
-                                    sm:text-[16px]
-                                    sm:leading-[2.2]
+                                    sm:text-[15px]
+                                    sm:leading-[1.9]
                                 "
                             >
                                 মানুষের জরুরি ও দীর্ঘমেয়াদি প্রয়োজনকে ঘিরে
@@ -307,19 +310,19 @@ const CategoriesPage = () => {
 
             {!loading && (
                 <section className="bg-white">
-                    <div className="container-width section-gap">
+                    <div className="container-width py-12 sm:py-14 lg:py-16">
                         <div
                             className="
                                 grid
                                 xl:grid-cols-[minmax(0,1fr)_minmax(280px,0.42fr)]
-                                lg:gap-16
-                                xl:gap-24
+                                lg:gap-10
+                                xl:gap-14
                             "
                         >
                             {/* MAIN STATEMENT */}
 
                             <div className="relative">
-                                <div className="mb-8 flex items-center gap-3 sm:mb-9">
+                                <div className="mb-5 flex items-center gap-3 sm:mb-6">
                                     <span
                                         aria-hidden="true"
                                         className="h-2 w-2 rounded-full bg-[#f59e0b]"
@@ -344,17 +347,14 @@ const CategoriesPage = () => {
                                     className="
                                         max-w-[800px]
                                         font-bengali
-                                        text-[2.2rem]
+                                        text-[1.8rem]
                                         font-bold
-                                        leading-[2.75rem]
-                                        tracking-[-0.028em]
+                                        leading-[1.5]
+                                        tracking-[-0.025em]
                                         !text-[#0f1b2d]
-                                        sm:text-[2.8rem]
-                                        sm:leading-[3.5rem]
-                                        lg:text-[52px]
-                                        lg:leading-[4.5rem]
-                                        xl:text-[52px]
-                                        xl:leading-[4.5rem]
+                                        sm:text-[2.1rem]
+                                        lg:text-[2.4rem]
+                                        xl:text-[2.55rem]
                                     "
                                 >
                                     একটি প্রয়োজনের পাশে
@@ -368,16 +368,16 @@ const CategoriesPage = () => {
 
                                 <p
                                     className="
-                                        mt-7
+                                        mt-4
                                         max-w-[650px]
                                         font-bengali
                                         text-[14px]
                                         font-normal
-                                        leading-[2.1]
+                                        leading-[1.85]
                                         !text-[#5e6c7d]
-                                        sm:mt-8
+                                        sm:mt-5
                                         sm:text-[15px]
-                                        sm:leading-[2.15]
+                                        sm:leading-[1.9]
                                     "
                                 >
                                     অর্থ, সময় কিংবা নিজের দক্ষতা—আপনার সামর্থ্য
@@ -393,8 +393,8 @@ const CategoriesPage = () => {
                                 <div
                                     className="
                                         w-full
-                                        pt-10
-                                        sm:pt-12
+                                        pt-7
+                                        sm:pt-8
                                         lg:pt-0
                                         lg:pb-1
                                         xl:pb-2
@@ -422,15 +422,15 @@ const CategoriesPage = () => {
 
                                     <p
                                         className="
-                                            mt-6
+                                            mt-4
                                             max-w-[320px]
                                             font-bengali
                                             text-[13px]
                                             font-normal
-                                            leading-[2]
+                                            leading-[1.85]
                                             !text-[#6b7888]
                                             sm:text-[14px]
-                                            sm:leading-[2.05]
+                                            sm:leading-[1.9]
                                         "
                                     >
                                         যাচাই করা উদ্যোগগুলোর মধ্যে মানুষের
@@ -442,11 +442,11 @@ const CategoriesPage = () => {
                                         to="/campaigns"
                                         className="
                                             group
-                                            mt-9
+                                            mt-5
                                             inline-flex
                                             items-center
-                                            gap-4
-                                            sm:mt-10
+                                            gap-3
+                                            sm:mt-6
                                         "
                                     >
                                         <span
@@ -466,8 +466,8 @@ const CategoriesPage = () => {
                                         <span
                                             className="
                                                 flex
-                                                h-10
-                                                w-10
+                                                h-9
+                                                w-9
                                                 shrink-0
                                                 items-center
                                                 justify-center

@@ -12,6 +12,9 @@ import {
     UsersRound,
     UserRound,
     ImageOff,
+    Star,
+    AlertTriangle,
+    Save,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
@@ -21,6 +24,7 @@ import LoadingError from '@/components/dashboard/LoadingError';
 import {
     fetchCampaigns,
     fetchCampaignVolunteerAssignments,
+    updateCampaignClassification,
 } from './api/campaignsAPI';
 
 const ROUTE = '/admin/dashboard/campaigns';
@@ -44,6 +48,13 @@ const assignmentStatusStyles = {
     withdrawn: 'border-[#515967] bg-[#292E37] text-[#C2CAD5]',
     withdrawal_requested: 'border-[#685B40] bg-[#342F23] text-[#E4D0A0]',
 };
+
+const priorityOptions = [
+    { value: 1, label: 'Low' },
+    { value: 2, label: 'Medium' },
+    { value: 3, label: 'High' },
+    { value: 4, label: 'Critical' },
+];
 
 function text(value, fallback = 'Not provided') {
     if (value === null || value === undefined) return fallback;
@@ -110,12 +121,6 @@ function cover(campaign) {
     return typeof value === 'string' ? value : '';
 }
 
-/**
- * Resolve the linked organization without using the creator as a fallback.
- *
- * An admin who creates a global campaign is the campaign creator, not
- * necessarily its organizing organization.
- */
 function getOrganization(campaign) {
     const organization = campaign?.organization;
 
@@ -218,6 +223,20 @@ function Identity({ campaign }) {
                             {label(campaign.category)}
                         </span>
                     )}
+
+                    {campaign.is_featured && (
+                        <span className="inline-flex items-center gap-1.5 border border-[#685B40] bg-[#342F23] px-2.5 py-1 text-[11px] text-[#E4D0A0]">
+                            <Star size={12} />
+                            Featured
+                        </span>
+                    )}
+
+                    {campaign.is_urgent && (
+                        <span className="inline-flex items-center gap-1.5 border border-[#75464C] bg-[#322126] px-2.5 py-1 text-[11px] text-[#E9B8BD]">
+                            <AlertTriangle size={12} />
+                            Urgent
+                        </span>
+                    )}
                 </div>
 
                 <h1 className="mt-3 mb-0! wrap-break-word font-sans! text-[20px]! font-semibold! leading-[1.45] tracking-[-0.02em] text-[#F0F3F7]! sm:text-[25px]!">
@@ -274,17 +293,14 @@ function MainInformation({ campaign }) {
                             title="Category"
                             value={label(campaign.category)}
                         />
-
                         <Info
                             title="Campaign type"
                             value={label(campaign.type || 'global_situation')}
                         />
-
                         <Info
                             title="Campaign scope"
                             value={label(campaign.scope || 'global')}
                         />
-
                         <Info title="Campaign ID" value={campaign.id} />
                     </dl>
                 </div>
@@ -296,9 +312,7 @@ function MainInformation({ campaign }) {
 
                     <dl className="mt-5 grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
                         <Info title="Location" value={campaign.location} />
-
                         <Info title="District" value={campaign.district} />
-
                         <Info
                             title="Affected areas"
                             value={campaign.affected_areas}
@@ -340,7 +354,6 @@ function Funding({ campaign }) {
                         <p className="m-0! text-[12px] text-[#94A3B4]">
                             Collected so far
                         </p>
-
                         <p className="mt-1 mb-0! text-[17px] font-semibold text-[#E7EDF4]">
                             {money(raised)}
                         </p>
@@ -371,7 +384,6 @@ function Funding({ campaign }) {
 
                 <div className="mt-6 flex items-center justify-between gap-3 border-t border-[#303A47] pt-5 text-[12px]">
                     <span className="text-[#9EADBD]">Funding status</span>
-
                     <span className="text-right font-medium text-[#E2EAF1]">
                         {target > 0 && raised >= target
                             ? 'Target reached'
@@ -386,7 +398,6 @@ function Funding({ campaign }) {
                         <h3 className="m-0! font-sans! text-[13px]! font-semibold! text-[#E8EDF3]!">
                             Campaign schedule
                         </h3>
-
                         <span className="text-[11px] text-[#9DADBF]">
                             {campaign.end_date
                                 ? 'Fixed end date'
@@ -400,7 +411,6 @@ function Funding({ campaign }) {
                             value={date(campaign.start_date)}
                             className="flex-1"
                         />
-
                         <Info
                             title="End date"
                             value={
@@ -417,10 +427,6 @@ function Funding({ campaign }) {
     );
 }
 
-/**
- * Organization and related records are resolved only from organization-
- * related fields. The campaign creator is not treated as its organization.
- */
 function Organization({ campaign, navigate }) {
     const organization = getOrganization(campaign);
     const helpRequestId = getHelpRequestId(campaign);
@@ -441,7 +447,6 @@ function Organization({ campaign, navigate }) {
                     <dt className="text-[12px] font-medium text-[#8796A8]">
                         Organization
                     </dt>
-
                     <dd className="mt-1.5 mb-0 wrap-break-word whitespace-pre-wrap text-[13px] leading-6 text-[#E6EBF2]">
                         {organization.name ? (
                             organization.id != null ? (
@@ -457,7 +462,6 @@ function Organization({ campaign, navigate }) {
                                     <span className="wrap-break-word">
                                         {organization.name}
                                     </span>
-
                                     <ArrowUpRight
                                         size={13}
                                         className="shrink-0"
@@ -478,7 +482,6 @@ function Organization({ campaign, navigate }) {
                     <dt className="text-[12px] font-medium text-[#8796A8]">
                         Related help request
                     </dt>
-
                     <dd className="mt-1.5 mb-0 wrap-break-word whitespace-pre-wrap text-[13px] leading-6 text-[#E6EBF2]">
                         {helpRequestId != null ? (
                             <button
@@ -503,11 +506,6 @@ function Organization({ campaign, navigate }) {
     );
 }
 
-/**
- * Loads the assignment history for this campaign and displays its
- * associated volunteers. Assignment status and account status are
- * displayed separately because they represent different things.
- */
 function ConnectedVolunteers({ campaignId, navigate }) {
     const [state, setState] = useState({
         loading: true,
@@ -553,10 +551,6 @@ function ConnectedVolunteers({ campaignId, navigate }) {
         };
     }, [campaignId, retryKey]);
 
-    const retry = () => {
-        setRetryKey((value) => value + 1);
-    };
-
     return (
         <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#171E27]">
             <SectionHeader
@@ -576,10 +570,9 @@ function ConnectedVolunteers({ campaignId, navigate }) {
                         <p className="m-0! text-[13px] leading-6 text-[#E5B5B9]">
                             {state.error}
                         </p>
-
                         <button
                             type="button"
-                            onClick={retry}
+                            onClick={() => setRetryKey((value) => value + 1)}
                             className="mt-3 text-[12px] font-medium text-[#C3D4E5] underline underline-offset-4 transition-colors hover:text-white"
                         >
                             Try again
@@ -592,11 +585,9 @@ function ConnectedVolunteers({ campaignId, navigate }) {
                             strokeWidth={1.5}
                             className="mx-auto text-[#667789]"
                         />
-
                         <p className="mt-3 mb-1! text-[13px] font-medium text-[#D5DEE8]">
                             No volunteers assigned
                         </p>
-
                         <p className="m-0! text-[12px] leading-5 text-[#8999AA]">
                             Assigned volunteers will appear here.
                         </p>
@@ -614,7 +605,6 @@ function ConnectedVolunteers({ campaignId, navigate }) {
 
                         {state.assignments.map((assignment) => {
                             const volunteer = assignment.volunteer;
-
                             const volunteerId =
                                 assignment.volunteer_id ??
                                 volunteer?.id ??
@@ -653,7 +643,6 @@ function ConnectedVolunteers({ campaignId, navigate }) {
                                                                         volunteer.name
                                                                     }
                                                                 </span>
-
                                                                 <ArrowUpRight
                                                                     size={13}
                                                                     className="shrink-0 text-[#9AAABD]"
@@ -716,6 +705,324 @@ function ConnectedVolunteers({ campaignId, navigate }) {
     );
 }
 
+function getUrgencyRecommendation(campaign) {
+    let score = 0;
+    const reasons = [];
+
+    const endDate = campaign.end_date ? new Date(campaign.end_date) : null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let daysLeft = null;
+
+    if (endDate && !Number.isNaN(endDate.getTime())) {
+        const deadline = new Date(
+            endDate.getFullYear(),
+            endDate.getMonth(),
+            endDate.getDate(),
+        );
+
+        daysLeft = Math.ceil((deadline.getTime() - today.getTime()) / 86400000);
+    }
+
+    if (daysLeft !== null && daysLeft >= 0 && daysLeft <= 3) {
+        score += 3;
+        reasons.push('Deadline is within 3 days.');
+    } else if (daysLeft !== null && daysLeft <= 7 && daysLeft >= 0) {
+        score += 2;
+        reasons.push('Deadline is within 7 days.');
+    } else if (daysLeft !== null && daysLeft <= 14 && daysLeft >= 0) {
+        score += 1;
+        reasons.push('Deadline is approaching.');
+    } else if (daysLeft !== null && daysLeft < 0) {
+        reasons.push('The campaign deadline has passed; review its status.');
+    }
+
+    const target = Math.max(0, Number(campaign.target_amount) || 0);
+    const raised = collectedAmount(campaign);
+    const remainingRatio =
+        target > 0 ? Math.max(0, (target - raised) / target) : 0;
+
+    if (target > 0 && remainingRatio >= 0.75) {
+        score += 2;
+        reasons.push('At least 75% of the funding target remains.');
+    } else if (target > 0 && remainingRatio >= 0.5) {
+        score += 1;
+        reasons.push('At least 50% of the funding target remains.');
+    }
+
+    const category = String(campaign.category || '').toLowerCase();
+
+    if (
+        /medical|health|disaster|emergency|shelter|food|flood|fire/.test(
+            category,
+        )
+    ) {
+        score += 1;
+        reasons.push('Category may involve immediate humanitarian needs.');
+    }
+
+    const helpRequest = campaign.helpRequest || campaign.help_request || {};
+
+    const requestUrgency = String(
+        helpRequest.urgency ||
+            helpRequest.priority ||
+            helpRequest.urgency_level ||
+            '',
+    ).toLowerCase();
+
+    if (/critical|emergency|urgent|high/.test(requestUrgency)) {
+        score += 2;
+        reasons.push('Linked help request indicates elevated urgency.');
+    }
+
+    let recommendation = 'Low';
+
+    if (score >= 6) recommendation = 'Critical';
+    else if (score >= 4) recommendation = 'High';
+    else if (score >= 2) recommendation = 'Medium';
+
+    if (reasons.length === 0) {
+        reasons.push(
+            'No strong urgency indicators found in the available campaign data.',
+        );
+    }
+
+    return { score, recommendation, reasons, daysLeft };
+}
+
+function Classification({ campaign, onSaved }) {
+    const [featured, setFeatured] = useState(Boolean(campaign.is_featured));
+    const [urgent, setUrgent] = useState(Boolean(campaign.is_urgent));
+    const [priority, setPriority] = useState(
+        Number(campaign.urgency_priority) || 2,
+    );
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [saving, setSaving] = useState(false);
+
+    const recommendation = useMemo(
+        () => getUrgencyRecommendation(campaign),
+        [campaign],
+    );
+
+    const handleSave = async (event) => {
+        event.preventDefault();
+
+        if (saving) return;
+
+        setSaving(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const response = await updateCampaignClassification(campaign.id, {
+                is_featured: featured,
+                is_urgent: urgent,
+                urgency_priority: priority,
+            });
+
+            const updatedCampaign =
+                response?.campaign ??
+                response?.data?.campaign ??
+                response?.data ??
+                response?.campaign_data ??
+                null;
+
+            onSaved({
+                ...(updatedCampaign || {}),
+                id: campaign.id,
+                is_featured: featured,
+                is_urgent: urgent,
+                urgency_priority: priority,
+            });
+
+            setSuccess('Campaign classification saved successfully.');
+        } catch (saveError) {
+            setError(
+                saveError?.message ||
+                    'Unable to save campaign classification. Please try again.',
+            );
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#171E27]">
+            <SectionHeader
+                icon={Star}
+                title="Campaign classification"
+                subtitle="Control which public campaign sections feature this campaign"
+            />
+
+            <form onSubmit={handleSave} className="bg-[#0E1219]">
+                <div className="space-y-4 px-5 py-5 sm:px-6">
+                    <label className="flex cursor-pointer items-start gap-3 border border-[#354252] bg-[#171F29] p-4 transition-colors hover:bg-[#1B2531]">
+                        <input
+                            type="checkbox"
+                            checked={featured}
+                            onChange={(event) =>
+                                setFeatured(event.target.checked)
+                            }
+                            className="mt-0.5 size-4 shrink-0 accent-[#B8C7D7]"
+                        />
+                        <span className="min-w-0">
+                            <span className="flex items-center gap-2 text-[13px] font-medium text-[#E7EDF4]">
+                                <Star size={14} className="text-[#D8BE85]" />
+                                Featured campaign
+                            </span>
+                            <span className="mt-1 block text-[12px] leading-5 text-[#95A5B6]">
+                                Include this campaign in the public Featured
+                                campaigns section.
+                            </span>
+                        </span>
+                    </label>
+
+                    <label className="flex cursor-pointer items-start gap-3 border border-[#354252] bg-[#171F29] p-4 transition-colors hover:bg-[#1B2531]">
+                        <input
+                            type="checkbox"
+                            checked={urgent}
+                            onChange={(event) =>
+                                setUrgent(event.target.checked)
+                            }
+                            className="mt-0.5 size-4 shrink-0 accent-[#D69AA0]"
+                        />
+                        <span className="min-w-0">
+                            <span className="flex items-center gap-2 text-[13px] font-medium text-[#E7EDF4]">
+                                <AlertTriangle
+                                    size={14}
+                                    className="text-[#D69AA0]"
+                                />
+                                Urgent campaign
+                            </span>
+                            <span className="mt-1 block text-[12px] leading-5 text-[#95A5B6]">
+                                Include this campaign in the public Urgent
+                                campaigns section. This is an explicit admin
+                                decision; the recommendation below does not
+                                publish it automatically.
+                            </span>
+                        </span>
+                    </label>
+
+                    <div>
+                        <label
+                            htmlFor="campaign-urgency-priority"
+                            className="mb-2 block text-[12px] font-medium text-[#AAB8C7]"
+                        >
+                            Urgency priority
+                        </label>
+
+                        <select
+                            id="campaign-urgency-priority"
+                            value={priority}
+                            onChange={(event) =>
+                                setPriority(Number(event.target.value))
+                            }
+                            className="min-h-11 w-full border border-[#394656] bg-[#171F29] px-3 text-[13px] text-[#E7EDF4] outline-none transition-colors focus:border-[#8398AD]"
+                        >
+                            {priorityOptions.map((option) => (
+                                <option
+                                    key={option.value}
+                                    value={option.value}
+                                    className="bg-[#171F29]"
+                                >
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+
+                        <p className="mt-2 mb-0! text-[11px] leading-5 text-[#8293A5]">
+                            Higher-priority urgent campaigns should appear
+                            before lower-priority ones.
+                        </p>
+                    </div>
+
+                    <div className="border border-[#354252] bg-[#151C25] p-4">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <p className="m-0! text-[12px] font-semibold text-[#DCE5EF]">
+                                    Suggested urgency
+                                </p>
+                                <p className="mt-1 mb-0! text-[11px] leading-5 text-[#8FA0B2]">
+                                    Based on available campaign information
+                                </p>
+                            </div>
+
+                            <span className="shrink-0 border border-[#46586D] bg-[#253242] px-2.5 py-1 text-[11px] font-medium text-[#C0D0E1]">
+                                {recommendation.recommendation}
+                            </span>
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between border-t border-[#303A47] pt-3 text-[12px]">
+                            <span className="text-[#92A2B3]">
+                                Recommendation score
+                            </span>
+                            <span className="font-semibold text-[#E1E8F0]">
+                                {recommendation.score}
+                            </span>
+                        </div>
+
+                        {recommendation.daysLeft !== null && (
+                            <div className="mt-2 flex items-center justify-between gap-3 text-[12px]">
+                                <span className="text-[#92A2B3]">Deadline</span>
+                                <span
+                                    className={
+                                        recommendation.daysLeft < 0
+                                            ? 'text-[#E9B8BD]'
+                                            : 'text-[#DCE5EF]'
+                                    }
+                                >
+                                    {recommendation.daysLeft < 0
+                                        ? `${Math.abs(recommendation.daysLeft)} days overdue`
+                                        : recommendation.daysLeft === 0
+                                          ? 'Due today'
+                                          : `${recommendation.daysLeft} days left`}
+                                </span>
+                            </div>
+                        )}
+
+                        <ul className="mt-3 mb-0! space-y-2 border-t border-[#303A47] pt-3 pl-4 text-[11px] leading-5 text-[#9AAABD]">
+                            {recommendation.reasons.map((reason, index) => (
+                                <li key={`${index}-${reason}`}>{reason}</li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {error && (
+                        <div
+                            role="alert"
+                            className="border border-[#75464C] bg-[#322126] px-3 py-3 text-[12px] leading-5 text-[#E9B8BD]"
+                        >
+                            {error}
+                        </div>
+                    )}
+
+                    {success && (
+                        <div
+                            role="status"
+                            className="border border-[#416B5D] bg-[#20382F] px-3 py-3 text-[12px] leading-5 text-[#A8D7C0]"
+                        >
+                            {success}
+                        </div>
+                    )}
+
+                    <button
+                        type="submit"
+                        disabled={saving}
+                        className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[#586678] bg-[#2B3949] px-4 text-[12px] font-semibold text-[#EEF1F5] transition-colors hover:bg-[#37495D] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        <Save size={15} />
+                        {saving
+                            ? 'Saving classification...'
+                            : 'Save classification'}
+                    </button>
+                </div>
+            </form>
+        </section>
+    );
+}
+
 function History({ campaign }) {
     return (
         <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#171E27]">
@@ -727,7 +1034,6 @@ function History({ campaign }) {
 
             <dl className="grid grid-cols-1 gap-5 px-5 py-6 sm:grid-cols-2 sm:px-6 lg:grid-cols-1">
                 <Info title="Created" value={date(campaign.created_at, true)} />
-
                 <Info
                     title="Last updated"
                     value={date(campaign.updated_at, true)}
@@ -787,6 +1093,17 @@ export default function CampaignDetails() {
         [state.campaigns, id],
     );
 
+    const handleClassificationSaved = useCallback((updatedCampaign) => {
+        setState((current) => ({
+            ...current,
+            campaigns: current.campaigns.map((item) =>
+                String(item.id) === String(updatedCampaign.id)
+                    ? { ...item, ...updatedCampaign }
+                    : item,
+            ),
+        }));
+    }, []);
+
     const back = useCallback(() => {
         if (location.state?.fromVolunteer) {
             navigate(-1);
@@ -841,7 +1158,6 @@ export default function CampaignDetails() {
         return (
             <div className="min-w-0 space-y-6 pb-10">
                 {header}
-
                 <LoadingUI
                     variant="page"
                     title="Loading campaign details..."
@@ -855,7 +1171,6 @@ export default function CampaignDetails() {
         return (
             <div className="min-w-0 space-y-6">
                 {header}
-
                 <LoadingError
                     title="Unable to load campaign"
                     message={state.error}
@@ -869,7 +1184,6 @@ export default function CampaignDetails() {
         return (
             <div className="min-w-0 space-y-6">
                 {header}
-
                 <LoadingError
                     title="Campaign not found"
                     message="This campaign may have been removed or is no longer available."
@@ -892,6 +1206,12 @@ export default function CampaignDetails() {
                 </main>
 
                 <aside className="min-w-0 space-y-5">
+                    <Classification
+                        key={campaign.id}
+                        campaign={campaign}
+                        onSaved={handleClassificationSaved}
+                    />
+
                     <Funding campaign={campaign} />
 
                     <Organization campaign={campaign} navigate={navigate} />

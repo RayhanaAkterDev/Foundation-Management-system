@@ -1,240 +1,310 @@
-import SectionHeading from '@/components/SectionHeading';
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Button from '@/components/Button';
+import { ArrowUpRight, HeartHandshake, Siren } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+import SectionHeading from '@/components/SectionHeading';
+
+const isEnabled = (value) =>
+    value === true || value === 1 || value === '1';
+
+const getCampaignImage = (campaign) =>
+    campaign?.cover_image_url ||
+    campaign?.cover_image ||
+    campaign?.banner_url ||
+    campaign?.banner ||
+    campaign?.image_url ||
+    campaign?.image ||
+    null;
+
+const getCampaignDescription = (campaign) =>
+    campaign?.shortDescription ||
+    campaign?.short_description ||
+    campaign?.description ||
+    '';
+
+const getProgress = (campaign) => {
+    const goal = Number(
+        campaign?.target_amount ?? campaign?.goal_amount ?? 0
+    );
+    const collected = Number(campaign?.collected_amount ?? 0);
+
+    if (
+        !Number.isFinite(goal) ||
+        !Number.isFinite(collected) ||
+        goal <= 0 ||
+        collected < 0
+    ) {
+        return null;
+    }
+
+    return Math.min(100, Math.round((collected / goal) * 100));
+};
+
+const formatCurrency = (amount) =>
+    `৳${Number(amount || 0).toLocaleString('en-BD')}`;
 
 const UrgentSection = ({ campaigns = [] }) => {
-    const navigate = useNavigate();
-    const safe = (campaigns || []).filter(Boolean);
+    const urgentCampaigns = (Array.isArray(campaigns) ? campaigns : [])
+        .filter(Boolean)
+        .filter((campaign) => isEnabled(campaign.is_urgent))
+        .sort(
+            (a, b) =>
+                Number(a.urgency_priority ?? a.priority ?? 2) -
+                Number(b.urgency_priority ?? b.priority ?? 2)
+        )
+        .slice(0, 5);
 
-    const leftMain = safe[1];
-    const rightList = safe.slice(2, 7);
-
-    const goToCampaign = (id) => navigate(`/campaign/${id}`);
+    const mainCampaign = urgentCampaigns[0];
+    const supportingCampaigns = urgentCampaigns.slice(1);
 
     return (
-        <section className="section-gap mt-20 border-b border-border">
-            <div className="container-width space-y-10">
-                <div className="grid lg:grid-cols-3 gap-10">
-                    {/* LEFT MAIN */}
-                    <div className="lg:col-span-2">
+        <section className="section-gap border-y border-border bg-background-alt/40">
+            <div className="container-width space-y-8">
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0 flex-1">
                         <SectionHeading
                             align="left"
                             title="জরুরি সহায়তার আবেদন"
-                            description="তাৎক্ষণিক সহায়তা প্রয়োজন এমন গুরুত্বপূর্ণ আবেদনগুলো।"
+                            description="যেসব মানবিক উদ্যোগে দ্রুত সহায়তা প্রয়োজন, সেগুলোকে অগ্রাধিকার দিয়ে পাশে দাঁড়ান।"
                         />
+                    </div>
 
-                        {leftMain && (
-                            <div
-                                onClick={() => goToCampaign(leftMain.id)}
-                                className="
-                                    group cursor-pointer
-                                    rounded-2xl
-                                    border border-border
-                                    bg-surface
-                                    overflow-hidden
-                                    transition-all duration-300
-                                    hover:-translate-y-1
-                                    hover:shadow-[0_18px_60px_rgba(15,23,42,0.10)]
-                                    mt-12
-                                "
-                            >
-                                {/* TOP STRIP */}
-                                <div
-                                    className="
-                                        px-4 sm:px-6 py-3 sm:py-4
-                                        flex items-center justify-between
-                                        border-b border-border/40
-                                        bg-primary
-                                    "
-                                >
-                                    <span
-                                        className="
-                                            text-[10px] sm:text-xs
-                                            uppercase tracking-[0.2em]
-                                            text-surface/90
-                                            flex items-center gap-2
-                                            font-medium!
-                                        "
-                                    >
-                                        <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                                        জরুরি সহায়তার আবেদন
+                    {urgentCampaigns.length > 0 && (
+                        <Link
+                            to="/campaigns"
+                            className="group inline-flex w-fit shrink-0 items-center gap-2 border-b border-primary/30 pb-1 text-sm font-semibold text-primary transition-colors hover:border-primary"
+                        >
+                            সব ক্যাম্পেইন
+                            <ArrowUpRight
+                                size={16}
+                                className="transition-transform group-hover:translate-x-0.5"
+                            />
+                        </Link>
+                    )}
+                </div>
+
+                {mainCampaign ? (
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
+                        {/* Main urgent campaign */}
+                        <Link
+                            to={`/campaign/${mainCampaign.id}`}
+                            className="group min-w-0 overflow-hidden border border-border bg-surface transition-colors hover:border-primary/40 lg:col-span-7"
+                        >
+                            <div className="relative aspect-[16/9] overflow-hidden bg-background-alt sm:aspect-[2/1]">
+                                {getCampaignImage(mainCampaign) ? (
+                                    <img
+                                        src={getCampaignImage(mainCampaign)}
+                                        alt={mainCampaign.title || 'জরুরি ক্যাম্পেইন'}
+                                        loading="lazy"
+                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                                    />
+                                ) : (
+                                    <div className="flex h-full min-h-48 items-center justify-center">
+                                        <HeartHandshake
+                                            size={42}
+                                            strokeWidth={1.2}
+                                            className="text-text-secondary"
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-4 pt-16 sm:p-6 sm:pt-20">
+                                    <span className="inline-flex items-center gap-2 border border-white/30 bg-black/35 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
+                                        <span className="h-2 w-2 rounded-full bg-orange-400" />
+                                        <Siren size={14} />
+                                        জরুরি সহায়তা
                                     </span>
 
-                                    <span
-                                        className="
-                                            text-[10px] sm:text-xs
-                                            font-semibold
-                                            text-primary
-                                            bg-surface/95
-                                            px-2 sm:px-3 py-1 rounded-full
-                                            border border-primary/20
-                                            shadow-sm
-                                        "
-                                    >
-                                        #{leftMain?.priority || 2}
-                                    </span>
-                                </div>
-
-                                {/* BODY */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4 sm:p-6">
-                                    {/* LEFT */}
-                                    <div className="md:col-span-2 space-y-4 sm:space-y-5">
-                                        <div className="text-[11px] sm:text-xs text-text-secondary flex items-center gap-2 flex-wrap">
-                                            জরুরি চিকিৎসা সহায়তা • যাচাইকৃত
-                                            আবেদন • উচ্চ অগ্রাধিকার
-                                        </div>
-
-                                        <h2
-                                            className="
-                                                text-xl sm:text-2xl lg:text-3xl font-semibold
-                                                text-text-primary leading-tight
-                                                group-hover:text-primary
-                                                transition-colors duration-300
-                                            "
-                                        >
-                                            {leftMain.title}
-                                        </h2>
-
-                                        <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                                            {leftMain.shortDescription}
-                                        </p>
-
-                                        {/* PROGRESS */}
-                                        <div className="pt-2 sm:pt-3 space-y-2">
-                                            <div className="flex justify-between text-[10px] sm:text-[11px]">
-                                                <span className="text-text-secondary">
-                                                    অগ্রগতি
-                                                </span>
-                                                <span className="text-primary font-semibold">
-                                                    ৬৮%
-                                                </span>
-                                            </div>
-
-                                            <div className="h-2 w-full bg-background-alt rounded-full overflow-hidden">
-                                                <div
-                                                    className="
-                                                        h-full rounded-full
-                                                        bg-linear-to-r from-primary to-primary-hover
-                                                        relative
-                                                    "
-                                                    style={{ width: '68%' }}
-                                                >
-                                                    <div className="absolute inset-0 bg-white/10" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* CTA */}
-                                        <Link to="/donate">
-                                            <Button
-                                                size="lg"
-                                                className="w-full mt-2"
-                                            >
-                                                এখনই অনুদান দিন
-                                            </Button>
-                                        </Link>
-                                    </div>
-
-                                    {/* RIGHT */}
-                                    <div
-                                        className="
-                                            flex flex-col justify-between
-                                            border-t md:border-t-0 md:border-l border-border/60
-                                            pt-4 md:pt-0 md:pl-6
-                                            bg-linear-to-b from-surface to-background-alt/40
-                                            rounded-b-2xl md:rounded-r-2xl
-                                            min-h-35 sm:min-h-40
-                                        "
-                                    >
-                                        <div className="space-y-3">
-                                            <p className="text-[11px] sm:text-xs text-text-secondary flex items-center gap-2">
-                                                <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                                                অনুদান গ্রহণ চলছে
-                                            </p>
-
-                                            <div className="text-xs sm:text-sm font-medium! text-text-primary leading-snug">
-                                                জরুরি ভিত্তিতে সহায়তা প্রয়োজন
-                                                — প্রতিটি অনুদানই গুরুত্বপূর্ণ
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <h3 className="mt-3 text-xl font-semibold leading-snug text-white sm:text-2xl">
+                                        {mainCampaign.title}
+                                    </h3>
                                 </div>
                             </div>
-                        )}
-                    </div>
 
-                    {/* RIGHT TIMELINE */}
-                    <div className="space-y-5">
-                        <div className="flex items-center justify-between">
-                            <h4 className="text-xs uppercase tracking-widest text-text-secondary font-semibold">
-                                সাম্প্রতিক কার্যক্রম
-                            </h4>
-                            <span className="text-[11px] text-accent">
-                                ● আপডেট হচ্ছে
-                            </span>
-                        </div>
+                            <div className="space-y-5 p-5 sm:p-6">
+                                {getCampaignDescription(mainCampaign) && (
+                                    <p className="line-clamp-3 text-sm leading-7 text-text-secondary">
+                                        {getCampaignDescription(mainCampaign)}
+                                    </p>
+                                )}
 
-                        <div className="relative space-y-4">
-                            {/* vertical line */}
-                            <div className="absolute left-1.5 top-2 bottom-2 w-px bg-border" />
+                                {getProgress(mainCampaign) !== null && (
+                                    <div className="space-y-3">
+                                        <div className="flex flex-wrap items-end justify-between gap-2">
+                                            <div>
+                                                <p className="text-xs text-text-secondary">
+                                                    সংগৃহীত অনুদান
+                                                </p>
+                                                <p className="mt-1 text-lg font-semibold text-text-primary">
+                                                    {formatCurrency(
+                                                        mainCampaign.collected_amount
+                                                    )}
+                                                </p>
+                                            </div>
 
-                            {rightList.map((c) => (
-                                <div
-                                    key={c.id}
-                                    onClick={() => goToCampaign(c.id)}
-                                    className="group relative pl-8 cursor-pointer"
-                                >
-                                    {/* node */}
-                                    <div
-                                        className="
-                                            absolute left-0 top-2
-                                            w-3 h-3 rounded-full
-                                            bg-primary shadow-sm
-                                        "
-                                    />
-
-                                    <div
-                                        className="
-                                            rounded-xl
-                                            border border-border
-                                            bg-surface/40
-                                            p-3 sm:p-4
-                                            transition-all duration-300
-                                            hover:bg-surface
-                                            hover:border-primary/20
-                                            hover:-translate-y-0.5
-                                        "
-                                    >
-                                        <p
-                                            className="
-                                                text-xs sm:text-sm font-medium! text-text-primary
-                                                line-clamp-2
-                                                group-hover:text-primary
-                                                transition
-                                            "
-                                        >
-                                            {c.title}
-                                        </p>
-
-                                        <p className="text-[11px] sm:text-xs text-text-secondary line-clamp-2 mt-1">
-                                            {c.shortDescription}
-                                        </p>
-
-                                        <div className="flex items-center justify-between mt-2">
-                                            <span className="text-[10px] sm:text-[11px] text-primary font-medium!">
-                                                জরুরি
-                                            </span>
-                                            <span className="text-[10px] text-text-secondary">
-                                                বিস্তারিত দেখুন →
-                                            </span>
+                                            <div className="text-right">
+                                                <p className="text-xs text-text-secondary">
+                                                    লক্ষ্যমাত্রা
+                                                </p>
+                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                    {formatCurrency(
+                                                        mainCampaign.target_amount ??
+                                                            mainCampaign.goal_amount
+                                                    )}
+                                                </p>
+                                            </div>
                                         </div>
+
+                                        <div
+                                            className="h-2 overflow-hidden bg-background-alt"
+                                            role="progressbar"
+                                            aria-label="অনুদান সংগ্রহের অগ্রগতি"
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                            aria-valuenow={getProgress(mainCampaign)}
+                                        >
+                                            <div
+                                                className="h-full bg-primary transition-[width] duration-500"
+                                                style={{
+                                                    width: `${getProgress(mainCampaign)}%`,
+                                                }}
+                                            />
+                                        </div>
+
+                                        <p className="text-xs text-text-secondary">
+                                            লক্ষ্যমাত্রার {getProgress(mainCampaign)}% সংগৃহীত
+                                        </p>
                                     </div>
+                                )}
+
+                                <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-4">
+                                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
+                                        <HeartHandshake size={17} />
+                                        সহায়তার হাত বাড়ান
+                                    </span>
+
+                                    <span className="inline-flex items-center gap-2 text-sm font-semibold text-text-primary transition-colors group-hover:text-primary">
+                                        বিস্তারিত দেখুন
+                                        <ArrowUpRight
+                                            size={16}
+                                            className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                                        />
+                                    </span>
                                 </div>
-                            ))}
+                            </div>
+                        </Link>
+
+                        {/* Other urgent campaigns */}
+                        <div className="flex min-w-0 flex-col lg:col-span-5">
+                            <div className="flex items-center justify-between border-b border-border pb-4">
+                                <h3 className="text-sm font-semibold text-text-primary">
+                                    আরও জরুরি ক্যাম্পেইন
+                                </h3>
+                                <span className="text-xs text-text-secondary">
+                                    {supportingCampaigns.length}টি
+                                </span>
+                            </div>
+
+                            {supportingCampaigns.length > 0 ? (
+                                <div className="divide-y divide-border">
+                                    {supportingCampaigns.map((campaign) => {
+                                        const image = getCampaignImage(campaign);
+                                        const priority = Number(
+                                            campaign.urgency_priority ??
+                                                campaign.priority ??
+                                                2
+                                        );
+
+                                        return (
+                                            <Link
+                                                key={campaign.id}
+                                                to={`/campaign/${campaign.id}`}
+                                                className="group flex min-w-0 gap-4 py-4 transition-colors"
+                                            >
+                                                <div className="h-24 w-28 shrink-0 overflow-hidden bg-background-alt sm:h-28 sm:w-36">
+                                                    {image ? (
+                                                        <img
+                                                            src={image}
+                                                            alt={campaign.title || 'জরুরি ক্যাম্পেইন'}
+                                                            loading="lazy"
+                                                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-full items-center justify-center">
+                                                            <HeartHandshake
+                                                                size={24}
+                                                                className="text-text-secondary"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex min-w-0 flex-1 flex-col justify-center">
+                                                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                                                        <span className="text-[11px] font-semibold text-primary">
+                                                            জরুরি সহায়তা
+                                                        </span>
+                                                        {priority === 1 && (
+                                                            <span className="text-[10px] font-semibold text-orange-600">
+                                                                সর্বোচ্চ অগ্রাধিকার
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <h4 className="line-clamp-2 text-sm font-semibold leading-6 text-text-primary transition-colors group-hover:text-primary sm:text-base">
+                                                        {campaign.title}
+                                                    </h4>
+
+                                                    {getCampaignDescription(campaign) && (
+                                                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
+                                                            {getCampaignDescription(campaign)}
+                                                        </p>
+                                                    )}
+
+                                                    <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                                                        বিস্তারিত
+                                                        <ArrowUpRight size={13} />
+                                                    </span>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="flex flex-1 flex-col justify-center py-8">
+                                    <p className="text-sm font-medium text-text-primary">
+                                        আপাতত এটিই প্রধান জরুরি ক্যাম্পেইন।
+                                    </p>
+                                    <p className="mt-2 text-sm leading-6 text-text-secondary">
+                                        নতুন জরুরি উদ্যোগ যুক্ত হলে এখানে দেখা যাবে।
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="border-y border-border px-5 py-12 text-center">
+                        <HeartHandshake
+                            size={28}
+                            strokeWidth={1.4}
+                            className="mx-auto mb-3 text-text-secondary"
+                        />
+                        <p className="text-base font-semibold text-text-primary">
+                            এই মুহূর্তে কোনো জরুরি ক্যাম্পেইন নেই
+                        </p>
+                        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text-secondary">
+                            যাচাইকৃত কোনো ক্যাম্পেইনকে জরুরি হিসেবে চিহ্নিত করা হলে
+                            এখানে দেখানো হবে।
+                        </p>
+                        <Link
+                            to="/campaigns"
+                            className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+                        >
+                            সব ক্যাম্পেইন দেখুন
+                            <ArrowUpRight size={16} />
+                        </Link>
+                    </div>
+                )}
             </div>
         </section>
     );

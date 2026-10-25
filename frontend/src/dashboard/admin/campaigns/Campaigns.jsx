@@ -23,6 +23,7 @@ import CampaignTable from './components/Table';
 import CampaignPagination from './components/Pagination';
 
 import CampaignVerificationModal from './modals/VerificationModal';
+import ClassificationModal from './modals/ClassificationModal';
 import CampaignAssignmentModal from './modals/AssignmentModal';
 
 import {
@@ -44,6 +45,9 @@ const normalizeCampaign = (campaign) => {
     return {
         ...campaign,
         status: campaign.status || '',
+        is_featured: Boolean(campaign.is_featured),
+        is_urgent: Boolean(campaign.is_urgent),
+        urgency_priority: Number(campaign.urgency_priority) || 2,
     };
 };
 
@@ -127,6 +131,8 @@ export default function Campaigns() {
     // =========================================================
 
     const [campaigns, setCampaigns] = useState([]);
+    const [classificationCampaign, setClassificationCampaign] = useState(null);
+    const [classificationFilter, setClassificationFilter] = useState('all');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -154,12 +160,16 @@ export default function Campaigns() {
     };
 
     // =========================================================
-    // MODALS
+    // VERIFICATION MODAL
     // =========================================================
 
     const [verificationCampaign, setVerificationCampaign] = useState(null);
     const [verificationLoading, setVerificationLoading] = useState(false);
     const [verificationError, setVerificationError] = useState('');
+
+    // =========================================================
+    // VOLUNTEER ASSIGNMENT MODAL
+    // =========================================================
 
     const [assignmentCampaign, setAssignmentCampaign] = useState(null);
     const [assignmentVolunteers, setAssignmentVolunteers] = useState([]);
@@ -328,6 +338,17 @@ export default function Campaigns() {
             );
         }
 
+        // CLASSIFICATION FILTER
+        if (classificationFilter === 'featured') {
+            result = result.filter((campaign) => Boolean(campaign.is_featured));
+        } else if (classificationFilter === 'urgent') {
+            result = result.filter((campaign) => Boolean(campaign.is_urgent));
+        } else if (classificationFilter === 'unclassified') {
+            result = result.filter(
+                (campaign) => !campaign.is_featured && !campaign.is_urgent,
+            );
+        }
+
         const search = searchTerm.trim().toLowerCase();
 
         if (search) {
@@ -369,6 +390,7 @@ export default function Campaigns() {
         categoryFilter,
         organizationFilter,
         statusFilter,
+        classificationFilter,
         searchTerm,
         sortConfig,
     ]);
@@ -414,6 +436,13 @@ export default function Campaigns() {
         setCurrentPage(1);
     };
 
+    const handleClassificationChange = (event) => {
+        const value = event.target.value;
+
+        setClassificationFilter(value);
+        setCurrentPage(1);
+    };
+
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
         setCurrentPage(1);
@@ -425,7 +454,36 @@ export default function Campaigns() {
         setCategoryFilter('all');
         setOrganizationFilter('all');
         setStatusFilter('all');
+        setClassificationFilter('all');
+        setSearchTerm('');
         setCurrentPage(1);
+    };
+
+    // =========================================================
+    // CLASSIFICATION MANAGEMENT
+    // =========================================================
+
+    const handleManageClassification = (campaign) => {
+        if (!campaign?.id) return;
+
+        setClassificationCampaign(campaign);
+    };
+
+    const handleClassificationSave = ({ campaignId, classification }) => {
+        setCampaigns((current) =>
+            current.map((campaign) =>
+                campaign.id === campaignId
+                    ? {
+                          ...campaign,
+                          ...classification,
+                      }
+                    : campaign,
+            ),
+        );
+
+        setClassificationCampaign(null);
+
+        showSuccessToast('Campaign classification updated successfully.');
     };
 
     // =========================================================
@@ -479,7 +537,6 @@ export default function Campaigns() {
         if (!campaign) return;
     };
 
-    // Dedicated edit page — no edit modal.
     const handleEdit = (campaign) => {
         if (!campaign?.id) return;
 
@@ -488,6 +545,12 @@ export default function Campaigns() {
         }
 
         navigate(`${CAMPAIGNS_PATH}/${campaign.id}/edit`);
+    };
+
+    const handleView = (campaign) => {
+        if (!campaign?.id) return;
+
+        navigate(`${CAMPAIGNS_PATH}/${campaign.id}`);
     };
 
     // =========================================================
@@ -551,7 +614,7 @@ export default function Campaigns() {
 
                 setCampaigns(extractCampaigns(response));
             } catch {
-                // The local campaign status has already been updated.
+                // Keep the local status update if refreshing fails.
             }
         } catch (err) {
             setVerificationError(
@@ -677,6 +740,9 @@ export default function Campaigns() {
             'Start Date',
             'End Date',
             'Status',
+            'Featured',
+            'Urgent',
+            'Urgency Priority',
         ];
 
         const csvRows = filteredCampaigns.map((campaign) => [
@@ -687,6 +753,9 @@ export default function Campaigns() {
             campaign.start_date ? formatDate(campaign.start_date) : '',
             campaign.end_date ? formatDate(campaign.end_date) : '',
             campaign.status || '',
+            campaign.is_featured ? 'Yes' : 'No',
+            campaign.is_urgent ? 'Yes' : 'No',
+            campaign.urgency_priority ?? 2,
         ]);
 
         const csvContent = [headers, ...csvRows]
@@ -911,7 +980,6 @@ export default function Campaigns() {
 
             render: (_value, row) => {
                 const canEdit = EDITABLE_STATUSES.includes(row.status);
-
                 const canVerify = row.status === 'unverified';
                 const canAssign = row.status === 'active';
 
@@ -919,7 +987,7 @@ export default function Campaigns() {
                     <div className="flex items-center justify-end gap-4">
                         <button
                             type="button"
-                            onClick={() => row}
+                            onClick={() => handleView(row)}
                             className="text-xs font-semibold text-[#8792A1] transition-colors hover:text-[#A9B7C7]"
                         >
                             View
@@ -954,6 +1022,14 @@ export default function Campaigns() {
                                 Assign Volunteers
                             </button>
                         )}
+
+                        <button
+                            type="button"
+                            onClick={() => handleManageClassification(row)}
+                            className="text-xs font-semibold text-[#C9B58B] transition-colors hover:text-[#F0D9A7]"
+                        >
+                            Classification
+                        </button>
                     </div>
                 );
             },
@@ -972,10 +1048,12 @@ export default function Campaigns() {
             typeFilter={typeFilter}
             categoryFilter={categoryFilter}
             organizationFilter={organizationFilter}
+            classificationFilter={classificationFilter}
             campaigns={campaigns}
             onTypeChange={handleTypeChange}
             onCategoryChange={handleCategoryFilterChange}
             onOrganizationChange={handleOrganizationChange}
+            onClassificationChange={handleClassificationChange}
             onClearFilters={resetFilters}
         />
     );
@@ -1134,6 +1212,9 @@ export default function Campaigns() {
                                         onSort={handleSort}
                                         getSortIcon={getSortIcon}
                                         resultCount={filteredCampaigns.length}
+                                        onManageClassification={
+                                            handleManageClassification
+                                        }
                                     />
                                 </div>
 
@@ -1169,6 +1250,16 @@ export default function Campaigns() {
                 message={successToast.message}
                 onClose={closeSuccessToast}
             />
+
+            {/* CLASSIFICATION MODAL */}
+            {classificationCampaign && (
+                <ClassificationModal
+                    key={classificationCampaign.id}
+                    campaign={classificationCampaign}
+                    onClose={() => setClassificationCampaign(null)}
+                    onSave={handleClassificationSave}
+                />
+            )}
 
             {/* VERIFICATION MODAL */}
             {verificationCampaign && (

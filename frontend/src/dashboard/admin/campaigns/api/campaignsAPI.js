@@ -430,3 +430,36 @@ export const updateCampaign = async (campaignId, payload) => {
 
     return parseResponse(response);
 };
+
+export const updateCampaignClassification = async (
+    campaignId,
+    { is_featured, is_urgent, urgency_priority }
+) => {
+    const response = await fetch(
+        `${API_BASE_URL}/admin/campaigns/${campaignId}/classification`,
+        {
+            method: 'PATCH',
+            headers: getHeaders({ json: true }),
+            body: JSON.stringify({
+                is_featured,
+                is_urgent,
+                urgency_priority,
+            }),
+        }
+    );
+
+    return parseResponse(response);
+};
+
+
+export const assessCampaignUrgency = async (campaignId) => {
+    const response = await fetch(
+        `${API_BASE_URL}/admin/campaigns/${campaignId}/urgency-assessment`,
+        {
+            method: 'POST',
+            headers: getHeaders(),
+        }
+    );
+
+    return parseResponse(response);
+};

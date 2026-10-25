@@ -1,909 +1,513 @@
 import React from 'react';
-
-import { TbArrowDown } from 'react-icons/tb';
-
-/*
-|--------------------------------------------------------------------------
-| IMAGES
-|--------------------------------------------------------------------------
-| Temporary internet images.
-| Replace with final local SP assets later.
-|--------------------------------------------------------------------------
-*/
+import { Link } from 'react-router-dom';
+import {
+    TbArrowRight,
+    TbArrowUpRight,
+    TbHeartHandshake,
+    TbArrowDown,
+    TbCheck,
+    TbShieldCheck,
+    TbUsersGroup,
+    TbNetwork,
+} from 'react-icons/tb';
 
 const heroImage =
     'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1800&q=85';
 
 const fieldImage =
-    'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=1600&q=85';
+    'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=1400&q=85';
+
+const container = 'mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 xl:px-10';
+const challenges = [
+    {
+        number: '০১',
+        title: 'প্রয়োজনের তথ্য ছড়িয়ে থাকে',
+        description:
+            'কার কোথায় কী ধরনের সহায়তা প্রয়োজন, সেই তথ্য অনেক সময় বিভিন্ন ব্যক্তি, সংগঠন ও মাধ্যমে ছড়িয়ে থাকে। ফলে সঠিক সময়ে সঠিক তথ্য খুঁজে পাওয়া কঠিন হয়ে পড়ে।',
+    },
+    {
+        number: '০২',
+        title: 'অনেক উদ্যোগ সবার কাছে পৌঁছায় না',
+        description:
+            'অনেক ব্যক্তি ও সংগঠন মানুষের পাশে কাজ করলেও তাঁদের উদ্যোগ সম্পর্কে সম্ভাব্য স্বেচ্ছাসেবক ও সহায়তাকারীরা সবসময় জানতে পারেন না।',
+    },
+    {
+        number: '০৩',
+        title: 'অংশগ্রহণের পথ সবসময় স্পষ্ট নয়',
+        description:
+            'সহযোগিতার ইচ্ছা থাকলেও কোথায় সাহায্য সবচেয়ে বেশি প্রয়োজন কিংবা কীভাবে অংশ নেওয়া যায়, তা অনেকের কাছে পরিষ্কার থাকে না।',
+    },
+];
+
+const actions = [
+    {
+        number: '০১',
+        title: 'প্রয়োজন দেখুন',
+        description:
+            'কোথায়, কার এবং কী ধরনের সহায়তা প্রয়োজন, তা সম্পর্কে জানুন।',
+    },
+    {
+        number: '০২',
+        title: 'উদ্যোগ খুঁজুন',
+        description:
+            'মানুষের বাস্তব প্রয়োজনকে কেন্দ্র করে চলমান মানবিক উদ্যোগগুলো দেখুন।',
+    },
+    {
+        number: '০৩',
+        title: 'বিস্তারিত জানুন',
+        description:
+            'উদ্যোগের উদ্দেশ্য, সংশ্লিষ্ট সংগঠন ও সহায়তার প্রয়োজন সম্পর্কে ধারণা নিন।',
+    },
+    {
+        number: '০৪',
+        title: 'সহযোগিতায় যুক্ত হোন',
+        description:
+            'নিজের সময়, দক্ষতা কিংবা সামর্থ্য অনুযায়ী মানুষের পাশে দাঁড়ান।',
+    },
+];
+
+const principles = [
+    {
+        number: '০১',
+        icon: TbNetwork,
+        title: 'সমন্বয়',
+        description:
+            'একই মানবিক প্রয়োজনকে ঘিরে কাজ করা মানুষ ও সংগঠন যেন পরস্পরের সঙ্গে যুক্ত হয়ে আরও কার্যকরভাবে সহযোগিতা করতে পারেন।',
+    },
+    {
+        number: '০২',
+        icon: TbShieldCheck,
+        title: 'স্বচ্ছতা',
+        description:
+            'মানুষ যেন সহায়তার প্রয়োজন, উদ্যোগের উদ্দেশ্য ও অংশগ্রহণের সুযোগ সম্পর্কে পরিষ্কার তথ্য পান এবং সচেতনভাবে সিদ্ধান্ত নিতে পারেন।',
+    },
+    {
+        number: '০৩',
+        icon: TbUsersGroup,
+        title: 'মানবিক মর্যাদা',
+        description:
+            'প্রতিটি উদ্যোগ ও সহায়তার অনুরোধের পেছনে একজন বাস্তব মানুষ আছেন। তাঁর সম্মান, নিরাপত্তা ও পরিস্থিতিকে সর্বোচ্চ গুরুত্ব দেওয়া।',
+    },
+];
+
+function Eyebrow({ children, light = false }) {
+    return (
+        <div className="flex items-center gap-3">
+            <span
+                className={`h-[2px] w-7 shrink-0 ${
+                    light ? 'bg-[#e6b47b]' : 'bg-[#d4a15e]'
+                }`}
+            />
+            <span
+                className={`text-[0.8rem] font-medium! tracking-[0.01em] ${
+                    light ? 'text-[#e8c49d]' : 'text-primary'
+                }`}
+            >
+                {children}
+            </span>
+        </div>
+    );
+}
 
 const Mission = () => {
     return (
         <main
             lang="bn"
-            className="overflow-hidden bg-surface font-bengali text-text-primary"
+            className="min-w-0 overflow-x-clip bg-white font-bengali text-[#172b29]"
         >
-            {/* =========================================================
-                OPENING
-            ========================================================== */}
+            {/* STATEMENT-LED HERO */}
+            <section className="mt-20 bg-[#f7f6f1]">
+                <div className={container}>
+                    <div className="relative pb-12 pt-14 sm:pb-14 sm:pt-17 lg:pb-16 lg:pt-20">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                            <Eyebrow>আমাদের লক্ষ্য</Eyebrow>
 
-            <section className="bg-background-warm">
-                <div className="container-width mt-16">
-                    <div
-                        className="
-                            relative
-                            pb-14
-                            pt-16
-                            sm:pb-16
-                            sm:pt-20
-                            md:pb-18
-                            md:pt-22
-                            lg:pb-20
-                            lg:pt-24
-                            xl:pb-24
-                            xl:pt-28
-                        "
-                    >
-                        {/* Quiet brand line */}
-
-                        <div className="mb-8 flex items-center gap-3 sm:mb-9 lg:mb-11">
-                            <span className="h-[2px] w-9 bg-accent sm:w-10" />
-
-                            <p className="text-sm font-medium! text-primary">
-                                আমাদের লক্ষ্য
-                            </p>
-                        </div>
-
-                        {/* Main statement */}
-
-                        <div className="max-w-[1080px]">
-                            <h1
-                                className="
-                                    font-bengali
-                                    text-[2.35rem]
-                                    font-medium!
-                                    leading-[1.32]
-                                    tracking-[-0.012em]
-                                    text-text-primary
-                                    sm:text-[3rem]
-                                    sm:leading-[1.3]
-                                    md:text-[3.45rem]
-                                    lg:text-[4rem]
-                                    lg:leading-[1.28]
-                                    xl:text-[4.55rem]
-                                    xl:leading-[1.27]
-                                "
-                            >
-                                যে মানুষটির সহায়তা প্রয়োজন,
-                                <br className="hidden sm:block" />
-                                আর যে মানুষটি পাশে দাঁড়াতে চান—
-                                <span className="text-primary">
-                                    {' '}
-                                    তাদের মধ্যে দূরত্ব কমানোই আমাদের কাজ।
-                                </span>
-                            </h1>
-                        </div>
-
-                        {/* Intro */}
-
-                        <div
-                            className="
-                                mt-8
-                                md:ml-auto
-                                md:max-w-[610px]
-                                lg:mt-10
-                                lg:mr-[5%]
-                                xl:mr-[6%]
-                            "
-                        >
-                            <p
-                                className="
-                                    text-base
-                                    leading-[1.9]
-                                    text-text-secondary
-                                    sm:text-[17px]
-                                    sm:leading-[1.9]
-                                    lg:text-lg
-                                "
-                            >
-                                Stand For People একটি কেন্দ্রীভূত মানবিক
-                                প্ল্যাটফর্ম—যেখানে মানুষের বাস্তব প্রয়োজন,
-                                মানবিক উদ্যোগ এবং সহায়তা করতে আগ্রহী মানুষ
-                                পরস্পরকে আরও সহজে খুঁজে পেতে পারে।
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* =====================================================
-                    DOCUMENTARY IMAGE
-                ====================================================== */}
-
-                <div className="container-width">
-                    <figure>
-                        <div
-                            className="
-                                relative
-                                h-[360px]
-                                overflow-hidden
-                                sm:h-[470px]
-                                md:h-[550px]
-                                lg:h-[630px]
-                                xl:h-[690px]
-                            "
-                        >
-                            <img
-                                src={heroImage}
-                                alt="মানবিক সহায়তা কার্যক্রমে কমিউনিটির মানুষ"
-                                className="
-                                    h-full
-                                    w-full
-                                    object-cover
-                                    object-center
-                                "
-                            />
-                        </div>
-
-                        <figcaption
-                            className="
-                                flex
-                                flex-col
-                                gap-3
-                                border-b
-                                border-border
-                                py-4
-                                sm:flex-row
-                                sm:items-start
-                                sm:justify-between
-                                sm:gap-6
-                            "
-                        >
-                            <p
-                                className="
-                                    max-w-xl
-                                    text-sm
-                                    leading-7
-                                    text-text-secondary
-                                "
-                            >
-                                মানবিক সহায়তার শুরু হয় মানুষের বাস্তব
-                                প্রয়োজনকে দেখা, বোঝা এবং সঠিকভাবে তুলে ধরার
-                                মাধ্যমে।
-                            </p>
-
-                            <span className="font-sans text-[11px] text-text-muted">
+                            <span className="text-[0.78rem] font-medium! text-[#7b8980]">
                                 Stand For People
                             </span>
-                        </figcaption>
-                    </figure>
-                </div>
+                        </div>
 
-                {/* Scroll hint */}
+                        <div className="mt-9 grid gap-7 lg:mt-11 lg:grid-cols-[1.4fr_0.6fr] lg:items-end lg:gap-12">
+                            <h1 className="max-w-[880px] text-[clamp(2.15rem,4vw,3.85rem)] font-medium! leading-[1.36] tracking-[-0.02em]">
+                                যে মানুষটির সহায়তা প্রয়োজন,
+                                <span className="block text-primary">
+                                    আর যিনি পাশে দাঁড়াতে চান—
+                                </span>
+                                তাঁদের দূরত্ব কমানোই আমাদের কাজ।
+                            </h1>
 
-                <div className="container-width">
-                    <div className="flex justify-end py-5 sm:py-6">
-                        <a
-                            href="#gap"
-                            aria-label="পরবর্তী অংশে যান"
-                            className="
-                                flex
-                                h-10
-                                w-10
-                                items-center
-                                justify-center
-                                rounded-full
-                                border
-                                border-border-strong
-                                text-primary
-                                transition-colors
-                                duration-200
-                                hover:border-primary
-                                hover:bg-primary
-                                hover:text-white!
-                            "
-                        >
-                            <TbArrowDown size={18} />
-                        </a>
+                            <div className="max-w-[340px] lg:pb-3">
+                                <p className="text-[0.96rem] leading-[1.95] text-[#596a62]">
+                                    Stand For People এমন একটি মানবিক সহযোগিতার
+                                    পরিবেশ গড়ে তুলতে চায়, যেখানে প্রয়োজন
+                                    দৃশ্যমান হবে, উদ্যোগ সম্পর্কে জানা সহজ হবে
+                                    এবং সবাই নিজের সামর্থ্য অনুযায়ী অংশ নিতে
+                                    পারবেন।
+                                </p>
+
+                                <a
+                                    href="#mission-challenge"
+                                    className="mt-6 inline-flex items-center gap-2 text-[0.86rem] font-semibold! text-primary transition-colors hover:text-[#095f58]"
+                                >
+                                    আমাদের ভাবনা জানুন
+                                    <TbArrowDown size={17} />
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </section>
 
-            {/* =========================================================
-                THE HUMANITARIAN GAP
-            ========================================================== */}
+                {/* IMMERSIVE DOCUMENTARY IMAGE */}
+                <div className={container}>
+                    <div className="relative h-[300px] overflow-hidden bg-[#dce6de] sm:h-[390px] md:h-[450px] lg:h-[500px] xl:h-[530px]">
+                        <img
+                            src={heroImage}
+                            alt="মানবিক সহায়তার প্রয়োজন রয়েছে এমন মানুষের জীবন ও বাস্তবতা"
+                            fetchPriority="high"
+                            className="h-full w-full object-cover object-center"
+                        />
 
-            <section id="gap" className="bg-surface">
-                <div
-                    className="
-                        container-width
-                        py-16
-                        sm:py-20
-                        md:py-24
-                        lg:py-28
-                        xl:py-32
-                    "
-                >
-                    <div className="max-w-[920px]">
-                        <p className="text-sm font-medium! text-primary">
-                            সমস্যাটা কোথায়
-                        </p>
+                        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/65 via-black/5 to-transparent" />
 
-                        <h2
-                            className="
-                                mt-4
-                                font-bengali
-                                text-[2.05rem]
-                                font-medium!
-                                leading-[1.45]
-                                tracking-[-0.01em]
-                                text-text-primary
-                                sm:text-[2.65rem]
-                                sm:leading-[1.45]
-                                lg:text-[3.2rem]
-                                lg:leading-[1.4]
-                            "
-                        >
-                            মানবিক সহায়তার পথে সব সময়
-                            <span className="text-primary">
-                                {' '}
-                                সদিচ্ছার অভাব থাকে না।
+                        <div className="absolute bottom-0 left-0 right-0 flex flex-wrap items-end justify-between gap-4 px-5 pb-6 sm:px-8 sm:pb-8 lg:px-10 lg:pb-9">
+                            <div className="max-w-[620px]">
+                                <p className="text-[1.05rem] font-medium! leading-[1.8] text-white! sm:text-[1.2rem]">
+                                    মানবিক সহায়তার শুরু হয় মানুষের বাস্তব
+                                    প্রয়োজনকে দেখা ও বোঝার মাধ্যমে।
+                                </p>
+                            </div>
+
+                            <span className="hidden text-[0.78rem] font-medium! text-white/80 sm:block">
+                                মানুষের জন্য, মানুষের সঙ্গে
                             </span>
-                        </h2>
-
-                        <p
-                            className="
-                                mt-6
-                                max-w-[680px]
-                                text-base
-                                leading-[1.9]
-                                text-text-secondary
-                                sm:text-[17px]
-                            "
-                        >
-                            অনেক সময় সমস্যা তৈরি হয় তথ্য ছড়িয়ে থাকা,
-                            উদ্যোগের খবর মানুষের কাছে না পৌঁছানো এবং সঠিক
-                            প্রয়োজনের সঙ্গে সঠিক সহায়তার সংযোগ না হওয়ার
-                            কারণে।
-                        </p>
+                        </div>
                     </div>
+                </div>
 
-                    {/* Asymmetric problem composition */}
+                <div className={container}>
+                    <div className="flex items-center justify-between gap-4 border-b border-[#dce3da] py-5">
+                        <p className="text-[0.84rem] leading-[1.8] text-[#738077]">
+                            প্রয়োজন থেকে সহযোগিতা—একটি সংযুক্ত মানবিক পথচলা।
+                        </p>
 
-                    <div className="mt-12 border-y border-border-strong lg:mt-16">
-                        {/* Row 01 */}
+                        <TbHeartHandshake
+                            size={22}
+                            strokeWidth={1.5}
+                            className="shrink-0 text-primary"
+                        />
+                    </div>
+                </div>
+            </section>
 
-                        <div
-                            className="
-                                grid
-                                gap-5
-                                border-b
-                                border-border
-                                py-8
-                                md:grid-cols-[0.8fr_1.2fr]
-                                md:items-start
-                                md:gap-14
-                                lg:py-10
-                            "
-                        >
-                            <p
-                                className="
-                                    max-w-sm
-                                    font-bengali
-                                    text-[1.45rem]
-                                    font-medium!
-                                    leading-[1.5]
-                                    text-text-primary
-                                    sm:text-[1.75rem]
-                                "
-                            >
-                                প্রয়োজনের তথ্য
-                                <span className="block text-primary">
-                                    ছড়িয়ে থাকে।
-                                </span>
-                            </p>
+            {/* PROBLEM ANALYSIS */}
+            <section id="mission-challenge" className="scroll-mt-24 bg-white">
+                <div className={container}>
+                    <div className="py-17 sm:py-20 lg:py-24">
+                        <div className="grid gap-5 lg:grid-cols-[0.38fr_1fr] lg:gap-12">
+                            <Eyebrow>যে বাস্তবতা বদলাতে চাই</Eyebrow>
 
-                            <p
-                                className="
-                                    max-w-xl
-                                    text-[15px]
-                                    leading-[1.9]
-                                    text-text-secondary
-                                    md:ml-auto
-                                    sm:text-base
-                                "
-                            >
-                                কার কোথায় কী ধরনের সহায়তা প্রয়োজন—এই তথ্য
-                                অনেক সময় বিভিন্ন ব্যক্তি, পোস্ট, সংগঠন এবং
-                                প্ল্যাটফর্মে ছড়িয়ে থাকে।
-                            </p>
+                            <div>
+                                <h2 className="max-w-[750px] text-[clamp(1.9rem,2.9vw,2.75rem)] font-medium! leading-[1.45]">
+                                    মানবিক সহায়তার পথে
+                                    <span className="text-primary">
+                                        {' '}
+                                        সদিচ্ছাই সবসময় যথেষ্ট নয়।
+                                    </span>
+                                </h2>
+
+                                <p className="mt-5 max-w-[650px] text-[0.96rem] leading-[1.95] text-[#647168]">
+                                    অনেক সময় মূল বাধা হয়ে দাঁড়ায় তথ্যের
+                                    বিচ্ছিন্নতা, উদ্যোগের খবর মানুষের কাছে না
+                                    পৌঁছানো এবং প্রয়োজনের সঙ্গে উপযুক্ত সহায়তার
+                                    সংযোগ তৈরি না হওয়া।
+                                </p>
+                            </div>
                         </div>
 
-                        {/* Row 02 */}
+                        {/* THREE-COLUMN EDITORIAL ANALYSIS */}
+                        <div className="mt-11 grid gap-0 border-y border-[#dce3da] md:grid-cols-3 lg:mt-14">
+                            {challenges.map((item, index) => (
+                                <article
+                                    key={item.number}
+                                    className={`relative border-b border-[#dce3da] py-7 md:border-b-0 md:px-7 md:py-9 lg:px-9 ${
+                                        index === 0 ? 'md:pl-0' : 'md:border-l'
+                                    }`}
+                                >
+                                    <span className="text-[2.1rem] font-medium! leading-none text-[#a9c6b7]">
+                                        {item.number}
+                                    </span>
 
-                        <div
-                            className="
-                                grid
-                                gap-5
-                                border-b
-                                border-border
-                                py-8
-                                md:grid-cols-[1.2fr_0.8fr]
-                                md:items-start
-                                md:gap-14
-                                lg:py-10
-                            "
-                        >
-                            <p
-                                className="
-                                    max-w-xl
-                                    text-[15px]
-                                    leading-[1.9]
-                                    text-text-secondary
-                                    sm:text-base
-                                "
-                            >
-                                অসংখ্য ব্যক্তি ও সংগঠন মানুষের পাশে কাজ করেন।
-                                কিন্তু তাদের উদ্যোগ সব সময় সেই মানুষগুলোর কাছে
-                                দৃশ্যমান হয় না, যারা অংশ নিতে চান।
-                            </p>
+                                    <div className="mt-8">
+                                        <h3 className="max-w-[280px] text-[1.19rem] font-semibold! leading-[1.55]">
+                                            {item.title}
+                                        </h3>
 
-                            <p
-                                className="
-                                    max-w-sm
-                                    font-bengali
-                                    text-[1.45rem]
-                                    font-medium!
-                                    leading-[1.5]
-                                    text-text-primary
-                                    md:ml-auto
-                                    sm:text-[1.75rem]
-                                "
-                            >
-                                উদ্যোগ আছে।
-                                <span className="block text-primary">
-                                    কিন্তু সবাই জানে না।
-                                </span>
-                            </p>
-                        </div>
-
-                        {/* Row 03 */}
-
-                        <div
-                            className="
-                                grid
-                                gap-5
-                                py-8
-                                md:grid-cols-[0.8fr_1.2fr]
-                                md:items-start
-                                md:gap-14
-                                lg:py-10
-                            "
-                        >
-                            <p
-                                className="
-                                    max-w-sm
-                                    font-bengali
-                                    text-[1.45rem]
-                                    font-medium!
-                                    leading-[1.5]
-                                    text-text-primary
-                                    sm:text-[1.75rem]
-                                "
-                            >
-                                মানুষ সাহায্য করতে চান।
-                                <span className="block text-primary">
-                                    পথটি সব সময় স্পষ্ট নয়।
-                                </span>
-                            </p>
-
-                            <p
-                                className="
-                                    max-w-xl
-                                    text-[15px]
-                                    leading-[1.9]
-                                    text-text-secondary
-                                    md:ml-auto
-                                    sm:text-base
-                                "
-                            >
-                                ইচ্ছা থাকা সত্ত্বেও কোথায় সাহায্য সবচেয়ে বেশি
-                                প্রয়োজন, কোন উদ্যোগ সম্পর্কে কী জানা দরকার,
-                                কিংবা কীভাবে অংশ নেওয়া যায়—তা খুঁজে পাওয়া
-                                কঠিন হতে পারে।
-                            </p>
+                                        <p className="mt-4 max-w-[330px] text-[0.93rem] leading-[1.95] text-[#647168]">
+                                            {item.description}
+                                        </p>
+                                    </div>
+                                </article>
+                            ))}
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* =========================================================
-                THE SP INTERVENTION
-            ========================================================== */}
+            {/* MISSION MANIFESTO */}
+            <section className="relative overflow-hidden bg-[#173d38] text-white">
+                <div className={container}>
+                    <div className="relative py-17 sm:py-20 lg:py-24">
+                        <div className="grid gap-10 lg:grid-cols-[0.35fr_1fr] lg:gap-12">
+                            <Eyebrow light>আমাদের অবস্থান</Eyebrow>
 
-            <section className="bg-background-warm">
-                <div className="container-width">
-                    <div
-                        className="
-                            relative
-                            py-16
-                            sm:py-20
-                            md:py-24
-                            lg:py-28
-                            xl:py-32
-                        "
-                    >
-                        {/* Large editorial statement */}
+                            <div className="max-w-[860px]">
+                                <h2 className="text-[clamp(2rem,3.45vw,3.35rem)] font-medium! leading-[1.43] text-white!">
+                                    বিচ্ছিন্ন প্রচেষ্টার বদলে
+                                    <span className="block text-[#e8b77f]">
+                                        আমরা চাই সম্মিলিত সহযোগিতা।
+                                    </span>
+                                </h2>
 
-                        <div
-                            className="
-                                max-w-[980px]
-                                md:ml-[6%]
-                                lg:ml-[10%]
-                                xl:ml-[12%]
-                            "
-                        >
-                            <span className="block h-[3px] w-14 bg-accent" />
+                                <p className="mt-7 max-w-[680px] text-[1rem] leading-[2] text-white/70">
+                                    Stand For People এমন একটি প্ল্যাটফর্ম গড়ে
+                                    তুলতে চায়, যেখানে মানুষ সহায়তার প্রয়োজন
+                                    জানতে পারবেন, চলমান উদ্যোগ খুঁজে পাবেন,
+                                    সংশ্লিষ্ট সংগঠন সম্পর্কে ধারণা নিতে পারবেন
+                                    এবং নিজের সামর্থ্য অনুযায়ী সহযোগিতার পথ বেছে
+                                    নিতে পারবেন।
+                                </p>
 
-                            <h2
-                                className="
-                                    mt-7
-                                    font-bengali
-                                    text-[2.05rem]
-                                    font-medium!
-                                    leading-[1.45]
-                                    tracking-[-0.01em]
-                                    text-text-primary
-                                    sm:text-[2.75rem]
-                                    sm:leading-[1.45]
-                                    lg:text-[3.4rem]
-                                    lg:leading-[1.42]
-                                "
+                                <div className="mt-9 flex items-start gap-4 border-t border-white/20 pt-7">
+                                    <TbHeartHandshake
+                                        size={28}
+                                        strokeWidth={1.4}
+                                        className="mt-1 shrink-0 text-[#e8b77f]"
+                                    />
+
+                                    <p className="max-w-[590px] text-[1.08rem] font-medium! leading-[1.85] text-white/90">
+                                        আমাদের লক্ষ্য শুধু তথ্য একত্র করা নয়,
+                                        মানুষের মধ্যে আস্থা ও সহযোগিতার সম্পর্ক
+                                        তৈরি করা।
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* PARTICIPATION JOURNEY */}
+            <section className="bg-[#f3f5ef]">
+                <div className={container}>
+                    <div className="py-17 sm:py-20 lg:py-24">
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-12">
+                            <div>
+                                <Eyebrow>সহযোগিতার পথ</Eyebrow>
+
+                                <h2 className="mt-5 max-w-[650px] text-[clamp(1.85rem,2.75vw,2.65rem)] font-medium! leading-[1.45]">
+                                    একটি প্রয়োজন থেকে
+                                    <span className="block text-primary">
+                                        অর্থপূর্ণ অংশগ্রহণ পর্যন্ত।
+                                    </span>
+                                </h2>
+                            </div>
+
+                            <p className="max-w-[350px] text-[0.94rem] leading-[1.9] text-[#647168]">
+                                সহায়তার প্রয়োজন বোঝা থেকে শুরু করে বাস্তব
+                                উদ্যোগে অংশ নেওয়া পর্যন্ত একটি সহজ পথ।
+                            </p>
+                        </div>
+
+                        {/* HORIZONTAL JOURNEY */}
+                        <div className="mt-12 grid gap-0 border-t border-[#d3ded4] sm:grid-cols-2 lg:grid-cols-4">
+                            {actions.map((item, index) => (
+                                <article
+                                    key={item.number}
+                                    className={`relative border-b border-[#d3ded4] py-7 sm:px-6 lg:border-b-0 lg:px-7 lg:py-9 ${
+                                        index === 0 ? 'sm:pl-0 lg:pl-0' : ''
+                                    } ${index % 2 === 1 ? 'sm:border-l' : ''} ${
+                                        index === 2 ? 'lg:border-l' : ''
+                                    }`}
+                                >
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-[1.6rem] font-medium! text-primary">
+                                            {item.number}
+                                        </span>
+
+                                        {index < actions.length - 1 && (
+                                            <TbArrowRight
+                                                size={19}
+                                                strokeWidth={1.5}
+                                                className="hidden text-primary/50 lg:block"
+                                            />
+                                        )}
+                                    </div>
+
+                                    <h3 className="mt-6 text-[1.12rem] font-semibold! leading-[1.5]">
+                                        {item.title}
+                                    </h3>
+
+                                    <p className="mt-3 max-w-[280px] text-[0.91rem] leading-[1.9] text-[#647168]">
+                                        {item.description}
+                                    </p>
+                                </article>
+                            ))}
+                        </div>
+
+                        <div className="mt-8 flex justify-start lg:mt-10">
+                            <Link
+                                to="/how-it-works"
+                                className="group inline-flex items-center gap-2 border-b border-primary/40 pb-2 text-[0.9rem] font-semibold! text-primary hover:border-primary"
                             >
-                                Stand For People এই বিচ্ছিন্ন পথগুলোর
-                                <span className="text-primary">
-                                    {' '}
-                                    মাঝে একটি সাধারণ জায়গা তৈরি করতে চায়।
+                                কাজের পদ্ধতি বিস্তারিত জানুন
+                                <TbArrowUpRight
+                                    size={18}
+                                    className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                                />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* HUMAN FIRST - PHOTO ESSAY */}
+            <section className="bg-white">
+                <div className={container}>
+                    <div className="grid gap-9 py-17 sm:py-20 lg:grid-cols-[0.88fr_1.12fr] lg:items-center lg:gap-14 lg:py-24 xl:gap-20">
+                        <div>
+                            <Eyebrow>মানুষই আমাদের অগ্রাধিকার</Eyebrow>
+
+                            <h2 className="mt-6 max-w-[490px] text-[clamp(1.9rem,2.9vw,2.75rem)] font-medium! leading-[1.45]">
+                                প্রযুক্তি পথ তৈরি করে।
+                                <span className="block text-primary">
+                                    মানবিকতা আসে মানুষ থেকে।
                                 </span>
                             </h2>
 
-                            <p
-                                className="
-                                    mt-7
-                                    max-w-[690px]
-                                    text-base
-                                    leading-[1.9]
-                                    text-text-secondary
-                                    md:ml-auto
-                                    sm:text-[17px]
-                                "
-                            >
-                                এমন একটি জায়গা, যেখানে মানুষ প্রয়োজন দেখতে
-                                পারবেন, মানবিক উদ্যোগ খুঁজে পাবেন, কাজ করা সংগঠন
-                                সম্পর্কে জানতে পারবেন এবং নিজের সামর্থ্য
-                                অনুযায়ী পাশে দাঁড়ানোর পথ বেছে নিতে পারবেন।
+                            <p className="mt-6 max-w-[480px] text-[0.96rem] leading-[1.95] text-[#647168]">
+                                প্রযুক্তি তথ্যকে সংগঠিত করতে পারে, সহযোগিতার পথ
+                                সহজ করতে পারে এবং মানুষকে কাছাকাছি আনতে পারে।
                             </p>
-                        </div>
 
-                        {/* Four actions — content, not cards */}
+                            <p className="mt-4 max-w-[480px] text-[0.96rem] leading-[1.95] text-[#647168]">
+                                কিন্তু মানবিকতার প্রকৃত শক্তি আসে মানুষের
+                                সহমর্মিতা, বিশ্বাস ও দায়িত্ববোধ থেকে। প্রতিটি
+                                উদ্যোগের পেছনে রয়েছে বাস্তব মানুষের প্রয়োজন, আশা
+                                এবং ভালো থাকার আকাঙ্ক্ষা।
+                            </p>
 
-                        <div
-                            className="
-                                mt-14
-                                grid
-                                border-t
-                                border-border-strong
-                                sm:grid-cols-2
-                                lg:mt-20
-                                lg:grid-cols-4
-                            "
-                        >
-                            <div
-                                className="
-                                    border-b
-                                    border-border
-                                    py-7
-                                    sm:border-r
-                                    sm:px-6
-                                    lg:border-b-0
-                                    lg:px-7
-                                    lg:py-9
-                                "
-                            >
-                                <span className="text-xs font-medium! text-primary">
-                                    দেখুন
-                                </span>
-
-                                <p className="mt-3 text-[15px] leading-7 text-text-body">
-                                    কোথায়, কার এবং কী ধরনের সহায়তা প্রয়োজন।
-                                </p>
-                            </div>
-
-                            <div
-                                className="
-                                    border-b
-                                    border-border
-                                    py-7
-                                    sm:px-6
-                                    lg:border-b-0
-                                    lg:border-r
-                                    lg:px-7
-                                    lg:py-9
-                                "
-                            >
-                                <span className="text-xs font-medium! text-primary">
-                                    খুঁজুন
-                                </span>
-
-                                <p className="mt-3 text-[15px] leading-7 text-text-body">
-                                    বাস্তব প্রয়োজনকে ঘিরে চলমান মানবিক উদ্যোগ।
-                                </p>
-                            </div>
-
-                            <div
-                                className="
-                                    border-b
-                                    border-border
-                                    py-7
-                                    sm:border-b-0
-                                    sm:border-r
-                                    sm:px-6
-                                    lg:px-7
-                                    lg:py-9
-                                "
-                            >
-                                <span className="text-xs font-medium! text-primary">
-                                    বুঝুন
-                                </span>
-
-                                <p className="mt-3 text-[15px] leading-7 text-text-body">
-                                    উদ্যোগটি কী করছে এবং সহায়তা কোথায় পৌঁছাবে।
-                                </p>
-                            </div>
-
-                            <div
-                                className="
-                                    py-7
-                                    sm:px-6
-                                    lg:px-7
-                                    lg:py-9
-                                "
-                            >
-                                <span className="text-xs font-medium! text-primary">
-                                    যুক্ত হোন
-                                </span>
-
-                                <p className="mt-3 text-[15px] leading-7 text-text-body">
-                                    সহায়তাকারী, স্বেচ্ছাসেবী বা সংগঠন হিসেবে।
+                            <div className="mt-7 border-l-[3px] border-[#d9a765] pl-5">
+                                <p className="text-[1.04rem] font-medium! leading-[1.85] text-[#24483d]">
+                                    প্রতিটি উদ্যোগের কেন্দ্রে থাকবেন মানুষ—এটাই
+                                    আমাদের বিশ্বাস।
                                 </p>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </section>
 
-            {/* =========================================================
-                HUMAN FIRST — PHOTO ESSAY
-            ========================================================== */}
-
-            <section className="bg-primary-deep">
-                <div
-                    className="
-                        container-width
-                        py-14
-                        sm:py-16
-                        md:py-20
-                        lg:py-20
-                        xl:py-24
-                    "
-                >
-                    <div
-                        className="
-                            grid
-                            gap-8
-                            lg:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.65fr)]
-                            lg:items-end
-                            lg:gap-14
-                            xl:gap-20
-                        "
-                    >
-                        {/* Image */}
-
-                        <figure>
-                            <div
-                                className="
-                                    h-[380px]
-                                    overflow-hidden
-                                    sm:h-[480px]
-                                    md:h-[530px]
-                                    lg:h-[610px]
-                                    xl:h-[630px]
-                                "
-                            >
+                        <figure className="relative">
+                            <div className="h-[320px] overflow-hidden bg-[#dfe8e0] sm:h-[420px] lg:h-[460px] xl:h-[490px]">
                                 <img
                                     src={fieldImage}
-                                    alt="মানুষের সঙ্গে কাজ করছেন মানবিক উদ্যোগের স্বেচ্ছাসেবীরা"
-                                    className="
-                                        h-full
-                                        w-full
-                                        object-cover
-                                        object-center
-                                    "
+                                    alt="মানবিক উদ্যোগে মানুষের পাশে কাজ করছেন স্বেচ্ছাসেবকেরা"
+                                    loading="lazy"
+                                    className="h-full w-full object-cover object-center"
                                 />
                             </div>
 
-                            <figcaption
-                                className="
-                                    mt-3
-                                    max-w-lg
-                                    text-xs
-                                    leading-6
-                                    text-text-on-dark-muted
-                                "
-                            >
-                                প্রতিটি উদ্যোগ, প্রতিটি প্রয়োজন এবং প্রতিটি
-                                সহায়তার পেছনে আছেন বাস্তব মানুষ।
+                            <figcaption className="mt-3 text-[0.81rem] leading-[1.8] text-[#7c8980]">
+                                মানবিক সহায়তার প্রতিটি প্রচেষ্টার পেছনে আছেন
+                                বাস্তব মানুষ।
                             </figcaption>
                         </figure>
+                    </div>
+                </div>
+            </section>
 
-                        {/* Statement */}
+            {/* GUIDING PRINCIPLES */}
+            <section className="bg-[#f8f7f2]">
+                <div className={container}>
+                    <div className="py-17 sm:py-20 lg:py-24">
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+                            <div>
+                                <Eyebrow>আমাদের কাজের ভিত্তি</Eyebrow>
 
-                        <div className="pb-2 lg:pb-10">
-                            <span className="block h-[2px] w-10 bg-accent" />
+                                <h2 className="mt-5 max-w-[650px] text-[clamp(1.85rem,2.7vw,2.6rem)] font-medium! leading-[1.45]">
+                                    তিনটি মূল্যবোধ
+                                    <span className="block text-primary">
+                                        আমাদের সিদ্ধান্তকে পথ দেখায়।
+                                    </span>
+                                </h2>
+                            </div>
 
-                            <h2
-                                className="
-                                    mt-6
-                                    font-bengali
-                                    text-[2rem]
-                                    font-medium!
-                                    leading-[1.48]
-                                    tracking-normal
-                                    text-white!
-                                    sm:text-[2.55rem]
-                                    lg:text-[2.9rem]
-                                "
-                            >
-                                আমরা বিশ্বাস করি,
-                                <br />
-                                সহায়তার গল্পের কেন্দ্রবিন্দু
-                                <span className="text-primary-muted">
-                                    {' '}
-                                    প্ল্যাটফর্ম নয়।
-                                </span>
-                                <span className="mt-2 block text-accent-soft">
-                                    মানুষ।
-                                </span>
-                            </h2>
-
-                            <p
-                                className="
-                                    mt-7
-                                    max-w-md
-                                    text-base
-                                    leading-[1.9]
-                                    text-text-on-dark-muted
-                                "
-                            >
-                                প্রযুক্তি আমাদের কাজকে সহজ করতে পারে। তথ্যকে
-                                সংগঠিত করতে পারে। মানুষকে কাছাকাছি আনতে পারে।
-                                কিন্তু মানবিকতার জায়গাটি সব সময় মানুষেরই।
+                            <p className="max-w-[360px] text-[0.93rem] leading-[1.9] text-[#647168]">
+                                মানুষের কল্যাণে প্রতিটি উদ্যোগ দায়িত্বশীলভাবে
+                                এগিয়ে নিতে আমরা এই নীতিগুলোকে গুরুত্ব দিই।
                             </p>
+                        </div>
+
+                        <div className="mt-11 grid gap-4 md:grid-cols-3 lg:mt-13 lg:gap-5">
+                            {principles.map((item) => {
+                                const Icon = item.icon;
+
+                                return (
+                                    <article
+                                        key={item.number}
+                                        className="relative flex flex-col border border-[#e0e6dc] bg-white px-6 py-7 sm:px-7 sm:py-8"
+                                    >
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex h-11 w-11 items-center justify-center bg-[#eaf2ed] text-primary">
+                                                <Icon
+                                                    size={24}
+                                                    strokeWidth={1.5}
+                                                />
+                                            </div>
+
+                                            <span className="text-[0.84rem] font-medium! text-[#9aa99f]">
+                                                {item.number}
+                                            </span>
+                                        </div>
+
+                                        <h3 className="mt-7 text-[1.2rem] font-semibold! leading-[1.5]">
+                                            {item.title}
+                                        </h3>
+
+                                        <p className="mt-3 text-[0.93rem] leading-[1.95] text-[#647168]">
+                                            {item.description}
+                                        </p>
+                                    </article>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* =========================================================
-                PRINCIPLES
-            ========================================================== */}
-
-            <section className="bg-surface">
-                <div
-                    className="
-                        container-width
-                        py-16
-                        sm:py-20
-                        md:py-24
-                        lg:py-28
-                        xl:py-32
-                    "
-                >
-                    <div
-                        className="
-                            grid
-                            gap-10
-                            lg:grid-cols-[0.6fr_1.4fr]
-                            lg:gap-20
-                            xl:gap-28
-                        "
-                    >
+            {/* FINAL COMMITMENT */}
+            <section className="bg-[#e8f0e9]">
+                <div className={container}>
+                    <div className="grid gap-8 py-14 sm:py-17 lg:grid-cols-[1fr_0.55fr] lg:items-end lg:gap-16 lg:py-20">
                         <div>
-                            <p className="text-sm font-medium! text-primary">
-                                যেভাবে আমরা কাজ করতে চাই
-                            </p>
+                            <Eyebrow>আমাদের অঙ্গীকার</Eyebrow>
 
-                            <h2
-                                className="
-                                    mt-4
-                                    max-w-sm
-                                    font-bengali
-                                    text-[1.95rem]
-                                    font-medium!
-                                    leading-[1.48]
-                                    tracking-normal
-                                    sm:text-[2.35rem]
-                                "
-                            >
-                                তিনটি বিষয় আমাদের
-                                <span className="text-primary">
-                                    {' '}
-                                    সিদ্ধান্তকে পথ দেখায়।
-                                </span>
-                            </h2>
-                        </div>
-
-                        <div className="border-t border-border-strong">
-                            {/* Coordination */}
-
-                            <div
-                                className="
-                                    grid
-                                    gap-4
-                                    border-b
-                                    border-border-strong
-                                    py-8
-                                    sm:grid-cols-[180px_1fr]
-                                    sm:gap-10
-                                    lg:py-10
-                                "
-                            >
-                                <h3
-                                    className="
-                                        font-bengali
-                                        text-[1.4rem]
-                                        font-medium!
-                                        tracking-normal
-                                        text-text-primary
-                                    "
-                                >
-                                    সমন্বয়
-                                </h3>
-
-                                <p className="max-w-xl text-base leading-[1.9] text-text-secondary">
-                                    যাতে একই মানবিক প্রয়োজনকে ঘিরে কাজ করা
-                                    বিচ্ছিন্ন মানুষ ও উদ্যোগ একে অপরকে খুঁজে
-                                    পায় এবং একই উদ্দেশ্যে আরও কার্যকরভাবে কাজ
-                                    করতে পারে।
-                                </p>
-                            </div>
-
-                            {/* Transparency */}
-
-                            <div
-                                className="
-                                    grid
-                                    gap-4
-                                    border-b
-                                    border-border-strong
-                                    py-8
-                                    sm:grid-cols-[180px_1fr]
-                                    sm:gap-10
-                                    lg:py-10
-                                "
-                            >
-                                <h3
-                                    className="
-                                        font-bengali
-                                        text-[1.4rem]
-                                        font-medium!
-                                        tracking-normal
-                                        text-text-primary
-                                    "
-                                >
-                                    স্বচ্ছতা
-                                </h3>
-
-                                <p className="max-w-xl text-base leading-[1.9] text-text-secondary">
-                                    যাতে মানুষ জানতে পারেন কোথায় প্রয়োজন, কী
-                                    উদ্যোগ চলছে এবং কীভাবে তারা সচেতনভাবে ও
-                                    দায়িত্বশীলভাবে অংশ নিতে পারেন।
-                                </p>
-                            </div>
-
-                            {/* Dignity */}
-
-                            <div
-                                className="
-                                    grid
-                                    gap-4
-                                    border-b
-                                    border-border-strong
-                                    py-8
-                                    sm:grid-cols-[180px_1fr]
-                                    sm:gap-10
-                                    lg:py-10
-                                "
-                            >
-                                <h3
-                                    className="
-                                        font-bengali
-                                        text-[1.4rem]
-                                        font-medium!
-                                        tracking-normal
-                                        text-text-primary
-                                    "
-                                >
-                                    মর্যাদা
-                                </h3>
-
-                                <p className="max-w-xl text-base leading-[1.9] text-text-secondary">
-                                    কারণ প্রতিটি উদ্যোগ, প্রতিটি সংখ্যা এবং
-                                    প্রতিটি সহায়তার অনুরোধের পেছনে একজন বাস্তব
-                                    মানুষ আছেন—যার মর্যাদা ও পরিস্থিতি সবার আগে।
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* =========================================================
-                FINAL THOUGHT
-            ========================================================== */}
-
-            <section className="bg-background-warm">
-                <div
-                    className="
-                        container-width
-                        py-16
-                        sm:py-20
-                        md:py-24
-                        lg:py-28
-                    "
-                >
-                    <div className="border-t-[3px] border-primary pt-9 lg:pt-11">
-                        <div
-                            className="
-                                grid
-                                gap-8
-                                lg:grid-cols-[minmax(0,1fr)_300px]
-                                lg:items-end
-                                lg:gap-16
-                            "
-                        >
-                            <h2
-                                className="
-                                    max-w-[850px]
-                                    font-bengali
-                                    text-[2.05rem]
-                                    font-medium!
-                                    leading-[1.48]
-                                    tracking-normal
-                                    text-text-primary
-                                    sm:text-[2.7rem]
-                                    lg:text-[3.2rem]
-                                "
-                            >
+                            <h2 className="mt-5 max-w-[700px] text-[clamp(1.9rem,3vw,2.9rem)] font-medium! leading-[1.45]">
                                 প্রযুক্তি সংযোগ তৈরি করতে পারে।
                                 <span className="block text-primary">
                                     আস্থা তৈরি করে মানুষ।
                                 </span>
                             </h2>
+                        </div>
 
-                            <div>
-                                <p className="text-sm leading-7 text-text-secondary">
-                                    সেই আস্থার ওপর দাঁড়িয়ে মানবিক সহায়তার
-                                    একটি আরও সংযুক্ত পথ তৈরি করাই আমাদের
-                                    উদ্দেশ্য।
-                                </p>
+                        <div>
+                            <p className="max-w-[400px] text-[0.95rem] leading-[1.95] text-[#647168]">
+                                সেই আস্থার ভিত্তিতে আরও সংযুক্ত, স্বচ্ছ ও মানবিক
+                                সহযোগিতার পরিবেশ গড়ে তোলাই আমাদের লক্ষ্য।
+                            </p>
 
-                                <div className="mt-5 flex items-center gap-2">
-                                    <span className="h-2 w-2 rounded-full bg-accent" />
-
-                                    <span className="font-sans text-xs font-medium! text-primary">
-                                        Stand For People
-                                    </span>
-                                </div>
+                            <div className="mt-5 flex items-center gap-2.5 text-primary">
+                                <TbCheck size={19} />
+                                <span className="text-[0.9rem] font-medium!">
+                                    মানুষের মর্যাদা সবার আগে
+                                </span>
                             </div>
                         </div>
                     </div>

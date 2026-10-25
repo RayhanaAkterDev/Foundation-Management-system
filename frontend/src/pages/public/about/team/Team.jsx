@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-
 import { Link } from 'react-router-dom';
 
 import {
@@ -19,18 +18,16 @@ const API_URL =
     import.meta.env.VITE_API_BASE_URL ||
     'http://127.0.0.1:8000/api';
 
+const API_ORIGIN = API_URL.replace(/\/+$/, '').replace(/\/api$/, '');
+
 /* -------------------------------------------------------------------------- */
 /* CORE PEOPLE                                                                */
 /* -------------------------------------------------------------------------- */
-/*
- * These are intentionally separate from the live community API.
- * Replace the placeholder names/images with the actual project information.
- */
 
 const corePeople = [
     {
         id: 'supervisor',
-        role: 'প্রকল্প তত্ত্বাবধায়ক',
+        role: 'প্রকল্প তত্ত্বাবধায়ক',
         name: 'আপনার শিক্ষকের নাম',
         description:
             'প্রকল্পের ধারণা, দিকনির্দেশনা এবং একাডেমিক তত্ত্বাবধানে গুরুত্বপূর্ণ ভূমিকা।',
@@ -44,16 +41,16 @@ const corePeople = [
         description:
             'Stand For People-এর ধারণা, পরিকল্পনা এবং প্ল্যাটফর্ম নির্মাণের সঙ্গে সরাসরি যুক্ত।',
         image: null,
-        imageLabel: 'আপনার ছবি',
+        imageLabel: 'প্রতিষ্ঠাতার ছবি',
     },
     {
         id: 'founder-two',
         role: 'প্রতিষ্ঠাতা',
-        name: 'আপনার পার্টনারের নাম',
+        name: 'আপনার সহপ্রতিষ্ঠাতার নাম',
         description:
             'প্ল্যাটফর্মের পরিকল্পনা, নির্মাণ এবং বিকাশের যাত্রায় সরাসরি যুক্ত।',
         image: null,
-        imageLabel: 'পার্টনারের ছবি',
+        imageLabel: 'সহপ্রতিষ্ঠাতার ছবি',
     },
 ];
 
@@ -80,13 +77,13 @@ const getCollection = (payload, keys = []) => {
 };
 
 const getVolunteerName = (volunteer) =>
-    volunteer?.user?.name || volunteer?.name || 'SP Volunteer';
+    volunteer?.user?.name || volunteer?.name || 'স্বেচ্ছাসেবক';
 
 const getOrganizationName = (organization) =>
-    organization?.name || organization?.user?.name || 'SP Partner Organization';
+    organization?.name || organization?.user?.name || 'সহযোগী সংগঠন';
 
 const getInitials = (name = '') =>
-    name
+    String(name)
         .trim()
         .split(/\s+/)
         .filter(Boolean)
@@ -117,40 +114,155 @@ const toBengaliNumber = (number) =>
         .map((digit) => '০১২৩৪৫৬৭৮৯'[Number(digit)] ?? digit)
         .join('');
 
+/**
+ * Resolve image paths from the API, including Laravel public storage paths.
+ */
+const getPhotoUrl = (value) => {
+    if (!value) return null;
+
+    const photo =
+        typeof value === 'object'
+            ? value.url ||
+              value.src ||
+              value.path ||
+              value.photo ||
+              value.original_url
+            : value;
+
+    if (typeof photo !== 'string') return null;
+    const path = photo.trim();
+    if (!path || path === 'null' || path === 'undefined') return null;
+
+    if (/^(https?:|data:|blob:)/i.test(path)) return path;
+    if (path.startsWith('//')) return `${window.location.protocol}${path}`;
+
+    const normalized = path.replace(/^\/+/, '');
+    if (
+        normalized.startsWith('storage/') ||
+        normalized.startsWith('uploads/') ||
+        normalized.startsWith('images/')
+    ) {
+        return `${API_ORIGIN}/${normalized}`;
+    }
+    if (normalized.startsWith('public/')) {
+        return `${API_ORIGIN}/storage/${normalized.slice(7)}`;
+    }
+    if (normalized.startsWith('api/')) {
+        return `${API_ORIGIN}/${normalized}`;
+    }
+    // A bare Laravel disk path (e.g. profile-photos/name.jpg).
+    return `${API_ORIGIN}/storage/${normalized}`;
+};
+
+/**
+ * A volunteer is an individual user. API serializers may return that
+ * user as `user`, `individual.user`, or `individual_user`.
+ */
+const getVolunteerPhoto = (volunteer) => {
+    const user =
+        volunteer?.user ||
+        volunteer?.individual?.user ||
+        volunteer?.individual_user ||
+        volunteer?.individual ||
+        null;
+
+    const candidates = [
+        user?.photo_url,
+        user?.profile_photo_url,
+        user?.avatar_url,
+        user?.photo,
+        user?.profile_photo,
+        user?.profile_image,
+        user?.avatar,
+        user?.image,
+        user?.image_url,
+        volunteer?.user_photo,
+        volunteer?.user_photo_url,
+        volunteer?.individual?.photo,
+        volunteer?.individual?.photo_url,
+        volunteer?.photo,
+        volunteer?.photo_url,
+    ];
+
+    for (const candidate of candidates) {
+        const url = getPhotoUrl(candidate);
+        if (url) return url;
+    }
+    return null;
+};
+
+/**
+ * Keep organization photo handling independent from volunteer photos.
+ */
+const getOrganizationPhoto = (organization) => {
+    const candidates = [
+        organization?.banner,
+        organization?.banner_url,
+        organization?.logo,
+        organization?.photo,
+        organization?.image,
+        organization?.user?.photo,
+        organization?.user?.photo_url,
+        organization?.user?.avatar,
+        organization?.user?.image,
+    ];
+
+    for (const candidate of candidates) {
+        const url = getPhotoUrl(candidate);
+
+        if (url) {
+            return url;
+        }
+    }
+
+    return null;
+};
+
 /* -------------------------------------------------------------------------- */
 /* SHARED VISUALS                                                             */
 /* -------------------------------------------------------------------------- */
 
 const ContributorAvatar = ({ name, image }) => {
-    if (image) {
+    const [imageFailed, setImageFailed] = useState(false);
+    const initials = getInitials(name) || 'স্ব';
+
+    if (image && !imageFailed) {
         return (
             <img
                 src={image}
                 alt={name}
                 loading="lazy"
                 className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
-                onError={(event) => {
-                    event.currentTarget.style.display = 'none';
-                }}
+                onError={() => setImageFailed(true)}
             />
         );
     }
 
     return (
-        <span className="flex h-full w-full items-center justify-center bg-primary-soft font-sans text-sm font-semibold text-primary">
-            {getInitials(name) || 'SP'}
-        </span>
+        <div
+            role="img"
+            aria-label={name}
+            className="flex h-full w-full items-center justify-center bg-linear-to-br from-[#e3ebe2] via-[#d4e1d3] to-[#b9d0c0]"
+        >
+            <span className="flex h-16 w-16 items-center justify-center rounded-full border border-white/70 bg-white/80 text-xl font-semibold text-primary shadow-sm sm:h-20 sm:w-20 sm:text-2xl">
+                {initials}
+            </span>
+        </div>
     );
 };
 
 const CorePhoto = ({ person }) => {
-    if (person.image) {
+    const [imageFailed, setImageFailed] = useState(false);
+    const image = getPhotoUrl(person.image);
+
+    if (image && !imageFailed) {
         return (
             <img
-                src={person.image}
+                src={image}
                 alt={person.name}
                 loading="lazy"
                 className="h-full w-full object-cover"
+                onError={() => setImageFailed(true)}
             />
         );
     }
@@ -159,7 +271,6 @@ const CorePhoto = ({ person }) => {
         <div className="flex h-full w-full items-center justify-center bg-[#e5e9df]">
             <div className="flex flex-col items-center gap-3 text-[#73877c]">
                 <TbUsers size={34} strokeWidth={1} />
-
                 <span className="text-xs">{person.imageLabel}</span>
             </div>
         </div>
@@ -169,7 +280,7 @@ const CorePhoto = ({ person }) => {
 const SectionIndex = ({ number, label, dark = false }) => (
     <div className="flex items-center gap-3">
         <span
-            className={`font-sans text-xs tracking-[0.16em] ${
+            className={`text-xs tracking-normal ${
                 dark ? 'text-white!/50' : 'text-text-muted'
             }`}
         >
@@ -191,26 +302,49 @@ const SectionIndex = ({ number, label, dark = false }) => (
 );
 
 /* -------------------------------------------------------------------------- */
+/* ORGANIZATION AVATAR                                                        */
+/* -------------------------------------------------------------------------- */
+
+const OrganizationAvatar = ({ logo, name }) => {
+    const [imageFailed, setImageFailed] = useState(false);
+
+    if (logo && !imageFailed) {
+        return (
+            <img
+                src={logo}
+                alt={name}
+                loading="lazy"
+                className="h-full w-full object-cover"
+                onError={() => setImageFailed(true)}
+            />
+        );
+    }
+
+    return (
+        <div
+            role="img"
+            aria-label={name}
+            className="flex h-full w-full items-center justify-center bg-[#e3ebe2] text-primary"
+        >
+            <TbBuildingCommunity size={28} strokeWidth={1.2} />
+        </div>
+    );
+};
+
+/* -------------------------------------------------------------------------- */
 /* TEAM PAGE                                                                  */
 /* -------------------------------------------------------------------------- */
 
 const Team = () => {
     const [volunteers, setVolunteers] = useState([]);
     const [organizations, setOrganizations] = useState([]);
-
     const [communityLoading, setCommunityLoading] = useState(true);
-
-    /* ---------------------------------------------------------------------- */
-    /* LIVE COMMUNITY DATA                                                    */
-    /* ---------------------------------------------------------------------- */
 
     useEffect(() => {
         let cancelled = false;
 
         const loadCommunity = async () => {
             try {
-                setCommunityLoading(true);
-
                 const response = await fetch(`${API_URL}/public/community`, {
                     method: 'GET',
                     headers: {
@@ -230,27 +364,23 @@ const Team = () => {
                     return;
                 }
 
-                const communityVolunteers = getCollection(payload, [
-                    'volunteers',
-                    'active_volunteers',
-                ]);
+                setVolunteers(
+                    getCollection(payload, ['volunteers', 'active_volunteers']),
+                );
 
-                const communityOrganizations = getCollection(payload, [
-                    'organizations',
-                    'verified_organizations',
-                    'partner_organizations',
-                ]);
-
-                setVolunteers(communityVolunteers);
-
-                setOrganizations(communityOrganizations);
+                setOrganizations(
+                    getCollection(payload, [
+                        'organizations',
+                        'verified_organizations',
+                        'partner_organizations',
+                    ]),
+                );
             } catch (error) {
                 if (cancelled) {
                     return;
                 }
 
                 console.error('Community contributors loading error:', error);
-
                 setVolunteers([]);
                 setOrganizations([]);
             } finally {
@@ -267,37 +397,26 @@ const Team = () => {
         };
     }, []);
 
-    /* ---------------------------------------------------------------------- */
-    /* VISIBLE COMMUNITY ITEMS                                                */
-    /* ---------------------------------------------------------------------- */
-
     const visibleVolunteers = volunteers.slice(0, 6);
-
     const visibleOrganizations = organizations.slice(0, 4);
 
     const hasCommunityData =
         visibleVolunteers.length > 0 || visibleOrganizations.length > 0;
 
-    /* ---------------------------------------------------------------------- */
-    /* RENDER                                                                 */
-    /* ---------------------------------------------------------------------- */
-
     return (
         <main
             lang="bn"
-            className="overflow-hidden bg-[#f8f7f2] font-bengali text-text-primary"
+            className="min-w-0 overflow-x-clip bg-[#f8f7f2] font-bengali text-text-primary"
         >
-            {/* =================================================================
-                01 — OPENING
-            ================================================================= */}
+            {/* 01 — OPENING */}
 
             <section className="relative overflow-hidden bg-[#f4f0e7]">
-                <div className="container-width relative mt-16 sm:mt-20">
-                    <div className="grid min-h-[580px] items-center gap-12 py-14 sm:min-h-[620px] sm:py-20 lg:min-h-[680px] lg:grid-cols-12 lg:gap-6 lg:py-24">
+                <div className="container-width relative mt-16 min-w-0 sm:mt-20">
+                    <div className="grid min-h-0 items-center gap-9 py-12 sm:py-16 lg:grid-cols-12 lg:gap-6 lg:py-20">
                         <div className="relative z-10 lg:col-span-8">
                             <SectionIndex number="০১" label="আমাদের পরিচয়" />
 
-                            <h1 className="mt-8 max-w-[850px] text-[2.5rem] font-medium! leading-[1.3] tracking-[-0.025em] sm:mt-9 sm:text-5xl sm:leading-[1.3] md:text-[3.8rem] lg:text-[4.65rem] lg:leading-[1.28] xl:text-[5rem]">
+                            <h1 className="mt-6 max-w-[850px] text-[2rem] font-medium! leading-[1.3] tracking-[-0.025em] sm:mt-7 sm:text-[2.65rem] md:text-[3rem] lg:text-[3.35rem] xl:text-[3.6rem]">
                                 মানুষের জন্য
                                 <span className="text-primary">
                                     {' '}
@@ -310,7 +429,7 @@ const Team = () => {
                                 </span>
                             </h1>
 
-                            <div className="mt-8 flex flex-col gap-6 sm:mt-9 sm:flex-row sm:items-end sm:gap-12">
+                            <div className="mt-8 flex flex-col gap-6 sm:mt-7 sm:flex-row sm:items-end sm:gap-12">
                                 <p className="max-w-md text-[0.95rem] leading-[1.9] text-text-secondary sm:text-base sm:leading-[1.95]">
                                     একটি মানবিক প্ল্যাটফর্মের পেছনে থাকা মানুষ,
                                     তাদের সম্মিলিত প্রচেষ্টা এবং একটি
@@ -330,41 +449,30 @@ const Team = () => {
                             </div>
                         </div>
 
-                        {/* Decorative composition */}
-
-                        <div className="relative hidden h-[420px] lg:col-span-4 lg:block">
-                            <div className="absolute right-0 top-4 h-[300px] w-[230px] overflow-hidden bg-[#d9dfd3]">
-                                <div className="flex h-full flex-col items-center justify-center gap-4 text-[#8b9c8b]">
-                                    <TbHeartHandshake
-                                        size={76}
-                                        strokeWidth={0.8}
-                                    />
-
-                                    <span className="text-xs tracking-[0.2em]">
-                                        PEOPLE FIRST
-                                    </span>
-                                </div>
+                        <div className="relative hidden h-[350px] lg:col-span-4 lg:block">
+                            <div className="absolute right-0 top-4 flex h-[260px] w-[210px] flex-col items-center justify-center gap-4 overflow-hidden bg-[#d9dfd3] text-[#8b9c8b]">
+                                <TbHeartHandshake size={76} strokeWidth={0.8} />
+                                <span className="text-xs tracking-[0.2em]">
+                                    মানুষ সবার আগে
+                                </span>
                             </div>
 
-                            <div className="absolute bottom-0 left-0 flex h-[175px] w-[190px] flex-col justify-between bg-primary p-5 text-white!">
+                            <div className="absolute bottom-0 left-0 flex h-[150px] w-[170px] flex-col justify-between bg-primary p-5 text-white!">
                                 <TbHeartHandshake size={30} strokeWidth={1.2} />
-
                                 <p className="max-w-[140px] text-sm leading-7">
                                     সহমর্মিতা থেকে সম্মিলিত উদ্যোগ।
                                 </p>
                             </div>
 
                             <span className="absolute right-0 top-0 h-3 w-3 rounded-full bg-accent" />
-
                             <span className="absolute bottom-10 right-8 h-20 w-20 rounded-full border border-primary/20" />
                         </div>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#d9d8cf] py-5">
-                        <span className="text-[10px] font-medium! tracking-[0.2em] text-text-muted">
-                            STAND FOR PEOPLE
+                        <span className="text-[0.76rem] font-medium! text-text-muted">
+                            Stand For People
                         </span>
-
                         <span className="text-xs text-text-secondary">
                             মানুষ · সংযোগ · সহায়তা
                         </span>
@@ -372,19 +480,16 @@ const Team = () => {
                 </div>
             </section>
 
-            {/* =================================================================
-                02 — CORE TEAM
-            ================================================================= */}
+            {/* 02 — CORE TEAM */}
 
             <section
                 id="people"
-                className="bg-[#f8f7f2] py-20 sm:py-24 lg:py-32"
+                className="scroll-mt-24 bg-[#f8f7f2] py-14 sm:py-18 lg:py-22"
             >
-                <div className="container-width">
+                <div className="container-width min-w-0">
                     <div className="grid gap-8 lg:grid-cols-12 lg:gap-6">
                         <div className="lg:col-span-3">
                             <SectionIndex number="০২" label="যেখান থেকে শুরু" />
-
                             <p className="mt-5 max-w-[220px] text-sm leading-7 text-text-secondary">
                                 একটি ধারণাকে বাস্তবে রূপ দেওয়ার পেছনে থাকে কিছু
                                 মানুষের সময়, চিন্তা ও নিরলস প্রচেষ্টা।
@@ -392,7 +497,7 @@ const Team = () => {
                         </div>
 
                         <div className="lg:col-span-8 lg:col-start-5">
-                            <h2 className="max-w-[760px] text-[2.15rem] font-medium! leading-[1.42] tracking-[-0.02em] sm:text-4xl sm:leading-[1.45] lg:text-[3.45rem] lg:leading-[1.42]">
+                            <h2 className="max-w-[760px] text-[1.85rem] font-medium! leading-[1.42] tracking-[-0.02em] sm:leading-[1.45] lg:text-[2.7rem]">
                                 একটি ছোট দল।
                                 <span className="text-primary">
                                     {' '}
@@ -402,11 +507,7 @@ const Team = () => {
                         </div>
                     </div>
 
-                    {/* Main team composition */}
-
-                    <div className="mt-12 grid gap-12 sm:mt-16 lg:mt-20 lg:grid-cols-12 lg:gap-6">
-                        {/* Supervisor */}
-
+                    <div className="mt-9 grid gap-8 sm:mt-11 lg:mt-14 lg:grid-cols-12 lg:gap-6">
                         <article className="lg:col-span-7 lg:col-start-2">
                             <div className="relative">
                                 <div className="aspect-[5/4] overflow-hidden bg-[#e5e9df] sm:aspect-[16/10]">
@@ -414,7 +515,7 @@ const Team = () => {
                                 </div>
 
                                 <span className="absolute bottom-0 right-0 hidden bg-[#f4f0e7] px-5 py-4 text-xs text-text-secondary sm:block">
-                                    PROJECT SUPERVISION
+                                    প্রকল্প তত্ত্বাবধান
                                 </span>
                             </div>
 
@@ -423,8 +524,7 @@ const Team = () => {
                                     <p className="text-xs font-medium! text-primary">
                                         {corePeople[0].role}
                                     </p>
-
-                                    <h3 className="mt-2 text-2xl font-medium! sm:text-[1.8rem]">
+                                    <h3 className="mt-2 text-[1.4rem] font-medium! sm:text-[1.8rem]">
                                         {corePeople[0].name}
                                     </h3>
                                 </div>
@@ -435,24 +535,18 @@ const Team = () => {
                             </div>
                         </article>
 
-                        {/* Editorial note */}
-
                         <div className="hidden flex-col justify-end pb-8 lg:col-span-3 lg:col-start-10 lg:flex">
                             <span className="mb-5 h-px w-12 bg-accent" />
-
                             <p className="max-w-[240px] text-xl leading-[1.8]">
                                 প্রতিটি ভালো উদ্যোগের শুরু হয় একটি ভাবনা থেকে।
                                 তার বাস্তবায়ন আসে সম্মিলিত প্রচেষ্টায়।
                             </p>
-
-                            <span className="mt-6 font-sans text-xs tracking-[0.15em] text-text-muted">
-                                THE BEGINNING
+                            <span className="mt-6 text-xs text-text-muted">
+                                যেখান থেকে শুরু
                             </span>
                         </div>
 
-                        {/* Founder one */}
-
-                        <article className="lg:col-span-4 lg:col-start-2 lg:mt-20">
+                        <article className="lg:col-span-4 lg:col-start-2 lg:mt-12">
                             <div className="aspect-[4/5] overflow-hidden bg-[#e5e9df]">
                                 <CorePhoto person={corePeople[1]} />
                             </div>
@@ -461,20 +555,16 @@ const Team = () => {
                                 <p className="text-xs font-medium! text-primary">
                                     {corePeople[1].role}
                                 </p>
-
-                                <h3 className="mt-2 text-2xl font-medium!">
+                                <h3 className="mt-2 text-[1.4rem] font-medium!">
                                     {corePeople[1].name}
                                 </h3>
-
                                 <p className="mt-3 max-w-sm text-sm leading-7 text-text-secondary">
                                     {corePeople[1].description}
                                 </p>
                             </div>
                         </article>
 
-                        {/* Founder two */}
-
-                        <article className="lg:col-span-4 lg:col-start-7 lg:mt-36">
+                        <article className="lg:col-span-4 lg:col-start-7 lg:mt-12">
                             <div className="aspect-[4/5] overflow-hidden bg-[#e5e9df]">
                                 <CorePhoto person={corePeople[2]} />
                             </div>
@@ -483,11 +573,9 @@ const Team = () => {
                                 <p className="text-xs font-medium! text-primary">
                                     {corePeople[2].role}
                                 </p>
-
-                                <h3 className="mt-2 text-2xl font-medium!">
+                                <h3 className="mt-2 text-[1.4rem] font-medium!">
                                     {corePeople[2].name}
                                 </h3>
-
                                 <p className="mt-3 max-w-sm text-sm leading-7 text-text-secondary">
                                     {corePeople[2].description}
                                 </p>
@@ -497,12 +585,10 @@ const Team = () => {
                 </div>
             </section>
 
-            {/* =================================================================
-                03 — TRANSITION TO COMMUNITY
-            ================================================================= */}
+            {/* 03 — TRANSITION TO COMMUNITY */}
 
             <section className="relative overflow-hidden bg-[#164f49] text-white!">
-                <div className="container-width relative py-20 sm:py-24 lg:py-32">
+                <div className="container-width relative min-w-0 py-14 sm:py-18 lg:py-22">
                     <div className="grid gap-10 lg:grid-cols-12 lg:items-end lg:gap-6">
                         <div className="lg:col-span-9 lg:col-start-2">
                             <SectionIndex
@@ -511,7 +597,7 @@ const Team = () => {
                                 dark
                             />
 
-                            <h2 className="mt-8 max-w-[900px] text-[2.05rem] font-medium! leading-[1.48] tracking-[-0.015em] sm:text-4xl sm:leading-[1.5] lg:text-[3.45rem] lg:leading-[1.48]">
+                            <h2 className="mt-6 max-w-[900px] text-[1.85rem] font-medium! leading-[1.48] tracking-[-0.015em] lg:text-[2.7rem] text-white!">
                                 প্ল্যাটফর্মটি কয়েকজন মানুষ তৈরি করেছেন।
                                 <span className="text-[#a9d2c7]">
                                     {' '}
@@ -522,7 +608,7 @@ const Team = () => {
                         </div>
 
                         <div className="lg:col-span-4 lg:col-start-8">
-                            <p className="text-sm leading-8 text-white!/70">
+                            <p className="text-sm leading-7 text-white!/70">
                                 মানুষের প্রয়োজন, সহায়তার ইচ্ছা এবং সংগঠিত
                                 মানবিক উদ্যোগ—SP এই আলাদা অংশগুলোকে একই
                                 ব্যবস্থায় কাছাকাছি আনে।
@@ -531,10 +617,9 @@ const Team = () => {
                     </div>
 
                     <div className="mt-14 flex items-center justify-between border-t border-white/20 pt-5 sm:mt-16">
-                        <span className="text-[10px] tracking-[0.2em] text-white!/50">
-                            BEYOND THE FOUNDING TEAM
+                        <span className="text-[0.76rem] text-white!/50">
+                            প্রতিষ্ঠাতা দলের বাইরেও
                         </span>
-
                         <TbArrowDownRight
                             size={22}
                             className="text-[#a9d2c7]"
@@ -543,20 +628,16 @@ const Team = () => {
                 </div>
             </section>
 
-            {/* =================================================================
-                04 — LIVE COMMUNITY
-            ================================================================= */}
+            {/* 04 — LIVE COMMUNITY */}
 
-            <section className="relative overflow-hidden bg-white py-20 sm:py-24 lg:py-32">
-                <div className="container-width">
-                    {/* Intro */}
-
+            <section className="relative overflow-hidden bg-white py-14 sm:py-18 lg:py-22">
+                <div className="container-width min-w-0">
                     <div className="relative">
                         <SectionIndex number="০৪" label="বর্তমান নেটওয়ার্ক" />
 
-                        <div className="mt-8 grid gap-10 lg:mt-10 lg:grid-cols-12 lg:gap-10">
+                        <div className="mt-6 grid gap-8 lg:mt-8 lg:grid-cols-12 lg:gap-10">
                             <div className="lg:col-span-8">
-                                <h2 className="max-w-[900px] text-[2.25rem] font-medium! leading-[1.35] tracking-[-0.02em] sm:text-4xl sm:leading-[1.4] lg:text-[3.65rem] lg:leading-[1.38]">
+                                <h2 className="max-w-[900px] text-[1.95rem] font-medium! leading-[1.35] tracking-[-0.02em] sm:text-[1.85rem] lg:text-[2.8rem]">
                                     পাশে থাকার মানুষগুলো
                                     <span className="text-primary">
                                         {' '}
@@ -566,7 +647,7 @@ const Team = () => {
                             </div>
 
                             <div className="lg:col-span-3 lg:col-start-10 lg:flex lg:items-end">
-                                <p className="max-w-[285px] text-sm leading-8 text-text-secondary">
+                                <p className="max-w-[285px] text-sm leading-7 text-text-secondary">
                                     একটি সহায়তার পথ কখনো একা তৈরি হয় না।
                                     মানুষের সময়, দক্ষতা, অভিজ্ঞতা এবং
                                     প্রতিষ্ঠানের সক্ষমতা মিলেই তৈরি হয় এই
@@ -576,17 +657,13 @@ const Team = () => {
                         </div>
                     </div>
 
-                    {/* Loading */}
-
                     {communityLoading && (
                         <div className="mt-16 border-t border-[#cfd8cf] pt-8 lg:mt-24">
                             <div className="grid gap-10 lg:grid-cols-2">
                                 {[1, 2].map((item) => (
                                     <div key={item} className="animate-pulse">
                                         <div className="h-2.5 w-16 bg-primary-soft" />
-
                                         <div className="mt-6 h-6 w-44 bg-primary-soft" />
-
                                         <div className="mt-4 h-3 w-64 bg-primary-soft" />
                                     </div>
                                 ))}
@@ -594,42 +671,25 @@ const Team = () => {
                         </div>
                     )}
 
-                    {/* Live community */}
-
                     {!communityLoading && hasCommunityData && (
-                        <div className="mt-16 lg:mt-24">
-                            {/* ------------------------------------------------
-                                    VOLUNTEERS
-                                ------------------------------------------------ */}
+                        <div className="mt-10 lg:mt-14">
+                            {/* VOLUNTEERS */}
 
                             {visibleVolunteers.length > 0 && (
                                 <div className="relative">
-                                    <div className="relative overflow-hidden bg-[#e8eee7] px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
-                                        {/* Decorative word */}
-
-                                        <div className="pointer-events-none absolute -right-10 -top-16 select-none font-serif text-[8rem] font-medium! leading-none text-[#dce5dc] sm:-right-8 sm:-top-20 sm:text-[14rem] lg:-right-10 lg:text-[18rem]">
+                                    <div className="relative overflow-hidden bg-[#e8eee7] px-5 py-7 sm:px-8 sm:py-9 lg:px-10 lg:py-10">
+                                        <div className="pointer-events-none absolute -right-10 -top-16 select-none font-bengali text-[5rem] font-medium! leading-none text-[#dce5dc] sm:-right-8 sm:-top-20 sm:text-[8rem] lg:-right-10 lg:text-[11rem]">
                                             মানুষ
                                         </div>
 
-                                        {/* Meta */}
-
                                         <div className="relative z-10 flex items-center justify-between">
-                                            <span className="text-xs font-medium! tracking-[0.08em] text-primary">
+                                            <span className="text-xs font-medium! text-primary">
                                                 আমাদের সঙ্গে
-                                            </span>
-
-                                            <span className="font-sans text-xs text-text-muted">
-                                                {toBengaliNumber(
-                                                    visibleVolunteers.length,
-                                                )}{' '}
-                                                জন
                                             </span>
                                         </div>
 
-                                        {/* Heading */}
-
-                                        <div className="relative z-10 mt-12 max-w-[720px] sm:mt-16 lg:mt-20">
-                                            <h3 className="text-[2.25rem] font-medium! leading-[1.25] tracking-[-0.02em] sm:text-5xl lg:text-[4.25rem] lg:leading-[1.2]">
+                                        <div className="relative z-10 mt-12 max-w-[720px] sm:mt-16 lg:mt-12">
+                                            <h3 className="text-[1.95rem] font-medium! leading-tight tracking-[-0.02em] sm:text-[2.65rem] lg:text-[3rem]">
                                                 যাঁরা নিজেদের
                                                 <br />
                                                 <span className="text-primary">
@@ -638,9 +698,7 @@ const Team = () => {
                                             </h3>
                                         </div>
 
-                                        {/* People */}
-
-                                        <div className="relative z-10 mt-12 grid gap-8 sm:mt-16 lg:mt-20 lg:grid-cols-12 lg:items-end">
+                                        <div className="relative z-10 mt-12 grid gap-8 sm:mt-16 lg:mt-12 lg:grid-cols-12 lg:items-end">
                                             {visibleVolunteers
                                                 .slice(0, 5)
                                                 .map((volunteer, index) => {
@@ -655,14 +713,11 @@ const Team = () => {
                                                             2,
                                                         );
 
+                                                    // Use the related individual user’s profile image.
                                                     const image =
-                                                        volunteer?.user
-                                                            ?.avatar ||
-                                                        volunteer?.user
-                                                            ?.image ||
-                                                        volunteer?.avatar ||
-                                                        volunteer?.image ||
-                                                        null;
+                                                        getVolunteerPhoto(
+                                                            volunteer,
+                                                        );
 
                                                     const layoutClass =
                                                         index === 0
@@ -682,13 +737,15 @@ const Team = () => {
                                                               ? 'aspect-square'
                                                               : 'aspect-[5/4]';
 
+                                                    const volunteerKey =
+                                                        volunteer?.id ??
+                                                        volunteer?.user_id ??
+                                                        volunteer?.user?.id ??
+                                                        `${name}-${index}`;
+
                                                     return (
                                                         <article
-                                                            key={
-                                                                volunteer?.id ||
-                                                                volunteer?.user_id ||
-                                                                `${name}-${index}`
-                                                            }
+                                                            key={volunteerKey}
                                                             className={`group relative ${layoutClass}`}
                                                         >
                                                             <div
@@ -696,6 +753,7 @@ const Team = () => {
                                                             >
                                                                 <div className="h-full w-full">
                                                                     <ContributorAvatar
+                                                                        key={`${volunteerKey}-${image || 'no-photo'}`}
                                                                         name={
                                                                             name
                                                                         }
@@ -705,20 +763,12 @@ const Team = () => {
                                                                     />
                                                                 </div>
 
-                                                                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-70" />
-
-                                                                <span className="absolute left-4 top-4 font-sans text-[11px] text-white!/80">
-                                                                    {toBengaliNumber(
-                                                                        index +
-                                                                            1,
-                                                                    )}
-                                                                </span>
+                                                                <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/35 via-transparent to-transparent opacity-70" />
 
                                                                 <div className="absolute inset-x-5 bottom-5 text-white!">
                                                                     <p className="text-lg font-medium! leading-tight sm:text-xl">
                                                                         {name}
                                                                     </p>
-
                                                                     <p className="mt-1 text-xs text-white!/75">
                                                                         স্বেচ্ছাসেবক
                                                                     </p>
@@ -740,7 +790,6 @@ const Team = () => {
                                                                                 {
                                                                                     skill
                                                                                 }
-
                                                                                 {skillIndex <
                                                                                     skills.length -
                                                                                         1 && (
@@ -758,9 +807,7 @@ const Team = () => {
                                                 })}
                                         </div>
 
-                                        {/* Footer */}
-
-                                        <div className="relative z-10 mt-12 border-t border-[#c8d3c7] pt-6 lg:mt-16">
+                                        <div className="relative z-10 mt-9 border-t border-[#c8d3c7] pt-6 lg:mt-12">
                                             <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                                                 <p className="max-w-[390px] text-sm leading-7 text-text-secondary">
                                                     প্রত্যেক মানুষ নিজের
@@ -773,7 +820,6 @@ const Team = () => {
 
                                                 <div className="flex items-center gap-3 text-xs text-primary">
                                                     <span className="h-2 w-2 rounded-full bg-primary" />
-
                                                     <span>
                                                         মানুষ থেকে মানুষের পাশে
                                                     </span>
@@ -784,21 +830,17 @@ const Team = () => {
                                 </div>
                             )}
 
-                            {/* ------------------------------------------------
-                                    ORGANIZATIONS
-                                ------------------------------------------------ */}
+                            {/* ORGANIZATIONS */}
 
                             {visibleOrganizations.length > 0 && (
-                                <div className="relative mt-20 border-t border-[#bcc8bc] pt-16 sm:mt-24 lg:mt-32 lg:pt-20">
-                                    {/* Intro */}
-
+                                <div className="relative mt-14 border-t border-[#bcc8bc] pt-12 sm:mt-18 lg:mt-20 lg:pt-14">
                                     <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
                                         <div className="lg:col-span-7">
-                                            <p className="text-xs font-medium! tracking-[0.08em] text-[#a66b18]">
+                                            <p className="text-xs font-medium! text-[#a66b18]">
                                                 প্রাতিষ্ঠানিক অংশগ্রহণ
                                             </p>
 
-                                            <h3 className="mt-4 max-w-[720px] text-[2.2rem] font-medium! leading-[1.35] tracking-[-0.02em] sm:text-4xl lg:text-[3.3rem]">
+                                            <h3 className="mt-4 max-w-[720px] text-[1.85rem] font-medium! leading-[1.35] tracking-[-0.02em] lg:text-[2.6rem]">
                                                 সক্ষমতা নিয়ে
                                                 <span className="text-primary">
                                                     {' '}
@@ -817,9 +859,7 @@ const Team = () => {
                                         </div>
                                     </div>
 
-                                    {/* Organization list */}
-
-                                    <div className="mt-14 lg:mt-20">
+                                    <div className="mt-14 lg:mt-12">
                                         {visibleOrganizations.map(
                                             (organization, index) => {
                                                 const name =
@@ -834,12 +874,9 @@ const Team = () => {
                                                     );
 
                                                 const logo =
-                                                    organization?.logo ||
-                                                    organization?.image ||
-                                                    organization?.user
-                                                        ?.avatar ||
-                                                    organization?.user?.image ||
-                                                    null;
+                                                    getOrganizationPhoto(
+                                                        organization,
+                                                    );
 
                                                 return (
                                                     <article
@@ -847,53 +884,30 @@ const Team = () => {
                                                             organization?.id ||
                                                             `${name}-${index}`
                                                         }
-                                                        className="group relative border-t border-[#cfd8cf] py-7 sm:py-8"
+                                                        className="group relative min-w-0 border-t border-[#cfd8cf] py-7 sm:py-8"
                                                     >
-                                                        <div className="grid gap-6 sm:grid-cols-[64px_1fr] sm:items-center sm:gap-8 lg:grid-cols-[72px_minmax(0,1fr)_300px]">
-                                                            {/* Index */}
-
-                                                            <span className="font-sans text-xs text-text-muted">
+                                                        <div className="grid min-w-0 gap-4 sm:grid-cols-[64px_minmax(0,1fr)] sm:items-center sm:gap-6 lg:grid-cols-[72px_minmax(0,1fr)_minmax(180px,300px)]">
+                                                            <span className="text-xs text-text-muted">
                                                                 {toBengaliNumber(
                                                                     index + 1,
                                                                 )}
                                                             </span>
 
-                                                            {/* Organization */}
-
                                                             <div className="flex min-w-0 items-center gap-5">
                                                                 <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden bg-[#e3ebe2] sm:h-16 sm:w-16">
-                                                                    {logo ? (
-                                                                        <img
-                                                                            src={
-                                                                                logo
-                                                                            }
-                                                                            alt={
-                                                                                name
-                                                                            }
-                                                                            loading="lazy"
-                                                                            className="h-full w-full object-cover"
-                                                                            onError={(
-                                                                                event,
-                                                                            ) => {
-                                                                                event.currentTarget.style.display =
-                                                                                    'none';
-                                                                            }}
-                                                                        />
-                                                                    ) : (
-                                                                        <TbBuildingCommunity
-                                                                            size={
-                                                                                28
-                                                                            }
-                                                                            strokeWidth={
-                                                                                1.2
-                                                                            }
-                                                                            className="text-primary"
-                                                                        />
-                                                                    )}
+                                                                    <OrganizationAvatar
+                                                                        key={`${organization?.id || name}-${logo || 'no-photo'}`}
+                                                                        logo={
+                                                                            logo
+                                                                        }
+                                                                        name={
+                                                                            name
+                                                                        }
+                                                                    />
                                                                 </div>
 
                                                                 <div className="min-w-0">
-                                                                    <h4 className="truncate text-lg font-medium! sm:text-xl">
+                                                                    <h4 className="break-words text-lg font-medium! sm:text-xl">
                                                                         {name}
                                                                     </h4>
 
@@ -907,12 +921,10 @@ const Team = () => {
                                                                 </div>
                                                             </div>
 
-                                                            {/* Focus areas */}
-
-                                                            <div className="sm:col-span-2 sm:pl-[72px] lg:col-span-1 lg:pl-0">
+                                                            <div className="min-w-0 sm:col-span-2 sm:pl-[88px] lg:col-span-1 lg:pl-0">
                                                                 {focusAreas.length >
                                                                     0 && (
-                                                                    <p className="max-w-[300px] text-xs leading-6 text-primary">
+                                                                    <p className="max-w-[300px] break-words text-xs leading-6 text-primary">
                                                                         {focusAreas.join(
                                                                             ' · ',
                                                                         )}
@@ -920,8 +932,6 @@ const Team = () => {
                                                                 )}
                                                             </div>
                                                         </div>
-
-                                                        {/* Hover rule */}
 
                                                         <span className="absolute bottom-0 left-0 h-px w-0 bg-accent transition-all duration-500 group-hover:w-full" />
                                                     </article>
@@ -936,10 +946,10 @@ const Team = () => {
                         </div>
                     )}
 
-                    {/* Empty state */}
+                    {/* EMPTY STATE */}
 
                     {!communityLoading && !hasCommunityData && (
-                        <div className="mt-16 border-t border-[#cfd8cf] pt-14 lg:mt-24 lg:pt-20">
+                        <div className="mt-16 border-t border-[#cfd8cf] pt-14 lg:mt-24">
                             <div className="grid gap-8 lg:grid-cols-12">
                                 <div className="lg:col-span-4">
                                     <span className="font-sans text-xs text-primary">
@@ -948,7 +958,7 @@ const Team = () => {
                                 </div>
 
                                 <div className="lg:col-span-7 lg:col-start-6">
-                                    <h3 className="max-w-[650px] text-3xl font-medium! leading-[1.4] sm:text-4xl sm:leading-[1.45]">
+                                    <h3 className="max-w-[650px] text-[1.8rem] font-medium! leading-[1.4] sm:text-[1.85rem]">
                                         এই নেটওয়ার্কটি
                                         <span className="text-primary">
                                             {' '}
@@ -968,17 +978,15 @@ const Team = () => {
                 </div>
             </section>
 
-            {/* =================================================================
-                05 — PARTICIPATION
-            ================================================================= */}
+            {/* 05 — PARTICIPATION */}
 
-            <section className="bg-[#f1eee5] py-20 sm:py-24 lg:py-28">
-                <div className="container-width">
+            <section className="bg-[#f1eee5] py-14 sm:py-18 lg:py-22">
+                <div className="container-width min-w-0">
                     <div className="grid gap-12 lg:grid-cols-12 lg:gap-6">
                         <div className="lg:col-span-5">
                             <SectionIndex number="০৫" label="অংশগ্রহণের পথ" />
 
-                            <h2 className="mt-6 max-w-[520px] text-[2.15rem] font-medium! leading-[1.45] tracking-[-0.02em] sm:text-4xl lg:text-[3.25rem] lg:leading-[1.45]">
+                            <h2 className="mt-6 max-w-[520px] text-[1.85rem] font-medium! leading-[1.45] tracking-[-0.02em] lg:text-[2.55rem]">
                                 সবাই একইভাবে
                                 <span className="text-primary">
                                     {' '}
@@ -994,8 +1002,6 @@ const Team = () => {
                         </div>
 
                         <div className="lg:col-span-6 lg:col-start-7">
-                            {/* Volunteer */}
-
                             <Link
                                 to="/volunteer"
                                 className="group flex items-center gap-5 border-t border-text-primary py-7"
@@ -1010,7 +1016,6 @@ const Team = () => {
                                     <p className="text-xs font-medium! text-primary">
                                         স্বেচ্ছাসেবক
                                     </p>
-
                                     <p className="mt-1 text-lg font-medium!">
                                         সময় ও দক্ষতা দিয়ে যুক্ত হোন
                                     </p>
@@ -1021,8 +1026,6 @@ const Team = () => {
                                     className="shrink-0 text-primary transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1"
                                 />
                             </Link>
-
-                            {/* Organizations */}
 
                             <Link
                                 to="/organizations"
@@ -1038,7 +1041,6 @@ const Team = () => {
                                     <p className="text-xs font-medium! text-primary">
                                         সংগঠন
                                     </p>
-
                                     <p className="mt-1 text-lg font-medium!">
                                         একটি মানবিক উদ্যোগ নিয়ে যুক্ত হোন
                                     </p>
@@ -1049,8 +1051,6 @@ const Team = () => {
                                     className="shrink-0 text-primary transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1"
                                 />
                             </Link>
-
-                            {/* Help */}
 
                             <Link
                                 to="/request-help"
@@ -1066,7 +1066,6 @@ const Team = () => {
                                     <p className="text-xs font-medium! text-primary">
                                         সহায়তার প্রয়োজন
                                     </p>
-
                                     <p className="mt-1 text-lg font-medium!">
                                         একটি বাস্তব প্রয়োজন সামনে আনুন
                                     </p>
@@ -1082,19 +1081,17 @@ const Team = () => {
                 </div>
             </section>
 
-            {/* =================================================================
-                CLOSING
-            ================================================================= */}
+            {/* CLOSING */}
 
             <section className="bg-[#fffefa]">
-                <div className="container-width py-20 sm:py-24 lg:py-32">
+                <div className="container-width min-w-0 py-14 sm:py-18 lg:py-22">
                     <div className="grid gap-8 border-t border-text-primary pt-8 lg:grid-cols-12 lg:items-end lg:gap-6">
                         <div className="lg:col-span-8">
-                            <p className="text-xs font-medium! tracking-[0.15em] text-primary">
-                                STAND FOR PEOPLE
+                            <p className="text-xs font-medium! text-primary">
+                                Stand For People
                             </p>
 
-                            <h2 className="mt-5 max-w-[780px] text-[2.05rem] font-medium! leading-[1.48] tracking-[-0.02em] sm:text-4xl sm:leading-[1.5] lg:text-[3.25rem] lg:leading-[1.48]">
+                            <h2 className="mt-5 max-w-[780px] text-[1.85rem] font-medium! leading-[1.48] tracking-[-0.02em] lg:text-[2.55rem]">
                                 এই নেটওয়ার্কে পরবর্তী মানুষটি
                                 <span className="text-primary">
                                     {' '}

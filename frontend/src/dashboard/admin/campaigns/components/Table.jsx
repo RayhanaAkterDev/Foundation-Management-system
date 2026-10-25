@@ -1,12 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+    BadgeCheck,
     CalendarDays,
     Eye,
-    Pencil,
-    BadgeCheck,
-    UserRoundPlus,
+    Flame,
     Megaphone,
+    Pencil,
+    SlidersHorizontal,
+    Star,
+    UserRoundPlus,
 } from 'lucide-react';
 
 import DataTable from '@/components/dashboard/DataTable';
@@ -61,7 +64,7 @@ function ActionButton({ icon: Icon, label, onClick, disabled = false }) {
     );
 }
 
-function Actions({ column, row }) {
+function Actions({ column, row, onManageClassification }) {
     const navigate = useNavigate();
 
     if (!row) return null;
@@ -71,6 +74,9 @@ function Actions({ column, row }) {
     const canEdit = ['unverified', 'active'].includes(status);
     const canVerify = status === 'unverified';
     const canAssign = status === 'active';
+
+    // Classification is available only after verification.
+    const canClassify = status === 'active';
 
     const original =
         typeof column?.render === 'function'
@@ -161,16 +167,88 @@ function Actions({ column, row }) {
                     }
                 />
             )}
+
+            {canClassify && (
+                <ActionButton
+                    icon={SlidersHorizontal}
+                    label={`Manage classification for ${row.title || 'campaign'}`}
+                    onClick={() => onManageClassification?.(row)}
+                    disabled={typeof onManageClassification !== 'function'}
+                />
+            )}
         </div>
+    );
+}
+
+/*
+ * Compact classification badges.
+ */
+function ClassificationLabels({ row }) {
+    const isFeatured = Boolean(row.is_featured);
+    const isUrgent = Boolean(row.is_urgent);
+    const priority = Number(row.urgency_priority);
+
+    if (!isFeatured && !isUrgent) return null;
+
+    return (
+        <>
+            {isFeatured && (
+                <span
+                    title="Featured campaign"
+                    className="
+                        inline-flex h-[22px] shrink-0 items-center gap-1
+                        whitespace-nowrap rounded-[4px]
+                        border border-[#6C5936]/60 bg-[#3B3020]/70
+                        px-2 text-[10px] font-semibold leading-none
+                        text-[#E9C886]
+                    "
+                >
+                    <Star size={11} strokeWidth={1.8} />
+                    Featured
+                </span>
+            )}
+
+            {isUrgent && (
+                <span
+                    title={
+                        Number.isInteger(priority) &&
+                        priority >= 1 &&
+                        priority <= 4
+                            ? `Urgent campaign - Priority ${priority}`
+                            : 'Urgent campaign'
+                    }
+                    className="
+                        inline-flex h-[22px] shrink-0 items-center gap-1
+                        whitespace-nowrap rounded-[4px]
+                        border border-[#794742]/60 bg-[#432725]/70
+                        px-2 text-[10px] font-semibold leading-none
+                        text-[#E9A29A]
+                    "
+                >
+                    <Flame size={11} strokeWidth={1.8} />
+                    Urgent
+                    {Number.isInteger(priority) &&
+                        priority >= 1 &&
+                        priority <= 4 && (
+                            <span className="ml-0.5 border-l border-[#9D615A]/50 pl-1.5 font-medium text-[#E8B2AC]">
+                                P{priority}
+                            </span>
+                        )}
+                </span>
+            )}
+        </>
     );
 }
 
 function Identity({ row }) {
     return (
-        <div className="min-w-0 py-1">
+        <div className="min-w-0 py-0.5">
             <p
                 title={row.title}
-                className="m-0 line-clamp-2 text-[13px] leading-[1.65] font-semibold text-[#EEF1F5]!"
+                className="
+                    m-0 line-clamp-2 text-[13px] font-semibold
+                    leading-[1.55] text-[#EEF1F5]!
+                "
                 style={{
                     fontFamily: "'Poppins', 'Noto Sans Bengali', sans-serif",
                 }}
@@ -178,9 +256,26 @@ function Identity({ row }) {
                 {row.title || 'Untitled campaign'}
             </p>
 
-            <p className="m-0 mt-1 text-[11px] font-medium leading-4 text-[#8FA0B4]!">
-                {row.category || 'General'}
-            </p>
+            <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
+                <span
+                    className="
+                        max-w-full truncate text-[11px] font-medium
+                        leading-[22px] text-[#9BA8B8]
+                    "
+                    title={row.category || 'General'}
+                >
+                    {row.category || 'General'}
+                </span>
+
+                {(row.is_featured || row.is_urgent) && (
+                    <span
+                        aria-hidden="true"
+                        className="hidden h-1 w-1 shrink-0 rounded-full bg-[#586675] sm:block"
+                    />
+                )}
+
+                <ClassificationLabels row={row} />
+            </div>
         </div>
     );
 }
@@ -266,23 +361,16 @@ export default function Table({
     onSort,
     getSortIcon,
     resultCount,
+    onManageClassification,
 }) {
     const actionColumn = columns.find((column) => column.key === 'actions');
 
-    const empty = (
-        <div className="flex min-h-64 flex-col items-center justify-center bg-[#10161E] px-6 text-center">
-            <span className="flex h-12 w-12 items-center justify-center border border-[#344150] bg-[#1B2632] text-[#91A3B8]">
-                <Megaphone size={22} strokeWidth={1.6} />
-            </span>
-
-            <p className="m-0 mt-4 text-[14px] font-semibold text-[#EEF1F5]!">
-                No campaigns found
-            </p>
-
-            <p className="m-0 mt-1 text-[12px] text-[#8998AA]!">
-                Try changing your search or filter options.
-            </p>
-        </div>
+    const renderActions = (row) => (
+        <Actions
+            column={actionColumn}
+            row={row}
+            onManageClassification={onManageClassification}
+        />
     );
 
     const enhancedColumns = [
@@ -302,7 +390,7 @@ export default function Table({
         {
             key: 'title',
             header: 'Campaign',
-            width: 'minmax(310px,2.6fr)',
+            width: 'minmax(350px,2.8fr)',
             sortable: true,
             sortKey: 'title',
             render: (_value, row) => <Identity row={row} />,
@@ -310,7 +398,7 @@ export default function Table({
         {
             key: 'campaignType',
             header: 'Campaign Type',
-            width: 'minmax(150px,1.15fr)',
+            width: 'minmax(150px,1.1fr)',
             sortable: true,
             sortKey: 'type',
             render: (value, row) => <CampaignType value={value} row={row} />,
@@ -342,13 +430,27 @@ export default function Table({
         {
             key: 'actions',
             header: 'Actions',
-            width: '152px',
+            width: '190px',
             align: 'right',
-            render: (_value, row) => (
-                <Actions column={actionColumn} row={row} />
-            ),
+            render: (_value, row) => renderActions(row),
         },
     ];
+
+    const empty = (
+        <div className="flex min-h-64 flex-col items-center justify-center bg-[#10161E] px-6 text-center">
+            <span className="flex h-12 w-12 items-center justify-center border border-[#344150] bg-[#1B2632] text-[#91A3B8]">
+                <Megaphone size={22} strokeWidth={1.6} />
+            </span>
+
+            <p className="m-0 mt-4 text-[14px] font-semibold text-[#EEF1F5]!">
+                No campaigns found
+            </p>
+
+            <p className="m-0 mt-1 text-[12px] text-[#8998AA]!">
+                Try changing your search or filter options.
+            </p>
+        </div>
+    );
 
     return (
         <>
@@ -406,7 +508,7 @@ export default function Table({
                                       {row.formattedStartDate || '—'}
                                   </span>
 
-                                  <Actions column={actionColumn} row={row} />
+                                  {renderActions(row)}
                               </div>
                           </article>
                       ))

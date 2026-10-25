@@ -17,35 +17,46 @@ import SectionHeading from '@/components/SectionHeading';
 const categoryVisuals = {
     Education: {
         icon: TbBook,
-        description: 'Support access to education and learning opportunities.',
+        description: 'শিক্ষা ও শেখার সুযোগ নিশ্চিত করতে সহায়তা করুন।',
     },
     Healthcare: {
         icon: TbFirstAidKit,
         description:
-            'Help people access essential healthcare and medical support.',
+            'প্রয়োজনীয় চিকিৎসা ও স্বাস্থ্যসেবা পেতে মানুষকে সহায়তা করুন।',
     },
     'Food Assistance': {
         icon: TbToolsKitchen2,
-        description: 'Support individuals and families facing food insecurity.',
+        description: 'খাদ্যসংকটে থাকা ব্যক্তি ও পরিবারের পাশে দাঁড়ান।',
     },
     Shelter: {
         icon: TbHome,
-        description: 'Help provide safe and stable shelter for people in need.',
+        description:
+            'অসহায় মানুষের জন্য নিরাপদ ও স্থায়ী আশ্রয় নিশ্চিত করতে সহায়তা করুন।',
     },
     Livelihood: {
         icon: TbBuildingCommunity,
-        description: 'Support people in building sustainable livelihoods.',
+        description: 'মানুষকে টেকসই জীবিকা গড়ে তুলতে সহায়তা করুন।',
     },
     'Disaster Relief': {
         icon: TbAlertTriangle,
         description:
-            'Respond to urgent needs caused by disasters and emergencies.',
+            'দুর্যোগ ও জরুরি পরিস্থিতিতে ক্ষতিগ্রস্ত মানুষের পাশে দাঁড়ান।',
     },
     Other: {
         icon: TbDots,
         description:
-            'Support humanitarian needs that fall outside other categories.',
+            'অন্যান্য বিভাগের বাইরে থাকা মানবিক সহায়তার প্রয়োজন পূরণে এগিয়ে আসুন।',
     },
+};
+
+const categoryNames = {
+    Education: 'শিক্ষা',
+    Healthcare: 'স্বাস্থ্যসেবা',
+    'Food Assistance': 'খাদ্য সহায়তা',
+    Shelter: 'আশ্রয়',
+    Livelihood: 'জীবিকা',
+    'Disaster Relief': 'দুর্যোগ সহায়তা',
+    Other: 'অন্যান্য',
 };
 
 const CategoryQuickAccess = () => {
@@ -87,8 +98,8 @@ const CategoryQuickAccess = () => {
                 <div className="mb-10">
                     <SectionHeading
                         align="left"
-                        title="Explore by Cause"
-                        description="Discover urgent needs and ongoing campaigns by category"
+                        title="সহায়তার ক্ষেত্র অনুযায়ী খুঁজুন"
+                        description="বিভাগ অনুযায়ী জরুরি সহায়তার আবেদন ও চলমান ক্যাম্পেইনগুলো দেখুন"
                         descriptionSize="hero"
                     />
                 </div>
@@ -129,11 +140,11 @@ const CategoryQuickAccess = () => {
 
                             <div className="mt-6">
                                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                                    Featured Cause
+                                    নির্বাচিত সহায়তার ক্ষেত্র
                                 </p>
 
                                 <h2 className="mt-3 text-3xl font-bold text-text-primary">
-                                    {main.name}
+                                    {categoryNames[main.name] || main.name}
                                 </h2>
 
                                 <p className="mt-4 max-w-xl leading-relaxed text-text-secondary">
@@ -152,7 +163,7 @@ const CategoryQuickAccess = () => {
                                         text-white!
                                     "
                                 >
-                                    View campaigns
+                                    ক্যাম্পেইনগুলো দেখুন
                                 </span>
 
                                 <TbArrowRight
@@ -168,11 +179,11 @@ const CategoryQuickAccess = () => {
 
                         <div className="hidden md:flex flex-col items-end">
                             <span className="text-xs uppercase tracking-wider text-text-secondary">
-                                Most active cause
+                                সর্বাধিক সক্রিয় সহায়তার ক্ষেত্র
                             </span>
 
                             <span className="mt-2 text-sm font-medium! text-text-primary">
-                                Browse related campaigns
+                                সংশ্লিষ্ট ক্যাম্পেইনগুলো দেখুন
                             </span>
                         </div>
                     </div>
@@ -213,7 +224,7 @@ const CategoryQuickAccess = () => {
 
                                 <div className="min-w-0 flex-1">
                                     <h4 className="font-semibold text-text-primary">
-                                        {cat.name}
+                                        {categoryNames[cat.name] || cat.name}
                                     </h4>
 
                                     <p className="mt-1 line-clamp-1 text-xs text-text-secondary">
@@ -251,7 +262,7 @@ const CategoryQuickAccess = () => {
                             hover:gap-3
                         "
                     >
-                        Browse all categories
+                        সকল বিভাগ দেখুন
                         <TbArrowRight size={18} />
                     </Link>
                 </div>

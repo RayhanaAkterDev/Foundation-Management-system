@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Button from '@/components/Button';
@@ -19,9 +20,9 @@ const BrowseCTA = () => {
                     <TbWorld className="mx-auto text-4xl text-primary mb-5 opacity-90" />
 
                     <SectionHeading
-                        title="Explore all verified campaigns"
+                        title="সকল যাচাইকৃত ক্যাম্পেইন দেখুন"
                         headingSize="sectionHero"
-                        description="Search, filter, and discover real needs — everything is structured for clarity and trust."
+                        description="অনুসন্ধান ও ফিল্টারের মাধ্যমে প্রকৃত সহায়তার প্রয়োজনগুলো খুঁজে নিন — স্বচ্ছতা ও বিশ্বাসযোগ্যতার ভিত্তিতে সাজানো প্রতিটি ক্যাম্পেইন।"
                         descriptionSize="hero"
                     />
                 </div>
@@ -30,20 +31,20 @@ const BrowseCTA = () => {
                 <div className="mt-14 flex flex-col md:flex-row items-center justify-center gap-4">
                     <Link to="/campaigns">
                         <Button className="px-10 py-3 text-base">
-                            Enter Campaign Explorer
+                            ক্যাম্পেইনগুলো ঘুরে দেখুন
                         </Button>
                     </Link>
 
                     <Link to="/campaigns?filter=urgent">
                         <button className="text-sm text-muted hover:text-primary transition">
-                            View urgent needs →
+                            জরুরি সহায়তার আবেদন দেখুন →
                         </button>
                     </Link>
                 </div>
 
                 {/* subtle trust line */}
                 <p className="text-center text-xs text-muted mt-6">
-                    Transparent listings • Verified requests • Real-time updates
+                    স্বচ্ছ তথ্য • যাচাইকৃত আবেদন • তাৎক্ষণিক আপডেট
                 </p>
             </div>
         </section>

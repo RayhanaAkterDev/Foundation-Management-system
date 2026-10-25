@@ -28,7 +28,7 @@ const DonateHero = () => {
                 <div>
                     <div className="flex items-center gap-2 text-sm text-primary mb-4 font-poppins">
                         <TbShieldCheck className="text-primary" />
-                        Verified cases • Direct hospital & family support
+                        যাচাইকৃত আবেদন • হাসপাতাল ও পরিবারকে সরাসরি সহায়তা
                     </div>
 
                     <SectionHeading
@@ -36,28 +36,28 @@ const DonateHero = () => {
                         align="left"
                         title={
                             <>
-                                Real people need <br /> help
-                                <span className="text-primary"> right now</span>
+                                মানুষের পাশে দাঁড়ানো <br /> প্রয়োজন
+                                <span className="text-primary"> এখনই</span>
                             </>
                         }
                         headingSize="sectionHero"
                         description={
                             <>
-                                Every campaign is verified. Every donation is
-                                tracked. Your support goes directly to real
-                                medical and survival needs.
+                                প্রতিটি ক্যাম্পেইন যাচাইকৃত এবং প্রতিটি অনুদানের
+                                হিসাব সংরক্ষিত হয়। আপনার সহায়তা সরাসরি চিকিৎসা
+                                ও জীবনধারণের জরুরি প্রয়োজনে পৌঁছে যায়।
                                 <div className="flex gap-2 mt-4">
                                     <span className="text-primary">●</span>
-                                    Medical emergencies are prioritized first
+                                    জরুরি চিকিৎসা সহায়তাকে সর্বোচ্চ অগ্রাধিকার
+                                    দেওয়া হয়
                                 </div>
                                 <div className="flex gap-2">
                                     <span className="text-primary">●</span>
-                                    Funds are released in stages after
-                                    verification
+                                    যাচাইয়ের পর ধাপে ধাপে অর্থ প্রদান করা হয়
                                 </div>
                                 <div className="flex gap-2">
                                     <span className="text-primary">●</span>
-                                    Every campaign has identity validation
+                                    প্রতিটি ক্যাম্পেইনের পরিচয় যাচাই করা হয়
                                 </div>
                             </>
                         }
@@ -66,11 +66,11 @@ const DonateHero = () => {
 
                     <div className="mt-10 flex gap-4 flex-wrap">
                         <Button to="#urgent" size="lg">
-                            Donate to Urgent Cases
+                            জরুরি আবেদনে অনুদান দিন
                         </Button>
 
                         <Button to="/campaigns" variant="ghost" size="lg">
-                            View all cases
+                            সকল আবেদন দেখুন
                             <TbArrowRight className="ml-1" />
                         </Button>
                     </div>
@@ -97,7 +97,7 @@ const DonateHero = () => {
                             </span>
 
                             <span className="text-text-secondary">
-                                Verified Hospital Case
+                                যাচাইকৃত হাসপাতালের আবেদন
                             </span>
                         </div>
 
@@ -107,7 +107,7 @@ const DonateHero = () => {
                         </h3>
 
                         <p className="mt-1 text-sm text-text-secondary">
-                            {campaign.organizer?.name || 'Organizer'} •{' '}
+                            {campaign.organizer?.name || 'আয়োজক'} •{' '}
                             {campaign.location}
                         </p>
 
@@ -117,11 +117,12 @@ const DonateHero = () => {
                         <div>
                             <div className="flex justify-between text-sm">
                                 <span className="font-semibold text-primary">
-                                    ৳{raised.toLocaleString()} raised
+                                    ৳{raised.toLocaleString('bn-BD')} সংগ্রহ
+                                    হয়েছে
                                 </span>
 
                                 <span className="text-text-secondary">
-                                    of ৳{goal.toLocaleString()}
+                                    লক্ষ্যমাত্রা ৳{goal.toLocaleString('bn-BD')}
                                 </span>
                             </div>
 
@@ -133,8 +134,8 @@ const DonateHero = () => {
                             </div>
 
                             <p className="mt-2 text-xs text-text-secondary">
-                                {campaign.daysLeft} days left • Urgent medical
-                                support needed
+                                {campaign.daysLeft} দিন বাকি • জরুরি চিকিৎসা
+                                সহায়তা প্রয়োজন
                             </p>
                         </div>
 
@@ -142,7 +143,7 @@ const DonateHero = () => {
                         <div className="mt-6 flex items-center justify-between">
                             <div>
                                 <p className="text-xs text-text-secondary">
-                                    Campaign ID
+                                    ক্যাম্পেইন আইডি
                                 </p>
                                 <p className="text-sm font-semibold text-text-primary">
                                     {campaign.id}
@@ -154,7 +155,7 @@ const DonateHero = () => {
                                 size="md"
                                 className="bg-primary hover:bg-primary-hover text-white!"
                             >
-                                Help Save Life
+                                জীবন বাঁচাতে সহায়তা করুন
                             </Button>
                         </div>
                     </div>

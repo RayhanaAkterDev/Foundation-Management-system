@@ -20,8 +20,8 @@ const UrgentSection = ({ campaigns = [] }) => {
                     <div className="lg:col-span-2">
                         <SectionHeading
                             align="left"
-                            title="Urgent Appeals"
-                            description="Live critical cases that need immediate attention."
+                            title="জরুরি সহায়তার আবেদন"
+                            description="তাৎক্ষণিক সহায়তা প্রয়োজন এমন গুরুত্বপূর্ণ আবেদনগুলো।"
                         />
 
                         {leftMain && (
@@ -42,35 +42,35 @@ const UrgentSection = ({ campaigns = [] }) => {
                                 {/* TOP STRIP */}
                                 <div
                                     className="
-                                    px-4 sm:px-6 py-3 sm:py-4
-                                    flex items-center justify-between
-                                    border-b border-border/40
-                                    bg-primary
-                                "
+                                        px-4 sm:px-6 py-3 sm:py-4
+                                        flex items-center justify-between
+                                        border-b border-border/40
+                                        bg-primary
+                                    "
                                 >
                                     <span
                                         className="
-                                        text-[10px] sm:text-xs
-                                        uppercase tracking-[0.2em]
-                                        text-surface/90
-                                        flex items-center gap-2
-                                        font-medium!
-                                    "
+                                            text-[10px] sm:text-xs
+                                            uppercase tracking-[0.2em]
+                                            text-surface/90
+                                            flex items-center gap-2
+                                            font-medium!
+                                        "
                                     >
                                         <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                                        Emergency Appeal
+                                        জরুরি সহায়তার আবেদন
                                     </span>
 
                                     <span
                                         className="
-                                        text-[10px] sm:text-xs
-                                        font-semibold
-                                        text-primary
-                                        bg-surface/95
-                                        px-2 sm:px-3 py-1 rounded-full
-                                        border border-primary/20
-                                        shadow-sm
-                                    "
+                                            text-[10px] sm:text-xs
+                                            font-semibold
+                                            text-primary
+                                            bg-surface/95
+                                            px-2 sm:px-3 py-1 rounded-full
+                                            border border-primary/20
+                                            shadow-sm
+                                        "
                                     >
                                         #{leftMain?.priority || 2}
                                     </span>
@@ -81,17 +81,17 @@ const UrgentSection = ({ campaigns = [] }) => {
                                     {/* LEFT */}
                                     <div className="md:col-span-2 space-y-4 sm:space-y-5">
                                         <div className="text-[11px] sm:text-xs text-text-secondary flex items-center gap-2 flex-wrap">
-                                            Medical Emergency • Verified Case •
-                                            High Urgency
+                                            জরুরি চিকিৎসা সহায়তা • যাচাইকৃত
+                                            আবেদন • উচ্চ অগ্রাধিকার
                                         </div>
 
                                         <h2
                                             className="
-                                            text-xl sm:text-2xl lg:text-3xl font-semibold
-                                            text-text-primary leading-tight
-                                            group-hover:text-primary
-                                            transition-colors duration-300
-                                        "
+                                                text-xl sm:text-2xl lg:text-3xl font-semibold
+                                                text-text-primary leading-tight
+                                                group-hover:text-primary
+                                                transition-colors duration-300
+                                            "
                                         >
                                             {leftMain.title}
                                         </h2>
@@ -104,10 +104,10 @@ const UrgentSection = ({ campaigns = [] }) => {
                                         <div className="pt-2 sm:pt-3 space-y-2">
                                             <div className="flex justify-between text-[10px] sm:text-[11px]">
                                                 <span className="text-text-secondary">
-                                                    Progress
+                                                    অগ্রগতি
                                                 </span>
                                                 <span className="text-primary font-semibold">
-                                                    68%
+                                                    ৬৮%
                                                 </span>
                                             </div>
 
@@ -131,7 +131,7 @@ const UrgentSection = ({ campaigns = [] }) => {
                                                 size="lg"
                                                 className="w-full mt-2"
                                             >
-                                                Donate Now
+                                                এখনই অনুদান দিন
                                             </Button>
                                         </Link>
                                     </div>
@@ -139,23 +139,23 @@ const UrgentSection = ({ campaigns = [] }) => {
                                     {/* RIGHT */}
                                     <div
                                         className="
-                                        flex flex-col justify-between
-                                        border-t md:border-t-0 md:border-l border-border/60
-                                        pt-4 md:pt-0 md:pl-6
-                                        bg-linear-to-b from-surface to-background-alt/40
-                                        rounded-b-2xl md:rounded-r-2xl
-                                        min-h-35 sm:min-h-40
-                                    "
+                                            flex flex-col justify-between
+                                            border-t md:border-t-0 md:border-l border-border/60
+                                            pt-4 md:pt-0 md:pl-6
+                                            bg-linear-to-b from-surface to-background-alt/40
+                                            rounded-b-2xl md:rounded-r-2xl
+                                            min-h-35 sm:min-h-40
+                                        "
                                     >
                                         <div className="space-y-3">
                                             <p className="text-[11px] sm:text-xs text-text-secondary flex items-center gap-2">
                                                 <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                                                Live donations active
+                                                অনুদান গ্রহণ চলছে
                                             </p>
 
                                             <div className="text-xs sm:text-sm font-medium! text-text-primary leading-snug">
-                                                Help is needed urgently — every
-                                                contribution matters
+                                                জরুরি ভিত্তিতে সহায়তা প্রয়োজন
+                                                — প্রতিটি অনুদানই গুরুত্বপূর্ণ
                                             </div>
                                         </div>
                                     </div>
@@ -168,10 +168,10 @@ const UrgentSection = ({ campaigns = [] }) => {
                     <div className="space-y-5">
                         <div className="flex items-center justify-between">
                             <h4 className="text-xs uppercase tracking-widest text-text-secondary font-semibold">
-                                Live Feed
+                                সাম্প্রতিক কার্যক্রম
                             </h4>
                             <span className="text-[11px] text-accent">
-                                ● updating
+                                ● আপডেট হচ্ছে
                             </span>
                         </div>
 
@@ -188,31 +188,31 @@ const UrgentSection = ({ campaigns = [] }) => {
                                     {/* node */}
                                     <div
                                         className="
-                                        absolute left-0 top-2
-                                        w-3 h-3 rounded-full
-                                        bg-primary shadow-sm
-                                    "
+                                            absolute left-0 top-2
+                                            w-3 h-3 rounded-full
+                                            bg-primary shadow-sm
+                                        "
                                     />
 
                                     <div
                                         className="
-                                        rounded-xl
-                                        border border-border
-                                        bg-surface/40
-                                        p-3 sm:p-4
-                                        transition-all duration-300
-                                        hover:bg-surface
-                                        hover:border-primary/20
-                                        hover:-translate-y-0.5
-                                    "
+                                            rounded-xl
+                                            border border-border
+                                            bg-surface/40
+                                            p-3 sm:p-4
+                                            transition-all duration-300
+                                            hover:bg-surface
+                                            hover:border-primary/20
+                                            hover:-translate-y-0.5
+                                        "
                                     >
                                         <p
                                             className="
-                                            text-xs sm:text-sm font-medium! text-text-primary
-                                            line-clamp-2
-                                            group-hover:text-primary
-                                            transition
-                                        "
+                                                text-xs sm:text-sm font-medium! text-text-primary
+                                                line-clamp-2
+                                                group-hover:text-primary
+                                                transition
+                                            "
                                         >
                                             {c.title}
                                         </p>
@@ -223,10 +223,10 @@ const UrgentSection = ({ campaigns = [] }) => {
 
                                         <div className="flex items-center justify-between mt-2">
                                             <span className="text-[10px] sm:text-[11px] text-primary font-medium!">
-                                                urgent
+                                                জরুরি
                                             </span>
                                             <span className="text-[10px] text-text-secondary">
-                                                tap →
+                                                বিস্তারিত দেখুন →
                                             </span>
                                         </div>
                                     </div>

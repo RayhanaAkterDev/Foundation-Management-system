@@ -17,8 +17,8 @@ const FeaturedSection = ({ campaigns = [] }) => {
                 <SectionHeading
                     gap="sm"
                     align="left"
-                    title="Featured Campaigns"
-                    description="Carefully selected stories where your support creates real-world impact."
+                    title="নির্বাচিত ক্যাম্পেইনসমূহ"
+                    description="বাছাই করা কিছু মানবিক উদ্যোগ, যেখানে আপনার সহায়তা মানুষের জীবনে বাস্তব পরিবর্তন আনতে পারে।"
                     descriptionSize="hero"
                 />
 
@@ -40,7 +40,7 @@ const FeaturedSection = ({ campaigns = [] }) => {
                                 to="/campaigns/featured"
                                 className="group inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-6 py-3 font-sans text-sm font-semibold text-primary transition-all duration-200 hover:border-primary hover:bg-primary hover:text-white!"
                             >
-                                See More
+                                আরও দেখুন
                                 <ArrowRight
                                     size={16}
                                     className="transition-transform duration-200 group-hover:translate-x-0.5"
@@ -50,7 +50,7 @@ const FeaturedSection = ({ campaigns = [] }) => {
                     </>
                 ) : (
                     <div className="rounded-xl border border-border bg-surface py-12 text-center text-sm text-text-secondary">
-                        No featured stories available right now.
+                        এই মুহূর্তে কোনো নির্বাচিত ক্যাম্পেইন উপলব্ধ নেই।
                     </div>
                 )}
             </div>

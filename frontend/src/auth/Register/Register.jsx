@@ -1001,10 +1001,8 @@ const RegisterNavigation = ({
     totalSteps,
     onBack,
     onContinue,
-    onSkip,
     isSubmitting,
     canContinue,
-    showSkip,
 }) => {
     const first = currentStep === 1;
     const final = currentStep === totalSteps;
@@ -1027,17 +1025,6 @@ const RegisterNavigation = ({
                 </div>
 
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:gap-3">
-                    {showSkip && (
-                        <button
-                            type="button"
-                            onClick={onSkip}
-                            disabled={isSubmitting}
-                            className="h-12 rounded-[10px] px-4 font-['Noto_Sans_Bengali'] text-[14px] font-semibold text-[#64748b] transition hover:bg-[#f4f6f7] hover:text-[#0f766e] disabled:opacity-40"
-                        >
-                            এখন এড়িয়ে যান
-                        </button>
-                    )}
-
                     <button
                         type="button"
                         onClick={onContinue}
@@ -1869,7 +1856,9 @@ const Register = () => {
                                         ও{' '}
                                         <button
                                             type="button"
-                                            onClick={() => navigate('/privacy-policy')}
+                                            onClick={() =>
+                                                navigate('/privacy-policy')
+                                            }
                                             className="font-medium! text-[#52646a] underline decoration-[#bdc8cc] underline-offset-4 transition hover:text-[#0f766e]"
                                         >
                                             গোপনীয়তা নীতি

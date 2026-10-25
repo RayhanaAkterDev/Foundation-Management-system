@@ -102,10 +102,6 @@ const StepCredentials = ({ accountType, formData, onChange, errors = {} }) => {
 
     const isOrganization = accountType === 'organization';
 
-    const handleDemoVerification = () => {
-        onChange('verification_method', 'demo');
-    };
-
     return (
         <div className="w-full">
             {/* =====================================================
@@ -343,76 +339,6 @@ const StepCredentials = ({ accountType, formData, onChange, errors = {} }) => {
 
                     <FieldError>{errors.confirmPassword}</FieldError>
                 </div>
-            </div>
-
-            {/* =====================================================
-                VERIFICATION
-            ====================================================== */}
-            <div className="mt-8 border-t border-[#e1e8e6] pt-5">
-                <button
-                    type="button"
-                    onClick={handleDemoVerification}
-                    className="
-                        group
-                        flex
-                        w-full
-                        items-center
-                        gap-3.5
-                        rounded-[10px]
-                        px-1
-                        py-1
-                        text-left
-                        outline-none
-                    "
-                >
-                    <span
-                        className="
-                            flex
-                            h-[42px]
-                            w-[42px]
-                            shrink-0
-                            items-center
-                            justify-center
-                            rounded-[10px]
-                            bg-[#eaf4f2]
-                            text-[#0f766e]
-                            transition
-
-                            group-hover:bg-[#dfeeea]
-                        "
-                    >
-                        <ShieldCheck
-                            className="h-[19px] w-[19px]"
-                            strokeWidth={1.8}
-                        />
-                    </span>
-
-                    <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                            <span className="font-['Noto_Sans_Bengali'] text-[14px] font-semibold text-[#29413d]">
-                                ডেমো যাচাইকরণ সক্রিয়
-                            </span>
-
-                            <span className="hidden h-1 w-1 rounded-full bg-[#a5b5b1] sm:block" />
-
-                            <span className="hidden font-['Noto_Sans_Bengali'] text-[13px] font-medium! text-[#70817d] sm:block">
-                                অতিরিক্ত ধাপ প্রয়োজন নেই
-                            </span>
-                        </div>
-
-                        <p className="mt-1 font-['Noto_Sans_Bengali'] text-[13px] leading-6 text-[#758480]">
-                            এই ডেমো সংস্করণে ইমেইল যাচাইকরণ ছাড়াই পরবর্তী ধাপে
-                            যেতে পারবেন।
-                        </p>
-                    </div>
-
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#e3f1ee]">
-                        <CheckCircle2
-                            className="h-[18px] w-[18px] text-[#0f766e]"
-                            strokeWidth={2}
-                        />
-                    </span>
-                </button>
             </div>
         </div>
     );

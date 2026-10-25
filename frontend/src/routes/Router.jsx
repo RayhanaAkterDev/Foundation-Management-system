@@ -150,7 +150,7 @@ const router = createBrowserRouter([
             { path: 'community', element: <Community /> },
             { path: 'help', element: <HelpPage /> },
 
-            { path: 'privacy', element: <PrivacyPolicyPage /> },
+            { path: 'privacy-policy', element: <PrivacyPolicyPage /> },
             { path: 'terms', element: <TermsPage /> },
             { path: 'accessibility', element: <AccessibilityPage /> },
             { path: 'contact', element: <ContactPage /> },

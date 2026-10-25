@@ -529,6 +529,9 @@ class AuthController extends Controller
             Log::error('Registration failed.', [
                 'message' => $e->getMessage(),
                 'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             throw $e;

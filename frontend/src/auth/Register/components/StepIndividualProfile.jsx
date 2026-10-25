@@ -811,109 +811,104 @@ const StepIndividualProfile = ({ formData, onChange, errors = {} }) => {
 
                 {/* DATE OF BIRTH */}
 
-                <Field label="জন্মতারিখ" optional error={errors.dob}>
-                    <div className="relative">
-                        {/* LEFT ICON */}
-                        <InputIcon>
-                            <CalendarDays
-                                className="h-4.5 w-4.5 text-[#7d908c]"
-                                strokeWidth={1.7}
-                            />
-                        </InputIcon>
-
-                        {/* BANGLA DISPLAY */}
-                        <input
-                            type="text"
-                            inputMode="numeric"
-                            value={toBanglaDigits(formData.dob || '')}
-                            onChange={(event) => {
-                                const englishValue = toEnglishDigits(
-                                    event.target.value,
-                                );
-
-                                const digits = englishValue
-                                    .replace(/\D/g, '')
-                                    .slice(0, 8);
-
-                                let formatted = '';
-
-                                if (digits.length <= 4) {
-                                    formatted = digits;
-                                } else if (digits.length <= 6) {
-                                    formatted = `${digits.slice(
-                                        0,
-                                        4,
-                                    )}-${digits.slice(4)}`;
-                                } else {
-                                    formatted = `${digits.slice(
-                                        0,
-                                        4,
-                                    )}-${digits.slice(
-                                        4,
-                                        6,
-                                    )}-${digits.slice(6, 8)}`;
-                                }
-
-                                onChange('dob', formatted);
-                            }}
-                            placeholder="বছর-মাস-দিন"
-                            autoComplete="bday"
-                            className={`
-                ${inputClass(errors.dob)}
-                pr-12
-            `}
-                        />
-
-                        {/* NATIVE DATE PICKER */}
-                        <div
-                            className="
-                absolute
-                right-2
-                top-1/2
-                h-9
-                w-9
-                -translate-y-1/2
-            "
-                        >
-                            <input
-                                type="date"
-                                value={formData.dob || ''}
-                                onChange={(event) =>
-                                    onChange('dob', event.target.value)
-                                }
-                                aria-label="জন্মতারিখ নির্বাচন করুন"
-                                className="
-                    absolute
-                    inset-0
-                    z-10
-                    h-full
-                    w-full
-                    cursor-pointer
-                    opacity-0
-                "
-                            />
-
-                            <span
-                                className="
-                    pointer-events-none
-                    absolute
-                    inset-0
-                    flex
-                    items-center
-                    justify-center
-                    rounded-lg
-                    text-[#778a86]
-                    transition
-                "
-                            >
+                <div className="sm:col-span-2">
+                    <Field label="জন্মতারিখ" optional error={errors.dob}>
+                        <div className="relative">
+                            <InputIcon>
                                 <CalendarDays
-                                    className="h-4.5 w-4.5"
-                                    strokeWidth={1.8}
+                                    className="h-4.5 w-4.5 text-[#7d908c]"
+                                    strokeWidth={1.7}
                                 />
-                            </span>
+                            </InputIcon>
+
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                autoComplete="bday"
+                                value={toBanglaDigits(
+                                    formData.dob
+                                        ? formData.dob
+                                              .split('-')
+                                              .reverse()
+                                              .join('/')
+                                        : '',
+                                )}
+                                onChange={(event) => {
+                                    const digits = toEnglishDigits(
+                                        event.target.value,
+                                    )
+                                        .replace(/\D/g, '')
+                                        .slice(0, 8);
+
+                                    const day = digits.slice(0, 2);
+                                    const month = digits.slice(2, 4);
+                                    const year = digits.slice(4, 8);
+
+                                    const formatted = [day, month, year]
+                                        .filter(Boolean)
+                                        .join('/');
+
+                                    if (digits.length === 8) {
+                                        const isoDate = `${year}-${month}-${day}`;
+
+                                        const date = new Date(
+                                            Number(year),
+                                            Number(month) - 1,
+                                            Number(day),
+                                        );
+
+                                        const valid =
+                                            date.getFullYear() ===
+                                                Number(year) &&
+                                            date.getMonth() ===
+                                                Number(month) - 1 &&
+                                            date.getDate() === Number(day);
+
+                                        onChange(
+                                            'dob',
+                                            valid ? isoDate : formatted,
+                                        );
+                                    } else {
+                                        onChange('dob', formatted);
+                                    }
+                                }}
+                                placeholder="দিন / মাস / বছর"
+                                className={`${inputClass(errors.dob)} pr-14`}
+                            />
+
+                            <div className="absolute right-2 top-1/2 h-9 w-9 -translate-y-1/2">
+                                <input
+                                    type="date"
+                                    max={new Date().toLocaleDateString('en-CA')}
+                                    value={
+                                        /^\d{4}-\d{2}-\d{2}$/.test(
+                                            formData.dob || '',
+                                        )
+                                            ? formData.dob
+                                            : ''
+                                    }
+                                    onChange={(event) =>
+                                        onChange('dob', event.target.value)
+                                    }
+                                    aria-label="ক্যালেন্ডার থেকে জন্মতারিখ নির্বাচন করুন"
+                                    className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                                />
+
+                                <span className="pointer-events-none flex h-full w-full items-center justify-center rounded-lg text-[#778a86]">
+                                    <CalendarDays
+                                        className="h-4.5 w-4.5"
+                                        strokeWidth={1.8}
+                                    />
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                </Field>
+
+                        <p className="mt-2 font-['Noto_Sans_Bengali'] text-[13px] leading-6 text-[#7d908c]">
+                            দিন, মাস ও বছর লিখুন (যেমন: ৩১/০৩/২০০১) অথবা
+                            ক্যালেন্ডার থেকে তারিখ নির্বাচন করুন।
+                        </p>
+                    </Field>
+                </div>
 
                 {/* =================================================
                     PROFILE PHOTO

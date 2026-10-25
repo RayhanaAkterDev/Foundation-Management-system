@@ -989,9 +989,8 @@ class AuthController extends Controller
         ]);
     }
 
-
     /**
-     * Send or generate a password reset link.
+     * Generate a demo password reset link for all account roles.
      */
     public function forgotPassword(Request $request)
     {
@@ -1009,61 +1008,42 @@ class AuthController extends Controller
 
         $user = User::where('email', $email)->first();
 
-        /*
-    |--------------------------------------------------------------------------
-    | Demo account
-    |--------------------------------------------------------------------------
-    |
-    | Demo accounts do not depend on real email delivery.
-    | Generate a temporary Laravel password-reset token and return
-    | the reset URL directly for the manual/demo flow.
-    |
-    */
-
-        if ($user && $user->verification_method === 'demo') {
-            /** @var PasswordBroker $broker */
-            $broker = Password::broker('users');
-
-            $token = $broker->createToken($user);
-
-            $frontendUrl = rtrim(
-                config(
-                    'app.frontend_url',
-                    env('FRONTEND_URL', 'https://foundation-management-system.vercel.app'),
-                ),
-                '/'
-            );
-
-            $resetUrl = $frontendUrl
-                . '/reset-password?token='
-                . urlencode($token)
-                . '&email='
-                . urlencode($user->email);
-
+        // Do not reveal whether an email address is registered.
+        // Never attempt real email delivery in the demo workflow.
+        if (!$user) {
             return response()->json([
-                'message' => 'আপনার অ্যাকাউন্টের জন্য পাসওয়ার্ড রিসেট লিংক তৈরি হয়েছে।',
-                'reset_url' => $resetUrl,
+                'message' => 'যদি এই ইমেইল ঠিকানায় একটি অ্যাকাউন্ট থাকে, তাহলে পাসওয়ার্ড রিসেট করার নির্দেশনা পাওয়া যাবে।',
             ], 200);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Real-email account
-    |--------------------------------------------------------------------------
-    |
-    | Keep Laravel's existing password broker for accounts that use
-    | actual email-based password reset.
-    |
-    */
+        /** @var PasswordBroker $broker */
+        $broker = Password::broker('users');
 
-        Password::broker('users')->sendResetLink([
-            'email' => $email,
-        ]);
+        $token = $broker->createToken($user);
+
+        $frontendUrl = rtrim(
+            config(
+                'app.frontend_url',
+                env(
+                    'FRONTEND_URL',
+                    'https://foundation-management-system.vercel.app'
+                )
+            ),
+            '/'
+        );
+
+        $resetUrl = $frontendUrl
+            . '/reset-password?token='
+            . urlencode($token)
+            . '&email='
+            . urlencode($user->email);
 
         return response()->json([
-            'message' => 'যদি এই ইমেইল ঠিকানায় একটি অ্যাকাউন্ট থাকে, তাহলে পাসওয়ার্ড রিসেট করার নির্দেশনা পাঠানো হয়েছে।',
+            'message' => 'আপনার অ্যাকাউন্টের জন্য পাসওয়ার্ড রিসেট লিংক তৈরি হয়েছে।',
+            'reset_url' => $resetUrl,
         ], 200);
     }
+
 
     public function resetPassword(Request $request)
     {

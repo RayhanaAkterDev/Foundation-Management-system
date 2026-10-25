@@ -395,7 +395,7 @@ const FeaturedCampaign = () => {
                                         এই উদ্যোগের গল্প
                                     </p>
 
-                                    <h3 className="font-bengali text-xl font-semibold leading-relaxed text-white sm:text-2xl lg:text-3xl">
+                                    <h3 className="font-bengali text-xl font-semibold leading-relaxed text-white! sm:text-2xl lg:text-3xl">
                                         {campaign.title}
                                     </h3>
                                 </div>

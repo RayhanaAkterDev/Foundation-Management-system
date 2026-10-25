@@ -774,6 +774,16 @@ Route::middleware('auth:sanctum')
         );
 
         Route::patch(
+            '/campaigns/{id}/classification',
+            [AdminController::class, 'updateCampaignClassification']
+        );
+
+        Route::post('/campaigns/{id}/urgency-assessment', [
+            AdminController::class,
+            'assessCampaignUrgency',
+        ]);
+
+        Route::patch(
             '/campaigns/{id}/assignment',
             [AdminController::class, 'assignCampaignVolunteer']
         );

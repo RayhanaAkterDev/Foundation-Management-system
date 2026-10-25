@@ -16,6 +16,7 @@ use App\Models\CampaignVolunteerAssignment;
 use App\Notifications\PlatformNotification;
 use App\Models\HelpRequestDuplicateMatch;
 use App\Services\HelpRequestDuplicateDetectionService;
+use App\Services\CampaignUrgencyAiService;
 use ImageKit\ImageKit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -3055,6 +3056,71 @@ class AdminController extends Controller
             ], 422);
         }
     }
+
+    public function updateCampaignClassification(Request $request, int $id)
+    {
+        $authorization = $this->authorizeAdmin($request);
+
+        if ($authorization) {
+            return $authorization;
+        }
+
+        $campaign = Campaign::findOrFail($id);
+
+        $validated = $request->validate([
+            'is_featured' => ['required', 'boolean'],
+            'is_urgent' => ['required', 'boolean'],
+            'urgency_priority' => [
+                'required',
+                'integer',
+                Rule::in([
+                    Campaign::URGENCY_PRIORITY_LOW,
+                    Campaign::URGENCY_PRIORITY_MEDIUM,
+                    Campaign::URGENCY_PRIORITY_HIGH,
+                    Campaign::URGENCY_PRIORITY_CRITICAL,
+                ]),
+            ],
+        ]);
+
+        $campaign->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Campaign classification updated successfully.',
+            'campaign' => $campaign->fresh(),
+        ]);
+    }
+
+
+    public function assessCampaignUrgency(
+        Request $request,
+        int $id,
+        CampaignUrgencyAiService $urgencyAi
+    ) {
+        $authorization = $this->authorizeAdmin($request);
+
+        if ($authorization instanceof \Illuminate\Http\JsonResponse) {
+            return $authorization;
+        }
+
+        $campaign = Campaign::findOrFail($id);
+
+        try {
+            $assessment = $urgencyAi->assess($campaign);
+        } catch (\RuntimeException $exception) {
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Campaign urgency assessment completed.',
+            'assessment' => $assessment,
+        ]);
+    }
+
 
     /*
     |--------------------------------------------------------------------------

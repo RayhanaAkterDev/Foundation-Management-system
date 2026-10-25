@@ -19,7 +19,7 @@ class PublicCommunityController extends Controller
                     ->whereNotNull('email_verified_at');
             })
             ->with([
-                'user:id,name,status,email_verified_at',
+                'user:id,name,photo,status,email_verified_at',
             ])
             ->latest()
             ->get();
@@ -33,7 +33,7 @@ class PublicCommunityController extends Controller
                     ->whereNotNull('email_verified_at');
             })
             ->with([
-                'user:id,name,status,email_verified_at',
+                'user:id,name,photo,status,email_verified_at',
             ])
             ->latest()
             ->get();

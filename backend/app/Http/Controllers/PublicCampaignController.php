@@ -300,6 +300,13 @@ class PublicCampaignController extends Controller
 
             'status' => $campaign->status,
 
+            // Campaign classification
+            'is_featured' => (bool) $campaign->is_featured,
+
+            'is_urgent' => (bool) $campaign->is_urgent,
+
+            'urgency_priority' => (int) ($campaign->urgency_priority ?? 2),
+
             'district' => $campaign->district,
 
             'location' => $campaign->location,

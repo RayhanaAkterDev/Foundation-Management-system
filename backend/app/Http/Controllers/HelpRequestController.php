@@ -72,24 +72,22 @@ class HelpRequestController extends Controller
     |
     */
 
+
     public function store(Request $request)
     {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' =>
-                'Only individual users can submit help requests.',
+                'message' => 'Only individual users can submit help requests.',
             ], 403);
         }
 
-
-
         /*
-        |--------------------------------------------------------------------------
-        | Validate Request
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Validate Request
+    |--------------------------------------------------------------------------
+    */
 
         $validated = $request->validate([
             'title' => [
@@ -128,34 +126,51 @@ class HelpRequestController extends Controller
         ]);
 
         /*
-        |--------------------------------------------------------------------------
-        | Create Help Request
-        |--------------------------------------------------------------------------
-        |
-        | Status is always pending when a requester submits
-        | a new Help Request.
-        |
-        */
+    |--------------------------------------------------------------------------
+    | Create Help Request
+    |--------------------------------------------------------------------------
+    */
 
         $helpRequest = HelpRequest::create([
             'user_id' => $user->id,
-
             'title' => $validated['title'],
-
             'description' => $validated['description'],
-
             'category' => $validated['category'],
-
             'district' => $validated['district'],
-
             'address' => $validated['address'] ?? null,
-
             'urgency' => $validated['urgency'] ?? 'normal',
-
             'status' => HelpRequest::STATUS_PENDING,
-
             'verification_note' => null,
         ]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | Automatically Analyze Potential Duplicates
+    |--------------------------------------------------------------------------
+    |
+    | Duplicate detection only records possible matches for admin review.
+    | It never blocks, rejects, or changes the new help request.
+    |
+    */
+
+        try {
+            app(\App\Services\HelpRequestDuplicateDetectionService::class)
+                ->analyze($helpRequest);
+        } catch (\Throwable $exception) {
+            \Illuminate\Support\Facades\Log::error(
+                'Automatic help request duplicate analysis failed.',
+                [
+                    'help_request_id' => $helpRequest->id,
+                    'error' => $exception->getMessage(),
+                ]
+            );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Notify Active Admins
+    |--------------------------------------------------------------------------
+    */
 
         User::where('role', 'admin')
             ->where('status', 'active')
@@ -169,9 +184,14 @@ class HelpRequestController extends Controller
                 ));
             });
 
+        /*
+    |--------------------------------------------------------------------------
+    | Return Response
+    |--------------------------------------------------------------------------
+    */
+
         return response()->json([
-            'message' =>
-            'Help request submitted successfully.',
+            'message' => 'Help request submitted successfully.',
 
             'help_request' => $helpRequest
                 ->fresh()
@@ -183,6 +203,7 @@ class HelpRequestController extends Controller
                 ]),
         ], 201);
     }
+
 
     /*
     |--------------------------------------------------------------------------

@@ -545,188 +545,256 @@ function DuplicateAnalysis({ request, result, loading, error, onCheck }) {
     const matches = Array.isArray(payload?.matches) ? payload.matches : [];
 
     return (
-        <section className={PANEL}>
-            <SectionHeader
-                icon={Search}
-                title="Duplicate request analysis"
-                subtitle="Compare this request with existing help requests"
-                extra={
-                    <button
-                        type="button"
-                        onClick={onCheck}
-                        disabled={loading || !request.id}
-                        className="inline-flex min-h-9 items-center justify-center gap-2 border border-[#49665F] bg-[#20382F] px-3 text-[12px] font-medium text-[#B9E2D0] transition-colors hover:bg-[#29483C] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                        {loading ? (
-                            <RefreshCw size={14} className="animate-spin" />
-                        ) : (
-                            <Search size={14} />
-                        )}
-                        {loading
-                            ? 'Analyzing...'
-                            : result
-                              ? 'Run again'
-                              : 'Check duplicates'}
-                    </button>
-                }
-            />
+        <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#171D26]">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#303A47] px-5 py-5 sm:px-7">
+                <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center bg-[#263444] text-[#C4D4E5]">
+                        <Search size={19} />
+                    </span>
+                    <div className="min-w-0">
+                        <h2 className="m-0! font-sans! text-[15px]! font-semibold! text-[#EEF1F5]!">
+                            Duplicate request analysis
+                        </h2>
+                        <p className="mt-1 mb-0! text-[12px] text-[#98A8BA]">
+                            Related requests for administrative review
+                        </p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    onClick={onCheck}
+                    disabled={loading || !request.id}
+                    className="inline-flex min-h-10 items-center gap-2 border border-[#43556A] bg-[#263444] px-4 text-[12px] font-semibold text-[#E4EBF3] hover:bg-[#34465A] disabled:opacity-60"
+                >
+                    <RefreshCw
+                        size={14}
+                        className={loading ? 'animate-spin' : ''}
+                    />
+                    {loading
+                        ? 'Analyzing...'
+                        : result
+                          ? 'Run again'
+                          : 'Check duplicates'}
+                </button>
+            </div>
 
-            <div className="space-y-4 px-5 py-5 sm:px-7 sm:py-6">
-                <p className="m-0! text-[13px] leading-6 text-[#AAB8C7]">
-                    Identifies existing requests with similar descriptions,
-                    categories, or locations. Matches are suggestions for
-                    administrative review, not proof of fraud or duplication.
-                    This analysis never verifies or rejects a request.
-                </p>
-
+            <div className="px-5 py-5 sm:px-7 sm:py-6">
                 {error && (
-                    <div className="flex items-start gap-3 border border-[#75464C] bg-[#322126] px-4 py-3">
-                        <AlertTriangle
-                            size={17}
-                            className="mt-0.5 shrink-0 text-[#E9B8BD]"
-                        />
-                        <p className="m-0! text-[13px] leading-5 text-[#E9B8BD]">
-                            {error}
-                        </p>
+                    <div className="mb-5 flex items-start gap-2 border border-[#75464C] bg-[#322126] px-4 py-3 text-[13px] text-[#E9B8BD]">
+                        <AlertTriangle size={17} className="shrink-0" />
+                        {error}
                     </div>
                 )}
-
                 {loading && (
-                    <div className="flex items-center gap-3 border border-[#344150] bg-[#151D27] px-4 py-4">
-                        <RefreshCw
-                            size={17}
-                            className="shrink-0 animate-spin text-[#A9C7C0]"
-                        />
-                        <p className="m-0! text-[13px] text-[#C4D0DC]">
-                            Comparing this request with existing records...
-                        </p>
+                    <div className="flex items-center gap-3 py-8 text-[13px] text-[#B8C9D9]">
+                        <RefreshCw size={18} className="animate-spin" />
+                        Comparing existing requests...
                     </div>
                 )}
-
                 {!loading && result && (
                     <>
-                        <div className="flex flex-wrap items-center justify-between gap-3 border border-[#344150] bg-[#151D27] px-4 py-3">
+                        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <p className="m-0! text-[13px] font-semibold text-[#E6EDF5]">
-                                    Analysis complete
+                                <p className="m-0! text-[14px] font-semibold text-[#E9F0F7]">
+                                    {matches.length
+                                        ? `${matches.length} possible ${matches.length === 1 ? 'match' : 'matches'}`
+                                        : 'No potential matches'}
                                 </p>
-                                <p className="mt-1 mb-0! text-[12px] text-[#98A8BA]">
-                                    {matches.length === 0
-                                        ? 'No potential matches were found.'
-                                        : `${matches.length} potential ${
-                                              matches.length === 1
-                                                  ? 'match'
-                                                  : 'matches'
-                                          } found.`}
+                                <p className="mt-1 mb-0! text-[12px] text-[#94A5B8]">
+                                    {matches.length
+                                        ? 'Select a request title to inspect the original record'
+                                        : 'No related records were identified'}
                                 </p>
                             </div>
-
-                            <span className="border border-[#435064] bg-[#293747] px-3 py-1.5 text-[12px] font-semibold tabular-nums text-[#D4DFEA]">
-                                {matches.length}
+                            <span className="text-[11px] uppercase tracking-wider text-[#91A3B6]">
+                                Analysis complete
                             </span>
                         </div>
-
-                        {matches.map((match) => {
-                            const score = Math.max(
-                                0,
-                                Math.min(
-                                    100,
-                                    Number(match.similarity_score ?? 0),
-                                ),
-                            );
-                            const reasons = Array.isArray(match.match_reasons)
-                                ? match.match_reasons
-                                : [];
-
-                            return (
-                                <article
-                                    key={match.id}
-                                    className="min-w-0 border border-[#303A47] bg-[#151D27] px-4 py-4 sm:px-5"
-                                >
-                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                        <div className="min-w-0">
-                                            <p className="m-0! text-[11px] font-medium uppercase tracking-[0.08em] text-[#899BAF]">
-                                                Request #{match.id}
-                                            </p>
-                                            <h3 className="mt-1.5 mb-0! wrap-break-word font-sans! text-[14px]! font-semibold! leading-6 text-[#E8EDF4]!">
-                                                {show(
-                                                    match.title,
-                                                    'Untitled help request',
-                                                )}
-                                            </h3>
-                                            <p className="mt-1 mb-0! text-[12px] leading-5 text-[#A3B1C0]">
-                                                {show(
-                                                    match.user?.name,
-                                                    'Unknown requester',
-                                                )}
-                                            </p>
-                                        </div>
-
-                                        <div className="shrink-0 border border-[#49665F] bg-[#20382F] px-3 py-2">
-                                            <p className="m-0! text-[10px] text-[#A9C7C0]">
-                                                Similarity score
-                                            </p>
-                                            <p className="mt-0.5 mb-0! text-[18px] font-semibold tabular-nums text-[#C1E5D5]">
-                                                {Math.round(score)}%
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        <Info
-                                            title="Category"
-                                            value={titleCase(match.category)}
-                                        />
-                                        <Info
-                                            title="District"
-                                            value={match.district}
-                                        />
-                                        <Info
-                                            title="Current status"
-                                            value={titleCase(match.status)}
-                                        />
-                                        <Info
-                                            title="Submitted"
-                                            value={dateText(match.created_at)}
-                                        />
-                                    </div>
-
-                                    {reasons.length > 0 && (
-                                        <div className="mt-4 border-t border-[#303A47] pt-3">
-                                            <p className="m-0! text-[12px] font-medium text-[#CBD6E2]">
-                                                Reasons for matching
-                                            </p>
-                                            <ul className="mt-2 mb-0 flex flex-wrap gap-2 p-0">
-                                                {reasons.map(
-                                                    (reason, index) => (
-                                                        <li
-                                                            key={`${match.id}-${index}`}
-                                                            className="list-none border border-[#3B4959] bg-[#202B38] px-2.5 py-1.5 text-[11px] leading-4 text-[#C1CDD9]"
-                                                        >
-                                                            {reason}
-                                                        </li>
-                                                    ),
-                                                )}
-                                            </ul>
-                                        </div>
-                                    )}
-                                </article>
-                            );
-                        })}
+                        {matches.length > 0 && (
+                            <div className="overflow-hidden border border-[#394858] bg-[#101720]">
+                                <div className="flex items-center justify-between border-b border-[#394858] bg-[#243344] px-4 py-3 sm:px-5">
+                                    <span className="text-[11px] font-semibold uppercase tracking-[0.11em] text-[#D0DFEF]">
+                                        Potentially related requests
+                                    </span>
+                                    <span className="bg-[#364C61] px-2.5 py-1 text-[12px] font-semibold tabular-nums text-[#F0F5FA]">
+                                        {matches.length}
+                                    </span>
+                                </div>
+                                <div className="divide-y divide-[#394858]">
+                                    {matches.map((match, index) => {
+                                        const score = Math.max(
+                                            0,
+                                            Math.min(
+                                                100,
+                                                Number(
+                                                    match.similarity_score ?? 0,
+                                                ) || 0,
+                                            ),
+                                        );
+                                        const reasons = Array.isArray(
+                                            match.match_reasons,
+                                        )
+                                            ? match.match_reasons
+                                            : [];
+                                        return (
+                                            <article
+                                                key={match.id ?? index}
+                                                className="group relative min-w-0 bg-[#19232E] transition-colors hover:bg-[#202E3D]"
+                                            >
+                                                <div className="flex min-w-0 flex-col sm:flex-row">
+                                                    <div className="flex min-w-0 flex-1 gap-3.5 px-4 py-5 sm:gap-4 sm:px-5">
+                                                        <span className="flex size-9 shrink-0 items-center justify-center border border-[#4D6378] bg-[#30465B] text-[13px] font-semibold tabular-nums text-[#E9F1FA]">
+                                                            {String(
+                                                                index + 1,
+                                                            ).padStart(2, '0')}
+                                                        </span>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#99ACC0]">
+                                                                <span className="font-semibold uppercase tracking-[0.07em]">
+                                                                    Request #
+                                                                    {show(
+                                                                        match.id,
+                                                                    )}
+                                                                </span>
+                                                                <span className="text-[#607589]">
+                                                                    /
+                                                                </span>
+                                                                <span>
+                                                                    {titleCase(
+                                                                        match.status,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                            <h3 className="mt-2 mb-0! font-sans! text-[15px]! font-semibold! leading-6">
+                                                                <Link
+                                                                    to={`/admin/dashboard/help-requests/${match.id}`}
+                                                                    className="inline-flex max-w-full items-start gap-1.5 text-[#EAF1F8] underline decoration-[#7896B4] underline-offset-4 hover:text-[#B9D8F4] hover:decoration-[#B9D8F4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A8C7E3]"
+                                                                >
+                                                                    <span className="min-w-0 wrap-break-word">
+                                                                        {show(
+                                                                            match.title,
+                                                                            'Untitled help request',
+                                                                        )}
+                                                                    </span>
+                                                                    <ArrowUpRight
+                                                                        size={
+                                                                            16
+                                                                        }
+                                                                        className="mt-1 shrink-0"
+                                                                    />
+                                                                </Link>
+                                                            </h3>
+                                                            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-[#AEBECE]">
+                                                                <span className="inline-flex items-center gap-1.5">
+                                                                    <UserRound
+                                                                        size={
+                                                                            13
+                                                                        }
+                                                                    />
+                                                                    {show(
+                                                                        match
+                                                                            .user
+                                                                            ?.name,
+                                                                        'Unknown requester',
+                                                                    )}
+                                                                </span>
+                                                                <span className="inline-flex items-center gap-1.5">
+                                                                    <ClipboardList
+                                                                        size={
+                                                                            13
+                                                                        }
+                                                                    />
+                                                                    {titleCase(
+                                                                        match.category,
+                                                                    )}
+                                                                </span>
+                                                                <span className="inline-flex items-center gap-1.5">
+                                                                    <MapPin
+                                                                        size={
+                                                                            13
+                                                                        }
+                                                                    />
+                                                                    {show(
+                                                                        match.district,
+                                                                    )}
+                                                                </span>
+                                                                <span className="inline-flex items-center gap-1.5">
+                                                                    <CalendarDays
+                                                                        size={
+                                                                            13
+                                                                        }
+                                                                    />
+                                                                    {dateText(
+                                                                        match.created_at,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                            {reasons.length >
+                                                                0 && (
+                                                                <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                                                                    {reasons.map(
+                                                                        (
+                                                                            reason,
+                                                                            reasonIndex,
+                                                                        ) => (
+                                                                            <span
+                                                                                key={`${match.id}-${reasonIndex}`}
+                                                                                className="bg-[#29394A] px-2 py-1 text-[11px] leading-5 text-[#C3D3E3]"
+                                                                            >
+                                                                                {
+                                                                                    reason
+                                                                                }
+                                                                            </span>
+                                                                        ),
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[#344557] bg-[#223244] px-4 py-3 sm:w-32 sm:flex-col sm:items-start sm:justify-center sm:border-t-0 sm:border-l sm:px-4">
+                                                        <span className="text-[11px] text-[#A4B9CB]">
+                                                            Similarity
+                                                        </span>
+                                                        <span className="text-[25px] font-semibold leading-none tabular-nums text-[#EDF4FB]">
+                                                            {Math.round(score)}%
+                                                        </span>
+                                                        <div className="h-1.5 w-20 overflow-hidden rounded-full bg-[#3B4D60] sm:w-full">
+                                                            <div
+                                                                className="h-full rounded-full bg-[#9ABCD4]"
+                                                                style={{
+                                                                    width: `${score}%`,
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </article>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
-
                 {!loading && !result && !error && (
-                    <div className="border border-dashed border-[#3A4757] px-4 py-6 text-center">
-                        <Search size={22} className="mx-auto text-[#899BAF]" />
-                        <p className="mt-3 mb-0! text-[13px] font-medium text-[#DCE5EF]">
+                    <div className="py-9 text-center">
+                        <Search size={24} className="mx-auto text-[#8296AA]" />
+                        <p className="mt-3 mb-0! text-[14px] font-medium text-[#E5ECF4]">
                             No analysis has been run
                         </p>
-                        <p className="mt-1 mb-0! text-[12px] leading-5 text-[#98A8BA]">
-                            Run a check to review potentially similar requests.
+                        <p className="mt-1 mb-0! text-[12px] text-[#98A8BA]">
+                            Check for potentially related help requests.
                         </p>
                     </div>
                 )}
+                <div className="mt-5 flex items-start gap-2 border-t border-[#303A47] pt-4 text-[12px] leading-5 text-[#94A5B7]">
+                    <AlertCircle size={15} className="mt-0.5 shrink-0" />
+                    <p className="m-0!">
+                        Similarity is a review aid, not evidence of fraud or
+                        duplication. Analysis does not verify, reject, or change
+                        any request.
+                    </p>
+                </div>
             </div>
         </section>
     );

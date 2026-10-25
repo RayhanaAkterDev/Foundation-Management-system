@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 
-import logo from '@/assets/shared/logo.png';
+import logo from '@/assets/shared/dashboardLogo.png';
 import { NAV_CONFIG, ROLE_LABELS } from '@/routes/dashboardNav';
 
 // ============================================================

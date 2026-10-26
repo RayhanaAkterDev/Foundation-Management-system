@@ -6,7 +6,7 @@ import { ArrowRight } from 'lucide-react';
 
 import { fetchPublicCampaigns } from '@/api/publicCampaignsApi';
 
-import CampaignCard from '../sections/CampaignCard';
+import FeaturedCampaignCard from '../sections/FeaturedCampaignCard';
 
 const INITIAL_COUNT = 6;
 const LOAD_MORE_COUNT = 3;
@@ -82,7 +82,7 @@ const FeaturedCampaigns = () => {
                 <div className="container-width">
                     <div className="max-w-4xl">
                         <p className="mb-4 font-sans text-sm font-semibold uppercase tracking-[0.16em] text-primary">
-                            Featured Campaigns
+                            নির্বাচিত ক্যাম্পেইন
                         </p>
 
                         <h1 className="max-w-4xl font-bengali text-[2.45rem] font-semibold leading-[1.15] tracking-[-0.035em] text-text-primary sm:text-[2.8rem] lg:text-[3.2rem] lg:leading-[1.14] xl:text-[3.5rem]">
@@ -103,11 +103,11 @@ const FeaturedCampaigns = () => {
             <section className="pb-20 lg:pb-24 xl:pb-28">
                 <div className="container-width">
                     {loading ? (
-                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                             {Array.from({ length: 6 }).map((_, index) => (
                                 <div
                                     key={index}
-                                    className="h-[420px] animate-pulse rounded-[28px] bg-white/70"
+                                    className="aspect-[4/5] animate-pulse rounded-xl bg-white/70 sm:aspect-[5/6]"
                                 />
                             ))}
                         </div>
@@ -116,7 +116,7 @@ const FeaturedCampaigns = () => {
                             <div className="mb-8 flex items-end justify-between gap-6">
                                 <div>
                                     <p className="font-sans text-sm font-medium! text-text-secondary">
-                                        Latest active campaigns
+                                        সাম্প্রতিক নির্বাচিত উদ্যোগ
                                     </p>
 
                                     <h2 className="mt-1 font-bengali text-2xl font-semibold tracking-[-0.02em] text-text-primary lg:text-[2rem]">
@@ -133,11 +133,12 @@ const FeaturedCampaigns = () => {
                                 </Link>
                             </div>
 
-                            <div className="grid gap-6 md:grid-cols-2 lg:gap-7 xl:grid-cols-3">
-                                {visibleCampaigns.map((campaign) => (
-                                    <CampaignCard
+                            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6">
+                                {visibleCampaigns.map((campaign, index) => (
+                                    <FeaturedCampaignCard
                                         key={campaign.id}
                                         campaign={campaign}
+                                        index={index}
                                     />
                                 ))}
                             </div>

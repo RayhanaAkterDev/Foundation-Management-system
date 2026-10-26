@@ -172,21 +172,21 @@ class CampaignService
         if ($status === Campaign::STATUS_COMPLETED) {
             throw ValidationException::withMessages([
                 'status' =>
-                    'Campaign completion is controlled automatically by the system.',
+                'Campaign completion is controlled automatically by the system.',
             ]);
         }
 
         if ($campaign->status !== Campaign::STATUS_ACTIVE) {
             throw ValidationException::withMessages([
                 'status' =>
-                    "Campaign with status '{$campaign->status}' cannot be updated.",
+                "Campaign with status '{$campaign->status}' cannot be updated.",
             ]);
         }
 
         if ($status !== Campaign::STATUS_CANCELLED) {
             throw ValidationException::withMessages([
                 'status' =>
-                    'Campaign can only be cancelled while active.',
+                'Campaign can only be cancelled while active.',
             ]);
         }
 
@@ -207,55 +207,55 @@ class CampaignService
      * For local_case campaigns, the linked Help Request is
      * completed automatically at the same time.
      */
+    /**
+     * Complete a campaign when its volunteer work is finished.
+     *
+     * Completion does not depend on reaching the fundraising target.
+     * At least one volunteer assignment must exist, and every assignment
+     * must be completed or rejected.
+     *
+     * Campaigns without volunteer assignments require a separate,
+     * explicit resolution workflow.
+     */
     public function completeCampaignIfEligible(
         Campaign $campaign
     ): Campaign {
-        $campaign->refresh();
+        return DB::transaction(function () use ($campaign) {
+            $campaign = Campaign::whereKey($campaign->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if ($campaign->status !== Campaign::STATUS_ACTIVE) {
-            return $campaign;
-        }
+            if ($campaign->status !== Campaign::STATUS_ACTIVE) {
+                return $campaign;
+            }
 
-        /*
-         * A campaign must have a target amount.
-         */
-        if (
-            $campaign->target_amount === null ||
-            (float) $campaign->collected_amount <
-                (float) $campaign->target_amount
-        ) {
-            return $campaign;
-        }
+            $assignments = $campaign->volunteerAssignments();
 
-        /*
-         * Every campaign volunteer assignment must be finished.
-         *
-         * Completed assignments are finished work.
-         * Rejected assignments do not represent unfinished work.
-         */
-        $hasIncompleteVolunteerAssignments =
-            $campaign->volunteerAssignments()
+            // Do not automatically complete campaigns with no assignments.
+            if (!$assignments->exists()) {
+                return $campaign;
+            }
+
+            // Every assignment must be finished.
+            $hasIncompleteAssignments = $campaign
+                ->volunteerAssignments()
                 ->whereNotIn('status', [
                     'completed',
                     'rejected',
                 ])
                 ->exists();
 
-        if ($hasIncompleteVolunteerAssignments) {
-            return $campaign;
-        }
+            if ($hasIncompleteAssignments) {
+                return $campaign;
+            }
 
-        return DB::transaction(function () use ($campaign) {
             $campaign->update([
                 'status' => Campaign::STATUS_COMPLETED,
             ]);
 
             /*
-             * Only local_case campaigns have a linked Help Request.
-             *
-             * Help Request:
-             * in_progress -> completed
-             */
+         * Complete the linked Help Request for local-case campaigns.
+         */
             if (
                 $campaign->type === Campaign::TYPE_LOCAL_CASE &&
                 $campaign->help_request_id
@@ -266,8 +266,7 @@ class CampaignService
 
                 if (
                     $helpRequest &&
-                    $helpRequest->status ===
-                        HelpRequest::STATUS_IN_PROGRESS
+                    $helpRequest->status === HelpRequest::STATUS_IN_PROGRESS
                 ) {
                     $helpRequest->update([
                         'status' => HelpRequest::STATUS_COMPLETED,
@@ -287,7 +286,7 @@ class CampaignService
         if (empty($data['help_request_id'])) {
             throw ValidationException::withMessages([
                 'help_request_id' =>
-                    'A local case campaign must be linked to a help request.',
+                'A local case campaign must be linked to a help request.',
             ]);
         }
 
@@ -322,7 +321,7 @@ class CampaignService
             if (!$assignment) {
                 throw ValidationException::withMessages([
                     'organization_id' =>
-                        'The help request is not accepted by this organization.',
+                    'The help request is not accepted by this organization.',
                 ]);
             }
         }
@@ -337,7 +336,7 @@ class CampaignService
         if (empty($data['organization_id'])) {
             throw ValidationException::withMessages([
                 'organization_id' =>
-                    'An organization-proposed campaign must belong to an organization.',
+                'An organization-proposed campaign must belong to an organization.',
             ]);
         }
 
@@ -347,7 +346,7 @@ class CampaignService
         ) {
             throw ValidationException::withMessages([
                 'help_request_id' =>
-                    'Organization-proposed campaigns cannot be linked to a help request.',
+                'Organization-proposed campaigns cannot be linked to a help request.',
             ]);
         }
     }
@@ -364,7 +363,7 @@ class CampaignService
         ) {
             throw ValidationException::withMessages([
                 'organization_id' =>
-                    'Global situation campaigns cannot belong to an organization.',
+                'Global situation campaigns cannot belong to an organization.',
             ]);
         }
 
@@ -374,7 +373,7 @@ class CampaignService
         ) {
             throw ValidationException::withMessages([
                 'help_request_id' =>
-                    'Global situation campaigns cannot be linked to a help request.',
+                'Global situation campaigns cannot be linked to a help request.',
             ]);
         }
     }

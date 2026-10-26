@@ -5,19 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonationAttempt;
+use App\Models\User;
 use App\Services\Campaign\CampaignService;
 use App\Services\SSLCOMMERZService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Throwable;
 
 class DonationController extends Controller
 {
     /**
      * Start a donation payment.
      *
-     * This does NOT create a Donation record.
-     * A real Donation is created only after SSLCOMMERZ
-     * confirms the payment through the server-side flow.
+     * A real Donation record is created only after
+     * server-side payment confirmation.
      */
     public function store(
         Request $request,
@@ -51,30 +53,40 @@ class DonationController extends Controller
             ],
         ]);
 
-        $campaign = Campaign::where(
-            'status',
-            Campaign::STATUS_ACTIVE
-        )->find($validated['campaign_id']);
+        $campaign = Campaign::find($validated['campaign_id']);
 
         if (!$campaign) {
             return response()->json([
-                'message' => 'Campaign not found or is not active.',
+                'message' => 'Campaign not found.',
             ], 404);
+        }
+
+        /*
+         * Prevent new payment attempts when the campaign
+         * is inactive, its target has been reached, or
+         * its deadline has passed.
+         */
+        if (!$campaign->acceptsDonations()) {
+            return response()->json([
+                'message' =>
+                'This campaign is no longer accepting donations.',
+            ], 422);
         }
 
         // Resolve the authenticated user through Sanctum.
         $user = auth('sanctum')->user();
 
         /*
-     * Admin, individual and organization accounts may donate.
-     *
-     * Guests must provide a phone number because SSLCOMMERZ
-     * requires cus_phone.
-     */
+         * Registered users may use their saved phone number.
+         * Guests must provide a valid Bangladesh mobile number.
+         */
         $donorPhone = $validated['donor_phone']
             ?? $user?->phone;
 
-        if (!$donorPhone) {
+        if (
+            !$donorPhone ||
+            !preg_match('/^01\d{9}$/', $donorPhone)
+        ) {
             return response()->json([
                 'message' =>
                 'A valid donor phone number is required to start the payment.',
@@ -90,13 +102,12 @@ class DonationController extends Controller
             ?? 'guest@example.com';
 
         /*
-     * If the requester is not authenticated, prevent them from
-     * using an email address already registered to an account.
-     * Guest donations with unregistered email addresses remain allowed.
-     */
+         * Prevent guests from using an email address
+         * already registered to an account.
+         */
         if (
-            !$user
-            && \App\Models\User::whereRaw(
+            !$user &&
+            User::whereRaw(
                 'LOWER(email) = ?',
                 [strtolower(trim($donorEmail))]
             )->exists()
@@ -132,30 +143,56 @@ class DonationController extends Controller
                 'campaign_id' => $campaign->id,
                 'campaign_title' => $campaign->title,
             ]);
-        } catch (\Throwable $exception) {
-            $attempt->update([
-                'status' => DonationAttempt::STATUS_FAILED,
+        } catch (Throwable $exception) {
+            Log::error('SSLCOMMERZ payment initiation failed.', [
+                'attempt_id' => $attempt->id,
+                'transaction_id' => $transactionId,
+                'exception' => get_class($exception),
+                'message' => $exception->getMessage(),
             ]);
 
-            // Keep the existing debug response behavior unchanged.
+            /*
+             * Only change an attempt that is still pending.
+             * A callback may already have processed it.
+             */
+            DonationAttempt::whereKey($attempt->id)
+                ->where(
+                    'status',
+                    DonationAttempt::STATUS_PENDING
+                )
+                ->update([
+                    'status' => DonationAttempt::STATUS_FAILED,
+                ]);
+
             return response()->json([
-                'message' => 'Unable to start the payment process.',
-                'error' => $exception->getMessage(),
-                'exception' => get_class($exception),
+                'message' =>
+                'Unable to start the payment process. Please try again.',
             ], 502);
         }
 
         if (
-            empty($payment['success'])
-            || empty($payment['gateway_url'])
+            empty($payment['success']) ||
+            empty($payment['gateway_url'])
         ) {
-            $attempt->update([
-                'status' => DonationAttempt::STATUS_FAILED,
-            ]);
+            Log::warning(
+                'SSLCOMMERZ returned an unsuccessful initiation response.',
+                [
+                    'attempt_id' => $attempt->id,
+                    'transaction_id' => $transactionId,
+                ]
+            );
+
+            DonationAttempt::whereKey($attempt->id)
+                ->where(
+                    'status',
+                    DonationAttempt::STATUS_PENDING
+                )
+                ->update([
+                    'status' => DonationAttempt::STATUS_FAILED,
+                ]);
 
             return response()->json([
                 'message' => 'Unable to start the payment process.',
-                'payment_response' => $payment,
             ], 502);
         }
 
@@ -191,10 +228,9 @@ class DonationController extends Controller
     }
 
     /**
-     * SSLCOMMERZ success callback.
+     * SSLCOMMERZ browser success callback.
      *
-     * The payment is still validated server-side before
-     * the user is redirected to the frontend.
+     * Payment is validated server-side before redirecting.
      */
     public function success(
         Request $request,
@@ -204,21 +240,13 @@ class DonationController extends Controller
         $response = $this->processGatewayResult(
             $request,
             $paymentService,
-            $campaignService,
-            'success'
+            $campaignService
         );
 
-        /*
-         * Do not redirect if payment processing failed.
-         */
         if ($response->getStatusCode() !== 200) {
             return $response;
         }
 
-        /*
-         * Payment was successfully confirmed and the
-         * Donation record was created.
-         */
         return $this->frontendPaymentRedirect(
             'success',
             $request->input('tran_id')
@@ -230,20 +258,25 @@ class DonationController extends Controller
      */
     public function fail(Request $request)
     {
-        $attempt = DonationAttempt::where(
-            'transaction_id',
-            $request->input('tran_id')
-        )->first();
+        $transactionId = $request->input('tran_id');
 
-        if ($attempt) {
-            $attempt->update([
-                'status' => DonationAttempt::STATUS_FAILED,
-            ]);
+        if ($transactionId) {
+            DonationAttempt::where(
+                'transaction_id',
+                $transactionId
+            )
+                ->where(
+                    'status',
+                    DonationAttempt::STATUS_PENDING
+                )
+                ->update([
+                    'status' => DonationAttempt::STATUS_FAILED,
+                ]);
         }
 
         return $this->frontendPaymentRedirect(
             'failed',
-            $request->input('tran_id')
+            $transactionId
         );
     }
 
@@ -252,27 +285,30 @@ class DonationController extends Controller
      */
     public function cancel(Request $request)
     {
-        $attempt = DonationAttempt::where(
-            'transaction_id',
-            $request->input('tran_id')
-        )->first();
+        $transactionId = $request->input('tran_id');
 
-        if ($attempt) {
-            $attempt->update([
-                'status' => DonationAttempt::STATUS_CANCELLED,
-            ]);
+        if ($transactionId) {
+            DonationAttempt::where(
+                'transaction_id',
+                $transactionId
+            )
+                ->where(
+                    'status',
+                    DonationAttempt::STATUS_PENDING
+                )
+                ->update([
+                    'status' => DonationAttempt::STATUS_CANCELLED,
+                ]);
         }
 
         return $this->frontendPaymentRedirect(
             'cancelled',
-            $request->input('tran_id')
+            $transactionId
         );
     }
 
     /**
-     * SSLCOMMERZ IPN endpoint.
-     *
-     * This is the important server-to-server confirmation path.
+     * SSLCOMMERZ server-to-server IPN endpoint.
      */
     public function ipn(
         Request $request,
@@ -282,19 +318,17 @@ class DonationController extends Controller
         return $this->processGatewayResult(
             $request,
             $paymentService,
-            $campaignService,
-            'ipn'
+            $campaignService
         );
     }
 
     /**
-     * Process a confirmed SSLCOMMERZ transaction.
+     * Process a gateway callback or IPN.
      */
     private function processGatewayResult(
         Request $request,
         SSLCOMMERZService $paymentService,
-        CampaignService $campaignService,
-        string $source
+        CampaignService $campaignService
     ) {
         $transactionId = $request->input('tran_id');
 
@@ -309,44 +343,34 @@ class DonationController extends Controller
             $transactionId
         )->first();
 
-
+        /*
+         * The IPN may complete a payment and delete its attempt
+         * before the browser success callback arrives.
+         */
         if (!$attempt) {
-            /*
-     * SSLCOMMERZ may send the IPN before the browser's
-     * success callback. The IPN can complete the donation
-     * and delete its attempt before the browser returns.
-     *
-     * If the donation already exists, treat this callback
-     * as an already-completed payment instead of returning
-     * a 404 response.
-     */
             $donation = Donation::with('campaign')
                 ->where('transaction_id', $transactionId)
                 ->first();
 
             if ($donation) {
                 return response()->json([
-                    'message' => 'Donation payment already confirmed successfully.',
+                    'message' =>
+                    'Donation payment already confirmed successfully.',
                     'donation' => $donation,
                 ], 200);
             }
 
-            // Neither the attempt nor a completed donation exists.
             return response()->json([
                 'message' => 'Donation attempt not found.',
             ], 404);
         }
 
-
         /*
-         * Idempotency:
-         *
-         * If the IPN/callback is received more than once,
-         * do not create another donation.
+         * A previously processed attempt must not create
+         * another donation.
          */
         if (
-            $attempt->status !==
-            DonationAttempt::STATUS_PENDING
+            $attempt->status !== DonationAttempt::STATUS_PENDING
         ) {
             return response()->json([
                 'message' => 'Donation attempt already processed.',
@@ -358,11 +382,46 @@ class DonationController extends Controller
             $attempt
         );
 
-        if (!$validation['success']) {
-            $attempt->update([
-                'status' => $validation['status']
-                    ?? DonationAttempt::STATUS_FAILED,
-            ]);
+        if (empty($validation['success'])) {
+            /*
+             * Do not permanently fail an attempt when the
+             * gateway validation service is temporarily unavailable.
+             *
+             * SSLCOMMERZService must explicitly return
+             * retryable=true for temporary infrastructure or
+             * validation-service errors.
+             */
+            if (!empty($validation['retryable'])) {
+                Log::warning(
+                    'SSLCOMMERZ payment validation is temporarily unavailable.',
+                    [
+                        'attempt_id' => $attempt->id,
+                        'transaction_id' => $transactionId,
+                        'message' => $validation['message'] ?? null,
+                    ]
+                );
+
+                return response()->json([
+                    'message' =>
+                    'Payment verification is temporarily unavailable. Please retry verification.',
+                ], 503);
+            }
+
+            /*
+             * Only definitive validation outcomes should change
+             * the pending attempt's status.
+             */
+            $newStatus = $validation['status']
+                ?? DonationAttempt::STATUS_FAILED;
+
+            DonationAttempt::whereKey($attempt->id)
+                ->where(
+                    'status',
+                    DonationAttempt::STATUS_PENDING
+                )
+                ->update([
+                    'status' => $newStatus,
+                ]);
 
             return response()->json([
                 'message' => $validation['message']
@@ -371,13 +430,10 @@ class DonationController extends Controller
         }
 
         /*
-         * Only the validated payment reaches this point.
-         *
-         * The payment service has already verified:
-         * - transaction identity
-         * - payment status
-         * - amount
-         * - currency
+         * Only a server-validated payment reaches this point.
+         * A deadline passing after payment initiation must not
+         * automatically invalidate a payment already confirmed
+         * by the gateway.
          */
         $donation = $paymentService->completeDonation(
             $attempt,
@@ -385,10 +441,7 @@ class DonationController extends Controller
         );
 
         /*
-         * Donation has now increased collected_amount.
-         *
-         * Let CampaignService determine whether the campaign
-         * has become eligible for completion.
+         * Re-evaluate completion after recording the donation.
          */
         $campaignService->completeCampaignIfEligible(
             $donation->campaign->fresh()
@@ -401,8 +454,7 @@ class DonationController extends Controller
     }
 
     /**
-     * Redirect the browser back to the frontend after
-     * the payment callback has been processed.
+     * Redirect the browser to the frontend payment result page.
      */
     private function frontendPaymentRedirect(
         string $status,
@@ -414,13 +466,9 @@ class DonationController extends Controller
         );
 
         /*
-     * Determine whether the donation belongs to a registered
-     * user or a guest.
-     *
-     * The payment attempt may have been deleted after the
-     * IPN callback completed the donation. If so, use the
-     * saved Donation record to identify the donor.
-     */
+         * The attempt may have been deleted after a successful
+         * IPN. Use the Donation record as a fallback.
+         */
         $attempt = null;
         $donation = null;
 
@@ -438,13 +486,6 @@ class DonationController extends Controller
             }
         }
 
-        /*
-     * Registered user donation:
-     * /individual/dashboard/donation/payment-result
-     *
-     * Guest donation:
-     * /donation/payment-result
-     */
         $isRegisteredUser = $attempt
             ? (bool) $attempt->user_id
             : (bool) $donation?->user_id;

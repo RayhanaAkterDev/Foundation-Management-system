@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -127,6 +128,44 @@ class Campaign extends Model
     public function volunteerAssignments(): HasMany
     {
         return $this->hasMany(CampaignVolunteerAssignment::class);
+    }
+
+    /**
+     * Determine whether the campaign can accept a new donation.
+     *
+     * Rules:
+     * - The campaign must be active.
+     * - The fundraising target must not already be reached.
+     * - The deadline must not have passed.
+     * - A campaign without an end date remains open-ended until
+     *   its fundraising target is reached.
+     *
+     * Deadline comparisons use the Bangladesh calendar date.
+     * A campaign ending today remains open through that date.
+     */
+    public function acceptsDonations(): bool
+    {
+        if ($this->status !== self::STATUS_ACTIVE) {
+            return false;
+        }
+
+        if (
+            $this->target_amount !== null &&
+            (float) $this->collected_amount >=
+            (float) $this->target_amount
+        ) {
+            return false;
+        }
+
+        if ($this->end_date !== null) {
+            $today = Carbon::now('Asia/Dhaka')->toDateString();
+
+            if ($this->end_date->toDateString() < $today) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public static function types(): array

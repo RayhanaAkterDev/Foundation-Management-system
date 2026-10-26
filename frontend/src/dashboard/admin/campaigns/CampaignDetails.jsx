@@ -838,8 +838,6 @@ export default function CampaignDetails() {
             subtitle="Review campaign information, location, schedule and funding."
             action={
                 <div className="flex flex-col items-stretch gap-3">
-                    {campaign && <ClassificationBadges campaign={campaign} />}
-
                     <div className="flex flex-wrap items-center gap-2">
                         <button
                             type="button"

@@ -3067,7 +3067,7 @@ class AdminController extends Controller
     {
         $authorization = $this->authorizeAdmin($request);
 
-        if ($authorization) {
+        if ($authorization instanceof \Illuminate\Http\JsonResponse) {
             return $authorization;
         }
 

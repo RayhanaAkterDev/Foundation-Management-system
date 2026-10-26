@@ -6,7 +6,7 @@ import { ArrowRight, Clock3 } from 'lucide-react';
 
 import { fetchPublicCampaigns } from '@/api/publicCampaignsApi';
 
-import CampaignCard from '../sections/CampaignCard';
+import CampaignEditorialCard from '../sections/CampaignEditorialCard';
 
 const INITIAL_COUNT = 6;
 const LOAD_MORE_COUNT = 3;
@@ -129,7 +129,7 @@ const UrgentCampaigns = () => {
                     <div className="max-w-4xl">
                         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-3 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.14em] text-accent">
                             <Clock3 size={14} />
-                            Urgent Appeals
+                            জরুরি সহায়তা
                         </div>
 
                         <h1 className="max-w-4xl font-bengali text-[2.45rem] font-semibold leading-[1.15] tracking-[-0.035em] text-text-primary sm:text-[2.8rem] lg:text-[3.2rem] lg:leading-[1.14] xl:text-[3.5rem]">
@@ -150,7 +150,7 @@ const UrgentCampaigns = () => {
             <section className="pb-20 lg:pb-24 xl:pb-28">
                 <div className="container-width">
                     {loading ? (
-                        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                        <div className="grid gap-6 md:grid-cols-2">
                             {Array.from({ length: 6 }).map((_, index) => (
                                 <div
                                     key={index}
@@ -162,7 +162,7 @@ const UrgentCampaigns = () => {
                         <>
                             <div className="mb-8">
                                 <p className="font-sans text-sm font-medium! text-text-secondary">
-                                    Active campaigns requiring attention
+                                    অগ্রাধিকারপ্রাপ্ত সক্রিয় উদ্যোগ
                                 </p>
 
                                 <h2 className="mt-1 font-bengali text-2xl font-semibold tracking-[-0.02em] text-text-primary lg:text-[2rem]">
@@ -170,11 +170,13 @@ const UrgentCampaigns = () => {
                                 </h2>
                             </div>
 
-                            <div className="grid gap-6 md:grid-cols-2 lg:gap-7 xl:grid-cols-3">
-                                {visibleCampaigns.map((campaign) => (
-                                    <CampaignCard
+                            <div className="grid gap-6 md:grid-cols-2 lg:gap-7">
+                                {visibleCampaigns.map((campaign, index) => (
+                                    <CampaignEditorialCard
                                         key={campaign.id}
                                         campaign={campaign}
+                                        index={index}
+                                        variant="urgent"
                                     />
                                 ))}
                             </div>

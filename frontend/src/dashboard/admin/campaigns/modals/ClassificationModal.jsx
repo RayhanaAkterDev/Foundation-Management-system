@@ -454,17 +454,16 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
         if (!recommendedPriority) return;
 
         setPriority(recommendedPriority);
-        setUrgent(
-            assessment.urgency === 'high' || assessment.urgency === 'critical',
-        );
-
+        setUrgent(true);
         setSaveError('');
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        if (busy || assessing || !campaignId) return;
+        if (busy || assessing || !campaignId || (!featured && !urgent)) {
+            return;
+        }
 
         setBusy(true);
         setSaveError('');
@@ -698,7 +697,9 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
 
                         <button
                             type="submit"
-                            disabled={busy || assessing}
+                            disabled={
+                                busy || assessing || (!featured && !urgent)
+                            }
                             className="inline-flex min-h-[39px] items-center justify-center gap-2 rounded-lg bg-[#E5E9ED] px-4 py-2 text-[12px] font-semibold text-[#17212B] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {busy ? (

@@ -6,12 +6,21 @@ import { IoChevronDown } from 'react-icons/io5';
 
 import navLinks from './data/navLinks';
 
+// Exact matching for individual links, including /about vs /about/team.
 const matchesPath = (pathname, target) => {
     if (!target) return false;
-    const normalized = target !== '/' ? target.replace(/\/+$/, '') : '/';
+    const normalize = (path) => path.replace(/\/+$/, '') || '/';
+    return normalize(pathname) === normalize(target);
+};
+
+// A parent mega-menu is active when one of its child routes is active.
+const matchesSection = (pathname, target) => {
+    if (!target) return false;
+    const normalize = (path) => path.replace(/\/+$/, '') || '/';
+    const current = normalize(pathname);
+    const route = normalize(target);
     return (
-        pathname === normalized ||
-        (normalized !== '/' && pathname.startsWith(`${normalized}/`))
+        current === route || (route !== '/' && current.startsWith(`${route}/`))
     );
 };
 
@@ -29,7 +38,7 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
         if (link.type === 'mega') {
             return link.groups?.some((group) =>
                 group.items.some((item) =>
-                    matchesPath(location.pathname, item.path),
+                    matchesSection(location.pathname, item.path),
                 ),
             );
         }

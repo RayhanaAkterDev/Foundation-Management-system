@@ -4,13 +4,12 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { FiArrowRight } from 'react-icons/fi';
 
+// Submenu entries must match their own route, not descendant routes.
+// For example, /about must not activate on /about/team.
 const matchesPath = (pathname, target) => {
     if (!target) return false;
-    const normalized = target !== '/' ? target.replace(/\/+$/, '') : '/';
-    return (
-        pathname === normalized ||
-        (normalized !== '/' && pathname.startsWith(`${normalized}/`))
-    );
+    const normalize = (path) => path.replace(/\/+$/, '') || '/';
+    return normalize(pathname) === normalize(target);
 };
 
 const MegaMenu = ({ item, onClose }) => {

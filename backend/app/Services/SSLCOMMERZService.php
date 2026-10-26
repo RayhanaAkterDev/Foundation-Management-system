@@ -349,7 +349,13 @@ class SSLCOMMERZService
             $attempt,
             $payment
         ) {
-            $attempt->refresh();
+            /**
+             * Lock the attempt to prevent concurrent callbacks
+             * from processing the same payment simultaneously.
+             */
+            $attempt = DonationAttempt::whereKey($attempt->id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
             /**
              * Prevent duplicate IPN/callback processing.
@@ -363,6 +369,9 @@ class SSLCOMMERZService
                 );
             }
 
+            /**
+             * Lock the campaign while recording the donation.
+             */
             $campaign = $attempt->campaign()
                 ->lockForUpdate()
                 ->first();
@@ -373,14 +382,14 @@ class SSLCOMMERZService
                 );
             }
 
-            if (
-                $campaign->status !==
-                Campaign::STATUS_ACTIVE
-            ) {
-                throw new RuntimeException(
-                    'Campaign is no longer active.'
-                );
-            }
+            /**
+             * Do not reject an already-confirmed payment because
+             * the campaign deadline passed or its status changed
+             * after the payment was initiated.
+             *
+             * New donation attempts are still restricted by the
+             * campaign eligibility check in DonationController.
+             */
 
             /**
              * Create the real donation.
@@ -391,14 +400,12 @@ class SSLCOMMERZService
                 'donor_email' => $attempt->donor_email,
                 'campaign_id' => $attempt->campaign_id,
                 'amount' => $attempt->amount,
-                'payment_method' =>
-                $payment['payment_method'],
-                'transaction_id' =>
-                $attempt->transaction_id,
+                'payment_method' => $payment['payment_method'],
+                'transaction_id' => $attempt->transaction_id,
             ]);
 
             /**
-             * Only confirmed payment changes campaign totals.
+             * Only confirmed payments change campaign totals.
              */
             $campaign->increment(
                 'collected_amount',
@@ -426,6 +433,9 @@ class SSLCOMMERZService
             ));
         }
 
+        /**
+         * Notify active administrators.
+         */
         User::where('role', 'admin')
             ->where('status', 'active')
             ->get()
@@ -438,6 +448,9 @@ class SSLCOMMERZService
                 ));
             });
 
+        /**
+         * Notify the campaign's organization.
+         */
         $donation->campaign->loadMissing('organization.user');
 
         if ($donation->campaign->organization?->user) {

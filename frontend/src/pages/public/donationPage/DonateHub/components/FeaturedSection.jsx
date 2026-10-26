@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowRight, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import CampaignCard from '@/pages/public/campaignsPage/sections/CampaignCard.jsx';
+import CampaignEditorialCard from '@/pages/public/campaignsPage/sections/CampaignEditorialCard.jsx';
 import SectionHeading from '@/components/SectionHeading.jsx';
 
 const isEnabled = (value) => value === true || value === 1 || value === '1';
@@ -43,11 +43,13 @@ const FeaturedSection = ({ campaigns = [] }) => {
 
                 {featured.length > 0 ? (
                     <>
-                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                            {featured.map((campaign) => (
-                                <CampaignCard
+                        <div className="grid grid-cols-1 gap-x-8 gap-y-2 lg:grid-cols-2">
+                            {featured.map((campaign, index) => (
+                                <CampaignEditorialCard
                                     key={campaign.id}
                                     campaign={campaign}
+                                    index={index}
+                                    variant="hub"
                                 />
                             ))}
                         </div>

@@ -133,6 +133,19 @@ class CampaignUrgencyAiService
             $description,
             $requestTitle,
             $requestDescription,
+
+            // Additional campaign context.
+            $this->toText($campaign['category'] ?? ''),
+            $this->toText($campaign['type'] ?? ''),
+            $this->toText($campaign['scope'] ?? ''),
+            $this->toText($campaign['district'] ?? ''),
+            $this->toText($campaign['location'] ?? ''),
+            $this->toText($campaign['affected_areas'] ?? ''),
+
+            // Linked help-request context.
+            $this->toText($helpRequest['category'] ?? ''),
+            $this->toText($helpRequest['district'] ?? ''),
+            $this->toText($helpRequest['location'] ?? ''),
         ]));
 
         $explicitUrgency = $this->normalizeText(
@@ -204,6 +217,53 @@ class CampaignUrgencyAiService
             'আশ্রয় নেই',
             'আশ্রয় নেই',
             'গৃহহীন',
+            // Emergency food and basic necessities.
+            'emergency food',
+            'emergency food support',
+            'urgent food assistance',
+            'food assistance for affected families',
+            'food relief',
+            'food shortage',
+            'food insecurity',
+            'no clean drinking water',
+            'lack of clean water',
+
+            // Floods and other disasters.
+            'flood-affected',
+            'flood affected',
+            'flood relief',
+            'flood emergency',
+            'flood victims',
+            'cyclone-affected',
+            'cyclone affected',
+            'cyclone relief',
+            'earthquake relief',
+            'disaster relief',
+            'natural disaster',
+            'disaster emergency',
+            'disaster-affected',
+            'disaster affected',
+            'displaced families',
+            'stranded families',
+            'families affected by floods',
+            'families affected by disaster',
+            'emergency shelter',
+            'emergency relief',
+
+            // Bengali humanitarian emergency terms.
+            'বন্যার্ত',
+            'বন্যা কবলিত',
+            'বন্যা দুর্গত',
+            'বন্যা ত্রাণ',
+            'জরুরি খাদ্য সহায়তা',
+            'জরুরি খাদ্য সহায়তা',
+            'খাদ্য সহায়তা',
+            'খাদ্য সহায়তা',
+            'দুর্যোগ ত্রাণ',
+            'দুর্যোগে ক্ষতিগ্রস্ত',
+            'ঘূর্ণিঝড়ে ক্ষতিগ্রস্ত',
+            'ঘূর্ণিঝড়ে ক্ষতিগ্রস্ত',
+            'বিশুদ্ধ পানির সংকট',
         ];
 
         $criticalMatches = $this->findTerms(

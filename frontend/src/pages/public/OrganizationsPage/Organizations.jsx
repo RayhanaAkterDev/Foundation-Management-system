@@ -68,7 +68,7 @@ const Organizations = () => {
 
                             sm:py-16
 
-                            lg:grid-cols-[minmax(0,1fr)_360px]
+                            lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]
                             lg:items-center
                             lg:gap-16
                             lg:py-20
@@ -107,7 +107,7 @@ const Organizations = () => {
                             <h1
                                 className="
                                     font-bengali
-                                    text-[2.15rem]
+                                    text-[clamp(1.9rem,5vw,2.15rem)]
                                     font-medium!
                                     leading-[1.4]
                                     tracking-normal
@@ -147,7 +147,7 @@ const Organizations = () => {
                                     lg:text-base
                                 "
                             >
-                                স্ট্যান্ড ফর পিপলের সঙ্গে যুক্ত যাচাইকৃত
+                                Stand For People-এর সঙ্গে যুক্ত যাচাইকৃত
                                 প্রতিষ্ঠানগুলো মানবিক উদ্যোগ পরিচালনা এবং
                                 প্রয়োজনীয় মানুষের কাছে সহায়তা পৌঁছে দিতে কাজ
                                 করে।
@@ -346,7 +346,7 @@ const Organizations = () => {
                                     size={17}
                                     className="text-primary"
                                 />
-                                Stand For People নেটওয়ার্ক
+                                Stand For People-এর নেটওয়ার্ক
                             </div>
                         </div>
                     </div>
@@ -554,8 +554,6 @@ const Organizations = () => {
                     </div>
                 </div>
             </section>
-
-
 
             {/* =========================================================
                 FAQ

@@ -4,6 +4,15 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { FiArrowRight } from 'react-icons/fi';
 
+const matchesPath = (pathname, target) => {
+    if (!target) return false;
+    const normalized = target !== '/' ? target.replace(/\/+$/, '') : '/';
+    return (
+        pathname === normalized ||
+        (normalized !== '/' && pathname.startsWith(`${normalized}/`))
+    );
+};
+
 const MegaMenu = ({ item, onClose }) => {
     const location = useLocation();
 
@@ -185,11 +194,10 @@ const MegaMenu = ({ item, onClose }) => {
 
                                 <div className="space-y-1">
                                     {group.items.map((link) => {
-                                        const isActive =
-                                            location.pathname === link.path ||
-                                            location.pathname.startsWith(
-                                                `${link.path}/`,
-                                            );
+                                        const isActive = matchesPath(
+                                            location.pathname,
+                                            link.path,
+                                        );
 
                                         return (
                                             <Link
@@ -209,7 +217,7 @@ const MegaMenu = ({ item, onClose }) => {
                                                     ${
                                                         isActive
                                                             ? 'bg-primary-soft'
-                                                            : 'hover:bg-primary-soft'
+                                                            : 'hover:text-primary-deep'
                                                     }
                                                 `}
                                             >

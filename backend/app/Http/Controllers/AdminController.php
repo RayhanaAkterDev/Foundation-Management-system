@@ -251,16 +251,22 @@ class AdminController extends Controller
         return response()->json([
             'stats' => [
                 'totalUsers' => User::count(),
-
+                'totalOrganizations' => Organization::count(),
+                'pendingVerification' => Organization::where(
+                    'verification_status',
+                    'pending'
+                )->count(),
+                'totalHelpRequests' => HelpRequest::count(),
+                'pendingHelpRequests' => HelpRequest::where(
+                    'status',
+                    HelpRequest::STATUS_PENDING
+                )->count(),
                 'activeCampaigns' => Campaign::where(
                     'status',
                     Campaign::STATUS_ACTIVE
                 )->count(),
-
                 'totalDonations' => Donation::sum('amount'),
-
                 'totalVolunteers' => Volunteer::count(),
-
                 'reportsGenerated' => 0,
             ],
 

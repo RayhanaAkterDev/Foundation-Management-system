@@ -15,7 +15,7 @@ const VolunteerCommunityVisual = ({
             className="
                 relative
 
-                min-h-[400px]
+                min-h-[320px]
                 overflow-hidden
 
                 sm:min-h-[440px]
@@ -143,6 +143,26 @@ const LoadingState = () => {
 const CommunityField = ({ volunteers }) => {
     return (
         <div className="absolute inset-0">
+            <div className="grid grid-cols-2 gap-3 p-2 sm:hidden">
+                {volunteers.slice(0, 6).map((volunteer, index) => (
+                    <div
+                        key={volunteer.id ?? index}
+                        className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-surface p-3"
+                    >
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[13px] font-medium! text-primary">
+                            {volunteer.name?.trim()?.charAt(0) || 'স'}
+                        </span>
+                        <div className="min-w-0">
+                            <p className="truncate text-[12px] font-medium! text-text-primary">
+                                {volunteer.name || 'স্বেচ্ছাসেবক'}
+                            </p>
+                            <p className="mt-1 truncate text-[11px] text-text-muted">
+                                {volunteer.skills || 'মানবিক সহায়তা'}
+                            </p>
+                        </div>
+                    </div>
+                ))}
+            </div>
             {/* SOFT BACKGROUND */}
 
             <div
@@ -329,7 +349,7 @@ const VolunteerCard = ({ volunteer, index }) => {
 
     const delays = ['0ms', '120ms', '240ms', '360ms', '480ms', '600ms'];
 
-    const initial = volunteer.name?.trim()?.charAt(0)?.toUpperCase() || 'S';
+    const initial = volunteer.name?.trim()?.charAt(0)?.toUpperCase() || 'স';
 
     return (
         <article
@@ -475,7 +495,7 @@ const VolunteerCard = ({ volunteer, index }) => {
                             sm:text-[12.5px]
                         "
                     >
-                        {volunteer.name || 'SP স্বেচ্ছাসেবক'}
+                        {volunteer.name || 'স্বেচ্ছাসেবক'}
                     </h3>
 
                     <TbShieldCheck

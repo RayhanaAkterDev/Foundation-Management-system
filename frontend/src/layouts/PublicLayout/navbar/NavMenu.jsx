@@ -6,6 +6,15 @@ import { IoChevronDown } from 'react-icons/io5';
 
 import navLinks from './data/navLinks';
 
+const matchesPath = (pathname, target) => {
+    if (!target) return false;
+    const normalized = target !== '/' ? target.replace(/\/+$/, '') : '/';
+    return (
+        pathname === normalized ||
+        (normalized !== '/' && pathname.startsWith(`${normalized}/`))
+    );
+};
+
 const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -14,13 +23,13 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
 
     const isActiveLink = (link) => {
         if (link.type === 'single') {
-            return location.pathname === link.path;
+            return matchesPath(location.pathname, link.path);
         }
 
         if (link.type === 'mega') {
             return link.groups?.some((group) =>
                 group.items.some((item) =>
-                    location.pathname.startsWith(item.path),
+                    matchesPath(location.pathname, item.path),
                 ),
             );
         }
@@ -177,7 +186,8 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                                         {group.items.map(
                                                             (item) => {
                                                                 const itemActive =
-                                                                    location.pathname.startsWith(
+                                                                    matchesPath(
+                                                                        location.pathname,
                                                                         item.path,
                                                                     );
 

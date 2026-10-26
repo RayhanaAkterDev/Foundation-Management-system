@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
     AlertCircle,
     Check,
-    CheckCircle2,
     ChevronDown,
     Flame,
     LoaderCircle,
@@ -149,7 +148,6 @@ function UrgencyAssessment({
 
     return (
         <section className="border-b border-[#34404D] pb-5">
-            {/* AI assessment heading */}
             <div className="flex items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#29394C] text-[#AAC6E9]">
@@ -180,7 +178,6 @@ function UrgencyAssessment({
                 )}
             </div>
 
-            {/* Initial assessment */}
             {!assessment && !assessing && !error && (
                 <div className="mt-3 flex flex-col gap-3 rounded-lg bg-[#202D3A] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-[12px] leading-5 text-[#AAB8C8]">
@@ -199,7 +196,6 @@ function UrgencyAssessment({
                 </div>
             )}
 
-            {/* Assessing */}
             {assessing && (
                 <div
                     role="status"
@@ -222,7 +218,6 @@ function UrgencyAssessment({
                 </div>
             )}
 
-            {/* Assessment error */}
             {error && !assessing && (
                 <div
                     role="alert"
@@ -257,7 +252,6 @@ function UrgencyAssessment({
                 </div>
             )}
 
-            {/* AI result */}
             {assessment && urgencyStyle && !assessing && (
                 <div className="mt-4">
                     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-[#202D3A] px-3.5 py-3">
@@ -352,7 +346,6 @@ function UrgencyAssessment({
                 </div>
             )}
 
-            {/* Unsupported urgency */}
             {assessment && !urgencyStyle && !assessing && (
                 <div
                     role="alert"
@@ -376,10 +369,10 @@ function UrgencyAssessment({
 }
 
 export default function ClassificationModal({ campaign, onClose, onSave }) {
+    const campaignId = campaign?.id;
+
     const [featured, setFeatured] = useState(Boolean(campaign?.is_featured));
-
     const [urgent, setUrgent] = useState(Boolean(campaign?.is_urgent));
-
     const [priority, setPriority] = useState(
         Number(campaign?.urgency_priority) || 2,
     );
@@ -389,58 +382,69 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
     const [saveError, setSaveError] = useState('');
     const [assessmentError, setAssessmentError] = useState('');
     const [assessment, setAssessment] = useState(null);
-    const [savedMessage, setSavedMessage] = useState('');
 
-    if (!campaign) return null;
-
-    const handleAssess = async () => {
-        if (assessing || busy) return;
+    const handleAssess = useCallback(async () => {
+        if (!campaignId) return;
 
         setAssessing(true);
         setAssessmentError('');
         setAssessment(null);
-        setSavedMessage('');
 
         try {
-            const response = await assessCampaignUrgency(campaign.id);
+            const response = await assessCampaignUrgency(campaignId);
 
             if (response?.success === false) {
                 throw new Error(
-                    response.message || 'Unable to assess campaign urgency.',
+                    response?.message || 'Unable to assess campaign urgency.',
                 );
             }
 
             const result = response?.assessment;
-            const urgency = result?.urgency?.toLowerCase();
+            const urgency = String(result?.urgency || '').toLowerCase();
 
             if (
                 !result ||
-                !URGENCY_STYLES[urgency] ||
-                !URGENCY_PRIORITY[urgency] ||
-                typeof result.reason !== 'string' ||
-                !result.reason.trim()
+                !Object.prototype.hasOwnProperty.call(
+                    URGENCY_PRIORITY,
+                    urgency,
+                ) ||
+                !String(result.reason || '').trim()
             ) {
                 throw new Error(
-                    'The AI returned an incomplete or invalid assessment. Please try again.',
+                    'The assessment returned an invalid result. Please try again.',
                 );
             }
 
             setAssessment({
                 ...result,
                 urgency,
-                missing_information: Array.isArray(result.missing_information)
-                    ? result.missing_information
-                    : [],
             });
         } catch (error) {
             setAssessmentError(
-                error?.message ||
-                    'Something went wrong while assessing campaign urgency.',
+                error?.message || 'Campaign urgency assessment failed.',
             );
         } finally {
             setAssessing(false);
         }
-    };
+    }, [campaignId]);
+
+    useEffect(() => {
+        if (!campaignId) return undefined;
+
+        let cancelled = false;
+
+        // Defer the initial request so state updates do not run directly
+        // inside the effect. Cleanup prevents a queued request on unmount.
+        Promise.resolve().then(() => {
+            if (!cancelled) {
+                handleAssess();
+            }
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [campaignId, handleAssess]);
 
     const handleApplyAssessment = () => {
         if (!assessment) return;
@@ -450,23 +454,20 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
         if (!recommendedPriority) return;
 
         setPriority(recommendedPriority);
-
         setUrgent(
             assessment.urgency === 'high' || assessment.urgency === 'critical',
         );
 
-        setSavedMessage('');
         setSaveError('');
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
 
-        if (busy || assessing) return;
+        if (busy || assessing || !campaignId) return;
 
         setBusy(true);
         setSaveError('');
-        setSavedMessage('');
 
         const classification = {
             is_featured: featured,
@@ -476,7 +477,7 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
 
         try {
             const response = await updateCampaignClassification(
-                campaign.id,
+                campaignId,
                 classification,
             );
 
@@ -488,7 +489,7 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
             }
 
             onSave?.({
-                campaignId: campaign.id,
+                campaignId,
                 classification,
                 response,
             });
@@ -501,6 +502,10 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
             setBusy(false);
         }
     };
+
+    // Keep all hooks above the conditional return to comply with
+    // the Rules of Hooks when campaign is null.
+    if (!campaign) return null;
 
     const selectedPriority =
         PRIORITY_OPTIONS.find((option) => option.value === Number(priority)) ||
@@ -525,7 +530,6 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
                 aria-labelledby="classification-modal-title"
                 className="my-auto flex max-h-[calc(100dvh-24px)] w-full max-w-[540px] flex-col overflow-hidden rounded-xl border border-[#354352] bg-[#1B242E] shadow-[0_28px_90px_rgba(0,0,0,0.55)] sm:max-h-[calc(100dvh-40px)]"
             >
-                {/* Header */}
                 <header className="flex shrink-0 items-start justify-between gap-4 border-b border-[#34404D] px-5 py-4 sm:px-6 sm:py-5">
                     <div className="min-w-0">
                         <h2
@@ -536,7 +540,7 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
                         </h2>
 
                         <p className="mt-1 truncate text-[12px] text-[#A4B2C3]">
-                            {campaign.title || `Campaign #${campaign.id}`}
+                            {campaign.title || `Campaign #${campaignId}`}
                         </p>
                     </div>
 
@@ -556,7 +560,6 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
                     className="flex min-h-0 flex-1 flex-col"
                 >
                     <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5 [scrollbar-color:#435263_transparent] [scrollbar-width:thin] sm:px-6">
-                        {/* AI assessment */}
                         <UrgencyAssessment
                             assessment={assessment}
                             assessing={assessing}
@@ -566,7 +569,6 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
                             disabled={busy}
                         />
 
-                        {/* Visibility */}
                         <section>
                             <h3 className="mb-2 text-[13px] font-semibold text-[#EEF1F5]!">
                                 Campaign visibility
@@ -580,7 +582,6 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
                                     checked={featured}
                                     onChange={(value) => {
                                         setFeatured(value);
-                                        setSavedMessage('');
                                         setSaveError('');
                                     }}
                                     disabled={busy || assessing}
@@ -599,7 +600,6 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
                                             setPriority(2);
                                         }
 
-                                        setSavedMessage('');
                                         setSaveError('');
                                     }}
                                     disabled={busy || assessing}
@@ -608,7 +608,6 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
                             </div>
                         </section>
 
-                        {/* Priority */}
                         <section
                             className={`border-t border-[#34404D] pt-5 transition-opacity ${
                                 urgent ? '' : 'opacity-50'
@@ -658,7 +657,6 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
                                             }
                                             onClick={() => {
                                                 setPriority(option.value);
-                                                setSavedMessage('');
                                                 setSaveError('');
                                             }}
                                             className={`flex min-h-[40px] items-center justify-center rounded-md px-1.5 py-2 text-[12px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8A9AAC] disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -674,22 +672,6 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
                             </div>
                         </section>
 
-                        {/* Save success message */}
-                        {savedMessage && (
-                            <div
-                                role="status"
-                                className="flex items-start gap-2 rounded-lg border border-[#6CA99F]/30 bg-[#6CA99F]/[0.08] px-3.5 py-3 text-[12px] leading-5 text-[#A8D6CD]"
-                            >
-                                <CheckCircle2
-                                    size={16}
-                                    className="mt-0.5 shrink-0"
-                                />
-
-                                <p>{savedMessage}</p>
-                            </div>
-                        )}
-
-                        {/* Save error */}
                         {saveError && (
                             <div
                                 role="alert"
@@ -699,13 +681,11 @@ export default function ClassificationModal({ campaign, onClose, onSave }) {
                                     size={16}
                                     className="mt-0.5 shrink-0"
                                 />
-
                                 <p>{saveError}</p>
                             </div>
                         )}
                     </div>
 
-                    {/* Footer */}
                     <footer className="flex shrink-0 items-center justify-end gap-2 border-t border-[#34404D] bg-[#19222C] px-5 py-3.5 sm:px-6">
                         <button
                             type="button"

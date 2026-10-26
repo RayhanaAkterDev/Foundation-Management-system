@@ -41,7 +41,7 @@ class HelpRequestTest extends TestCase
         ]);
     }
 
-    public function test_organization_can_submit_help_request(): void
+    public function test_organization_cannot_submit_help_request(): void
     {
         $user = User::factory()->create([
             'role' => 'organization',
@@ -57,16 +57,14 @@ class HelpRequestTest extends TestCase
             'urgency' => 'critical',
         ]);
 
-        $response->assertStatus(201)
-            ->assertJsonPath(
-                'help_request.status',
-                'pending'
-            );
+        $response->assertStatus(403)
+            ->assertJson([
+                'message' => 'Only individual users can submit help requests.',
+            ]);
 
-        $this->assertDatabaseHas('help_requests', [
+        $this->assertDatabaseMissing('help_requests', [
             'user_id' => $user->id,
             'title' => 'Community Food Crisis',
-            'status' => 'pending',
         ]);
     }
 

@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -6,20 +7,30 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('organization_registration_numbers', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('organization_id')
+                ->constrained('organizations')
+                ->cascadeOnDelete();
+
+            $table->string('registration_number')->unique();
+            $table->string('organization_type');
+            $table->unsignedBigInteger('sequence_number');
+            $table->unsignedSmallInteger('registration_year');
+            $table->string('status')->default('active');
+            $table->timestamp('issued_at')->nullable();
+            $table->timestamp('retired_at')->nullable();
+
             $table->timestamps();
+
+            $table->index(['organization_id', 'status']);
+            $table->index(['registration_year', 'sequence_number']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('organization_registration_numbers');

@@ -25,10 +25,17 @@ const FeaturedCampaigns = () => {
                 const data = await fetchPublicCampaigns();
 
                 const featured = [...data]
-                    .filter((campaign) => campaign?.status === 'active')
+                    .filter(
+                        (campaign) =>
+                            campaign?.status === 'active' &&
+                            (campaign?.is_featured === true ||
+                                campaign?.is_featured === 1 ||
+                                campaign?.is_featured === '1'),
+                    )
                     .sort(
                         (a, b) =>
-                            new Date(b.created_at) - new Date(a.created_at),
+                            new Date(b.created_at || 0) -
+                            new Date(a.created_at || 0),
                     );
 
                 if (isMounted) {
@@ -85,8 +92,8 @@ const FeaturedCampaigns = () => {
                         </h1>
 
                         <p className="mt-5 max-w-2xl font-sans text-[15px] leading-7 text-text-secondary lg:text-base lg:leading-7">
-                            সম্প্রতি শুরু হওয়া সক্রিয় ক্যাম্পেইনগুলো দেখুন এবং
-                            আপনার পছন্দের উদ্যোগে সহায়তা করুন।
+                            আমাদের নির্বাচিত মানবিক উদ্যোগগুলো দেখুন এবং আপনার
+                            পছন্দের ক্যাম্পেইনে সহায়তা করুন।
                         </p>
                     </div>
                 </div>

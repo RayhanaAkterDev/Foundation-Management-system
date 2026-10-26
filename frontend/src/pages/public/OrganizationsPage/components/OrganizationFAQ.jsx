@@ -8,7 +8,7 @@ import { TbChevronDown } from 'react-icons/tb';
 const faqs = [
     {
         q: 'কোন প্রতিষ্ঠানগুলো এখানে দেখা যায়?',
-        a: 'স্ট্যান্ড ফর পিপলে নিবন্ধিত ও যাচাইকৃত প্রতিষ্ঠানগুলো এখানে দেখা যায়।',
+        a: 'Stand For People-এ নিবন্ধিত ও যাচাইকৃত প্রতিষ্ঠানগুলো এখানে দেখা যায়।',
     },
     {
         q: 'একটি প্রতিষ্ঠান কীভাবে যুক্ত হয়?',
@@ -67,7 +67,7 @@ const OrganizationFAQ = () => {
                                 font-medium!
                                 text-primary
 
-                                sm:text-[13px] mt-6
+                                sm:text-[13px]
                             "
                         >
                             সাধারণ প্রশ্ন
@@ -222,10 +222,10 @@ const OrganizationFAQ = () => {
                 ORGANIZATION CTA
             ========================================================== */}
 
-            <section className="">
+            <section className="border-t border-border">
                 <div className="container-width">
                     <div
-                        className=" flex flex-col gap-12
+                        className=" flex flex-col gap-7 sm:flex-row sm:items-center sm:justify-between sm:gap-12
                             py-12
                             sm:py-14
                             lg:py-16

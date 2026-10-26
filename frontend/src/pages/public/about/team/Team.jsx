@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import saidurrahman from '@/assets/team/saidurrahman.png';
+import alvi from '@/assets/team/alvi.jpeg';
+import sumaya from '@/assets/team/sumaya.jpg';
+
 import {
     TbArrowDownRight,
     TbArrowUpRight,
@@ -28,28 +32,28 @@ const corePeople = [
     {
         id: 'supervisor',
         role: 'প্রকল্প তত্ত্বাবধায়ক',
-        name: 'আপনার শিক্ষকের নাম',
+        name: 'সাইদুর রহমান',
         description:
             'প্রকল্পের ধারণা, দিকনির্দেশনা এবং একাডেমিক তত্ত্বাবধানে গুরুত্বপূর্ণ ভূমিকা।',
-        image: null,
+        image: saidurrahman,
         imageLabel: 'শিক্ষকের ছবি',
     },
     {
         id: 'founder-one',
         role: 'প্রতিষ্ঠাতা',
-        name: 'আপনার নাম',
+        name: 'সুমাইয়া আক্তার',
         description:
             'Stand For People-এর ধারণা, পরিকল্পনা এবং প্ল্যাটফর্ম নির্মাণের সঙ্গে সরাসরি যুক্ত।',
-        image: null,
+        image: sumaya,
         imageLabel: 'প্রতিষ্ঠাতার ছবি',
     },
     {
         id: 'founder-two',
         role: 'প্রতিষ্ঠাতা',
-        name: 'আপনার সহপ্রতিষ্ঠাতার নাম',
+        name: 'আলভী ইসলাম সিফাত',
         description:
             'প্ল্যাটফর্মের পরিকল্পনা, নির্মাণ এবং বিকাশের যাত্রায় সরাসরি যুক্ত।',
-        image: null,
+        image: alvi,
         imageLabel: 'সহপ্রতিষ্ঠাতার ছবি',
     },
 ];
@@ -253,12 +257,11 @@ const ContributorAvatar = ({ name, image }) => {
 
 const CorePhoto = ({ person }) => {
     const [imageFailed, setImageFailed] = useState(false);
-    const image = getPhotoUrl(person.image);
 
-    if (image && !imageFailed) {
+    if (person.image && !imageFailed) {
         return (
             <img
-                src={image}
+                src={person.image}
                 alt={person.name}
                 loading="lazy"
                 className="h-full w-full object-cover"
@@ -510,7 +513,7 @@ const Team = () => {
                     <div className="mt-9 grid gap-8 sm:mt-11 lg:mt-14 lg:grid-cols-12 lg:gap-6">
                         <article className="lg:col-span-7 lg:col-start-2">
                             <div className="relative">
-                                <div className="aspect-[5/4] overflow-hidden bg-[#e5e9df] sm:aspect-[16/10]">
+                                <div className="aspect-5/4 overflow-hidden bg-[#e5e9df] sm:aspect-16/15">
                                     <CorePhoto person={corePeople[0]} />
                                 </div>
 

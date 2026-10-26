@@ -3,147 +3,46 @@
 namespace App\Services;
 
 use App\Models\Campaign;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
-use RuntimeException;
 use Throwable;
 
 class CampaignUrgencyAiService
 {
+    private const PRIORITIES = [
+        'low' => 1,
+        'normal' => 2,
+        'high' => 3,
+        'critical' => 4,
+    ];
+
     /**
-     * Assess a campaign's urgency without approving or publishing it.
+     * Assess humanitarian campaign urgency using local rules.
      *
-     * Returns:
-     * - urgency: low | normal | high | critical
-     * - priority: 1 | 2 | 3 | 4
-     * - reason: explanation for the recommendation
-     * - missing_information: information that would help assessment
-     * - provider: openai
+     * No external AI provider or API key is required.
+     *
+     * This method only recommends urgency. It does not update
+     * the campaign's admin-approved classification.
      */
     public function assess(Campaign $campaign): array
     {
-        $apiKey = config('services.openai.api_key');
-
-        if (! is_string($apiKey) || trim($apiKey) === '') {
-            throw new RuntimeException(
-                'Campaign urgency assessment requires OPENAI_API_KEY to be configured.'
-            );
-        }
-
         $campaign->loadMissing('helpRequest');
 
         $context = $this->buildCampaignContext($campaign);
 
-        $systemPrompt = <<<'PROMPT'
-You assess the urgency of humanitarian campaigns for an administrator.
+        $assessment = $this->evaluate($context);
 
-Return only valid JSON with this exact structure:
-{
-  "urgency": "low",
-  "reason": "A concise explanation grounded in the supplied information.",
-  "missing_information": []
-}
+        Log::info('Rule-based campaign urgency assessment completed.', [
+            'campaign_id' => $campaign->id,
+            'urgency' => $assessment['urgency'],
+            'provider' => 'rule_based',
+        ]);
 
-Rules:
-- urgency must be exactly one of: low, normal, high, critical.
-- Assess the urgency of the humanitarian need, not the campaign's popularity.
-- Consider severity, consequences of delay, vulnerability of affected people,
-  number of people affected, evidence, and time sensitivity.
-- A deadline by itself does not make a campaign critical.
-- Do not invent facts, numbers, medical conditions, deadlines, or evidence.
-- If important information is missing, mention it in missing_information.
-- Use critical only when the supplied facts indicate an immediate or exceptionally
-  severe humanitarian need.
-- Use high for serious needs where timely action matters.
-- Use normal for meaningful needs without evidence of exceptional urgency.
-- Use low when the available information indicates limited time sensitivity.
-- If the information is insufficient, use normal and explain the uncertainty.
-- Keep the reason concise and factual.
-- missing_information must be a JSON array of short strings.
-- Do not approve, reject, publish, feature, or assign the campaign.
-PROMPT;
-
-        try {
-            $response = Http::timeout(
-                (int) config('services.openai.timeout', 30)
-            )
-                ->withToken($apiKey)
-                ->acceptJson()
-                ->post('https://api.openai.com/v1/responses', [
-                    'model' => config('services.openai.model', 'gpt-5-mini'),
-                    'input' => [
-                        [
-                            'role' => 'system',
-                            'content' => [
-                                [
-                                    'type' => 'input_text',
-                                    'text' => $systemPrompt,
-                                ],
-                            ],
-                        ],
-                        [
-                            'role' => 'user',
-                            'content' => [
-                                [
-                                    'type' => 'input_text',
-                                    'text' => json_encode(
-                                        $context,
-                                        JSON_PRETTY_PRINT
-                                            | JSON_UNESCAPED_UNICODE
-                                            | JSON_THROW_ON_ERROR
-                                    ),
-                                ],
-                            ],
-                        ],
-                    ],
-                ]);
-
-            if (! $response->successful()) {
-                Log::error('Campaign urgency AI request failed.', [
-                    'campaign_id' => $campaign->id,
-                    'http_status' => $response->status(),
-                    'response' => $response->json(),
-                ]);
-
-                throw new RuntimeException(
-                    'The AI provider could not assess campaign urgency. Please try again.'
-                );
-            }
-
-            $payload = $response->json();
-            $outputText = $this->extractOutputText($payload);
-
-            if ($outputText === null) {
-                throw new RuntimeException(
-                    'The AI provider returned an empty campaign urgency assessment.'
-                );
-            }
-
-            $assessment = json_decode(
-                $outputText,
-                true,
-                512,
-                JSON_THROW_ON_ERROR
-            );
-
-            return $this->validateAssessment($assessment);
-        } catch (RuntimeException $exception) {
-            throw $exception;
-        } catch (Throwable $exception) {
-            Log::error('Campaign urgency AI assessment failed.', [
-                'campaign_id' => $campaign->id,
-                'error' => $exception->getMessage(),
-            ]);
-
-            throw new RuntimeException(
-                'Campaign urgency assessment failed. Please try again.',
-                previous: $exception
-            );
-        }
+        return $assessment;
     }
 
     /**
-     * Build context using campaign fields and its optional linked help request.
+     * Collect only attributes available on the existing models.
      */
     private function buildCampaignContext(Campaign $campaign): array
     {
@@ -155,12 +54,11 @@ PROMPT;
             'scope',
             'district',
             'location',
-            'affected_area',
-            'affected_people',
+            'affected_areas',
+            'target_amount',
             'start_date',
             'end_date',
-            'deadline',
-            'target_amount',
+            'status',
         ];
 
         $context = [
@@ -171,7 +69,8 @@ PROMPT;
 
         foreach ($campaignFields as $field) {
             if (array_key_exists($field, $campaign->getAttributes())) {
-                $context['campaign'][$field] = $campaign->getAttribute($field);
+                $context['campaign'][$field] =
+                    $campaign->getAttribute($field);
             }
         }
 
@@ -195,13 +94,17 @@ PROMPT;
             $context['linked_help_request'] = [];
 
             foreach ($helpRequestFields as $field) {
-                if (array_key_exists($field, $helpRequest->getAttributes())) {
+                if (array_key_exists(
+                    $field,
+                    $helpRequest->getAttributes()
+                )) {
                     $value = $helpRequest->getAttribute($field);
 
-                    $context['linked_help_request'][$field] =
-                        $value instanceof \DateTimeInterface
-                        ? $value->format(DATE_ATOM)
-                        : $value;
+                    if ($value instanceof \DateTimeInterface) {
+                        $value = $value->format(DATE_ATOM);
+                    }
+
+                    $context['linked_help_request'][$field] = $value;
                 }
             }
         }
@@ -210,84 +113,318 @@ PROMPT;
     }
 
     /**
-     * Extract text from the OpenAI Responses API payload.
+     * Evaluate urgency from explicit request classifications and
+     * evidence in the available campaign/help-request descriptions.
      */
-    private function extractOutputText(array $payload): ?string
+    private function evaluate(array $context): array
     {
-        if (isset($payload['output_text']) && is_string($payload['output_text'])) {
-            return trim($payload['output_text']);
+        $campaign = $context['campaign'] ?? [];
+        $helpRequest = $context['linked_help_request'] ?? [];
+
+        $title = $this->toText($campaign['title'] ?? '');
+        $description = $this->toText($campaign['description'] ?? '');
+        $requestTitle = $this->toText($helpRequest['title'] ?? '');
+        $requestDescription = $this->toText(
+            $helpRequest['description'] ?? ''
+        );
+
+        $evidenceText = $this->normalizeText(implode(' ', [
+            $title,
+            $description,
+            $requestTitle,
+            $requestDescription,
+        ]));
+
+        $explicitUrgency = $this->normalizeText(
+            $helpRequest['urgency'] ?? ''
+        );
+
+        $explicitPriority = $helpRequest['priority'] ?? null;
+
+        $reasons = [];
+        $missingInformation = [];
+
+        $urgency = 'normal';
+
+        /*
+         * Rule 1: Immediate, exceptionally severe humanitarian danger.
+         *
+         * These keywords are signals for administrator review, not
+         * proof that the described situation has been verified.
+         */
+        $criticalTerms = [
+            'life threatening',
+            'life-threatening',
+            'life is at risk',
+            'life at risk',
+            'life in danger',
+            'life-threatening condition',
+            'critical condition',
+            'severe bleeding',
+            'unconscious',
+            'not breathing',
+            'immediate life-saving',
+            'immediate lifesaving',
+            'মুমূর্ষু',
+            'জীবন সংকটাপন্ন',
+            'জীবন সংকটে',
+            'জীবন ঝুঁকিতে',
+            'প্রাণ সংশয়',
+            'প্রাণ সংশয়',
+            'শ্বাস নিতে পারছে না',
+            'অচেতন',
+            'অতিরিক্ত রক্তক্ষরণ',
+            'জীবন রক্ষাকারী জরুরি',
+        ];
+
+        $highSeverityTerms = [
+            'urgent medical',
+            'emergency medical',
+            'emergency treatment',
+            'emergency surgery',
+            'urgent surgery',
+            'serious injury',
+            'severe injury',
+            'serious illness',
+            'severe illness',
+            'essential medication',
+            'no food',
+            'without food',
+            'no shelter',
+            'without shelter',
+            'displaced family',
+            'গুরুতর অসুস্থ',
+            'গুরুতর আহত',
+            'জরুরি চিকিৎসা',
+            'জরুরি অপারেশন',
+            'জরুরি অস্ত্রোপচার',
+            'চিকিৎসার জন্য জরুরি',
+            'খাবার নেই',
+            'খাদ্য নেই',
+            'আশ্রয় নেই',
+            'আশ্রয় নেই',
+            'গৃহহীন',
+        ];
+
+        $criticalMatches = $this->findTerms(
+            $evidenceText,
+            $criticalTerms
+        );
+
+        $highSeverityMatches = $this->findTerms(
+            $evidenceText,
+            $highSeverityTerms
+        );
+
+        $explicitLevel = $this->interpretExplicitUrgency(
+            $explicitUrgency,
+            $explicitPriority
+        );
+
+        if ($criticalMatches !== []) {
+            $urgency = 'critical';
+
+            $reasons[] = 'Potential immediate or exceptionally severe danger was indicated by: '
+                . implode(', ', $criticalMatches)
+                . '. This requires administrator verification.';
+        } elseif ($explicitLevel === 'critical') {
+            $urgency = 'critical';
+
+            $reasons[] = 'The linked help request explicitly records critical urgency or priority 4.';
+        } elseif ($highSeverityMatches !== []) {
+            $urgency = 'high';
+
+            $reasons[] = 'The campaign or linked request describes potentially serious humanitarian needs: '
+                . implode(', ', $highSeverityMatches)
+                . '. Timely administrator review is recommended.';
+        } elseif ($explicitLevel === 'high') {
+            $urgency = 'high';
+
+            $reasons[] = 'The linked help request records high or urgent priority.';
+        } elseif ($explicitLevel === 'low') {
+            $urgency = 'low';
+
+            $reasons[] = 'The linked help request explicitly records low urgency, and no higher-severity keyword was detected.';
+        } elseif ($explicitLevel === 'normal') {
+            $urgency = 'normal';
+
+            $reasons[] = 'The linked help request records normal urgency, and no higher-severity signal was detected.';
+        } else {
+            $urgency = 'normal';
+
+            $reasons[] = 'No explicit urgency classification or recognized immediate-danger signal was found. Normal is a provisional recommendation, not a confirmation that the situation is safe.';
         }
 
-        foreach ($payload['output'] ?? [] as $output) {
-            foreach ($output['content'] ?? [] as $content) {
-                if (
-                    ($content['type'] ?? null) === 'output_text'
-                    && isset($content['text'])
-                    && is_string($content['text'])
-                ) {
-                    return trim($content['text']);
-                }
+        /*
+         * Explain uncertainty instead of inventing facts.
+         */
+        if (trim($title) === '' && trim($requestTitle) === '') {
+            $missingInformation[] =
+                'A clear campaign or help-request title is unavailable.';
+        }
+
+        if (
+            trim($description) === ''
+            && trim($requestDescription) === ''
+        ) {
+            $missingInformation[] =
+                'A detailed description of the humanitarian need is missing.';
+        }
+
+        if ($helpRequest === null) {
+            $missingInformation[] =
+                'No linked help request is available to corroborate the campaign details.';
+        } else {
+            if (
+                ! array_key_exists('urgency', $helpRequest)
+                || trim($this->toText($helpRequest['urgency'])) === ''
+            ) {
+                $missingInformation[] =
+                    'The linked help request has no explicit urgency value.';
+            }
+
+            if (
+                ! array_key_exists('priority', $helpRequest)
+                || $helpRequest['priority'] === null
+                || $helpRequest['priority'] === ''
+            ) {
+                $missingInformation[] =
+                    'The linked help request has no explicit priority value.';
             }
         }
 
-        return null;
-    }
-
-    /**
-     * Validate and normalize the AI response.
-     */
-    private function validateAssessment(mixed $assessment): array
-    {
-        if (! is_array($assessment)) {
-            throw new RuntimeException(
-                'The AI provider returned an invalid campaign urgency assessment.'
-            );
+        if (
+            ! array_key_exists('location', $campaign)
+            && ! array_key_exists('district', $campaign)
+            && ! array_key_exists('location', $helpRequest ?? [])
+            && ! array_key_exists('district', $helpRequest ?? [])
+        ) {
+            $missingInformation[] =
+                'The affected location could not be established from available fields.';
         }
 
-        $urgency = strtolower(trim((string) ($assessment['urgency'] ?? '')));
-        $allowedUrgencies = array_keys(Campaign::aiUrgencies());
-
-        if (! in_array($urgency, $allowedUrgencies, true)) {
-            throw new RuntimeException(
-                'The AI provider returned an unsupported urgency level.'
-            );
+        if ($criticalMatches !== [] || $highSeverityMatches !== []) {
+            $missingInformation[] =
+                'Verify the reported severity and supporting evidence before confirming the recommendation.';
         }
 
-        $reason = trim((string) ($assessment['reason'] ?? ''));
-
-        if ($reason === '') {
-            throw new RuntimeException(
-                'The AI provider did not explain its urgency recommendation.'
-            );
-        }
-
-        $missingInformation = $assessment['missing_information'] ?? [];
-
-        if (! is_array($missingInformation)) {
-            $missingInformation = [];
-        }
-
-        $missingInformation = array_values(array_filter(
-            array_map(
-                static fn($item) => is_string($item) ? trim($item) : '',
-                $missingInformation
-            ),
-            static fn(string $item) => $item !== ''
+        $missingInformation = array_values(array_unique(
+            $missingInformation
         ));
-
-        $priorities = [
-            'low' => 1,
-            'normal' => 2,
-            'high' => 3,
-            'critical' => 4,
-        ];
 
         return [
             'urgency' => $urgency,
-            'priority' => $priorities[$urgency],
-            'reason' => $reason,
+            'priority' => self::PRIORITIES[$urgency],
+            'reason' => implode(' ', $reasons),
             'missing_information' => $missingInformation,
-            'provider' => 'openai',
+            'provider' => 'rule_based',
         ];
+    }
+
+    /**
+     * Interpret only known urgency labels and numeric priority values.
+     */
+    private function interpretExplicitUrgency(
+        string $urgency,
+        mixed $priority
+    ): ?string {
+        $urgency = $this->normalizeText($urgency);
+
+        $priorityValue = null;
+
+        if (
+            is_numeric($priority)
+            && (int) $priority >= 1
+            && (int) $priority <= 4
+        ) {
+            $priorityValue = (int) $priority;
+        }
+
+        $priorityMap = [
+            1 => 'low',
+            2 => 'normal',
+            3 => 'high',
+            4 => 'critical',
+        ];
+
+        $explicit = match ($urgency) {
+            'critical',
+            'emergency',
+            'immediate',
+            'জরুরি জীবনসংকট',
+            'অতি জরুরি' => 'critical',
+
+            'high',
+            'urgent',
+            'very urgent',
+            'উচ্চ',
+            'জরুরি',
+            'অত্যন্ত জরুরি' => 'high',
+
+            'normal',
+            'medium',
+            'moderate',
+            'মাঝারি',
+            'স্বাভাবিক' => 'normal',
+
+            'low',
+            'not urgent',
+            'non-urgent',
+            'নিম্ন',
+            'কম জরুরি' => 'low',
+
+            default => null,
+        };
+
+        $fromPriority = $priorityValue !== null
+            ? $priorityMap[$priorityValue]
+            : null;
+
+        /*
+         * Prefer the more severe of two explicit classifications.
+         * This prevents a low numeric priority from overriding an
+         * explicitly recorded critical urgency.
+         */
+        if ($explicit === null) {
+            return $fromPriority;
+        }
+
+        if ($fromPriority === null) {
+            return $explicit;
+        }
+
+        return self::PRIORITIES[$explicit] >= self::PRIORITIES[$fromPriority]
+            ? $explicit
+            : $fromPriority;
+    }
+
+    /**
+     * Find phrases present in the available evidence text.
+     */
+    private function findTerms(string $text, array $terms): array
+    {
+        $matches = [];
+
+        foreach ($terms as $term) {
+            if (str_contains($text, $this->normalizeText($term))) {
+                $matches[] = $term;
+            }
+        }
+
+        return array_values(array_unique($matches));
+    }
+
+    private function normalizeText(mixed $value): string
+    {
+        return strtolower(trim($this->toText($value)));
+    }
+
+    private function toText(mixed $value): string
+    {
+        if (is_string($value) || is_numeric($value)) {
+            return (string) $value;
+        }
+
+        return '';
     }
 }

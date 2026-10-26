@@ -16,6 +16,9 @@ import { apiRequest } from '@/api/client';
    4. fallback image
 ========================================================= */
 
+const toBanglaDigits = (value) =>
+    String(value).replace(/[0-9]/g, (digit) => '০১২৩৪৫৬৭৮৯'[Number(digit)]);
+
 const organizationImages = [
     'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=1400&q=85',
     'https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=1400&q=85',
@@ -229,7 +232,7 @@ const OrganizationList = () => {
                                 sm:text-[14px]
                             "
                         >
-                            স্ট্যান্ড ফর পিপলের সঙ্গে যুক্ত প্রতিষ্ঠানগুলো
+                            Stand For People-এর সঙ্গে যুক্ত প্রতিষ্ঠানগুলো
                             বিভিন্ন প্রয়োজন, উদ্যোগ ও মানবিক কার্যক্রমে মানুষের
                             পাশে কাজ করছে।
                         </p>
@@ -273,7 +276,7 @@ const OrganizationList = () => {
                                         text-text-primary
                                     "
                                 >
-                                    {organizations.length}
+                                    {toBanglaDigits(organizations.length)}
                                 </span>
                                 টি প্রতিষ্ঠান
                             </div>
@@ -636,116 +639,118 @@ const OrganizationList = () => {
                                     lg:gap-y-8
                                 "
                         >
-                            {organizations.map((organization, index) => {
-                                const fallbackImage =
-                                    organizationImages[
-                                        index % organizationImages.length
-                                    ];
+                            {organizations
+                                .slice(0, 7)
+                                .map((organization, index) => {
+                                    const fallbackImage =
+                                        organizationImages[
+                                            index % organizationImages.length
+                                        ];
 
-                                /*
-                                 * Backend image structure:
-                                 *
-                                 * organization.banner
-                                 * organization.photo
-                                 * organization.user?.photo
-                                 *
-                                 * Keep fallback image for
-                                 * organizations that do not
-                                 * have uploaded media.
-                                 */
+                                    /*
+                                     * Backend image structure:
+                                     *
+                                     * organization.banner
+                                     * organization.photo
+                                     * organization.user?.photo
+                                     *
+                                     * Keep fallback image for
+                                     * organizations that do not
+                                     * have uploaded media.
+                                     */
 
-                                const image =
-                                    organization.banner ||
-                                    organization.photo ||
-                                    organization.user?.photo ||
-                                    fallbackImage;
+                                    const image =
+                                        organization.banner ||
+                                        organization.photo ||
+                                        organization.user?.photo ||
+                                        fallbackImage;
 
-                                /*
-                                 * Presentation only.
-                                 *
-                                 * Repeats every six items
-                                 * and creates the abstract
-                                 * gallery rhythm.
-                                 */
+                                    /*
+                                     * Presentation only.
+                                     *
+                                     * Repeats every six items
+                                     * and creates the abstract
+                                     * gallery rhythm.
+                                     */
 
-                                const galleryPosition = index % 6;
+                                    const galleryPosition = index % 6;
 
-                                const layouts = [
-                                    {
-                                        wrapper: `
+                                    const layouts = [
+                                        {
+                                            wrapper: `
                                                     lg:col-span-7
                                                 `,
-                                        image: `
+                                            image: `
                                                     aspect-[16/10]
 
                                                     lg:aspect-[16/9]
                                                 `,
-                                    },
+                                        },
 
-                                    {
-                                        wrapper: `
+                                        {
+                                            wrapper: `
                                                     lg:col-span-5
                                                     lg:pt-20
                                                 `,
-                                        image: `
+                                            image: `
                                                     aspect-[4/5]
 
                                                     lg:aspect-[4/4.4]
                                                 `,
-                                    },
+                                        },
 
-                                    {
-                                        wrapper: `
+                                        {
+                                            wrapper: `
                                                     lg:col-span-4
                                                     lg:ml-10
                                                 `,
-                                        image: `
+                                            image: `
                                                     aspect-[4/5]
                                                 `,
-                                    },
+                                        },
 
-                                    {
-                                        wrapper: `
+                                        {
+                                            wrapper: `
                                                     lg:col-span-8
                                                     lg:pt-12
                                                 `,
-                                        image: `
+                                            image: `
                                                     aspect-[16/9]
 
                                                     lg:aspect-[16/8]
                                                 `,
-                                    },
+                                        },
 
-                                    {
-                                        wrapper: `
+                                        {
+                                            wrapper: `
                                                     lg:col-span-6
                                                     lg:pt-4
                                                 `,
-                                        image: `
+                                            image: `
                                                     aspect-[16/11]
                                                 `,
-                                    },
+                                        },
 
-                                    {
-                                        wrapper: `
+                                        {
+                                            wrapper: `
                                                     lg:col-span-5
                                                     lg:col-start-8
                                                     lg:-mt-10
                                                 `,
-                                        image: `
+                                            image: `
                                                     aspect-[4/5]
 
                                                     lg:aspect-[4/4.5]
                                                 `,
-                                    },
-                                ];
+                                        },
+                                    ];
 
-                                const layout = layouts[galleryPosition];
+                                    const layout = layouts[galleryPosition];
 
-                                return (
-                                    <article
-                                        key={organization.id}
-                                        className={`
+                                    return (
+                                        <article
+                                            key={organization.id}
+                                            className={`
                                                     group
 
                                                     relative
@@ -753,13 +758,13 @@ const OrganizationList = () => {
 
                                                     ${layout.wrapper}
                                                 `}
-                                    >
-                                        {/* =============================
+                                        >
+                                            {/* =============================
                                                     IMAGE FIELD
                                                 ============================== */}
 
-                                        <div
-                                            className={`
+                                            <div
+                                                className={`
                                                         relative
 
                                                         overflow-hidden
@@ -768,13 +773,13 @@ const OrganizationList = () => {
 
                                                         ${layout.image}
                                                     `}
-                                        >
-                                            <img
-                                                src={image}
-                                                alt=""
-                                                loading="lazy"
-                                                decoding="async"
-                                                className="
+                                            >
+                                                <img
+                                                    src={image}
+                                                    alt=""
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    className="
                                                             absolute
                                                             inset-0
 
@@ -789,15 +794,15 @@ const OrganizationList = () => {
 
                                                             group-hover:scale-[1.035]
                                                         "
-                                            />
+                                                />
 
-                                            {/* =========================
+                                                {/* =========================
                                                         IMAGE TONE
                                                     ========================== */}
 
-                                            <div
-                                                aria-hidden="true"
-                                                className="
+                                                <div
+                                                    aria-hidden="true"
+                                                    className="
                                                             pointer-events-none
 
                                                             absolute
@@ -805,11 +810,11 @@ const OrganizationList = () => {
 
                                                             bg-[#092f2a]/[0.05]
                                                         "
-                                            />
+                                                />
 
-                                            <div
-                                                aria-hidden="true"
-                                                className="
+                                                <div
+                                                    aria-hidden="true"
+                                                    className="
                                                             pointer-events-none
 
                                                             absolute
@@ -824,14 +829,14 @@ const OrganizationList = () => {
                                                             via-[#082c28]/30
                                                             to-transparent
                                                         "
-                                            />
+                                                />
 
-                                            {/* =========================
+                                                {/* =========================
                                                         TOP INDEX
                                                     ========================== */}
 
-                                            <div
-                                                className="
+                                                <div
+                                                    className="
                                                             absolute
                                                             left-5
                                                             top-5
@@ -843,19 +848,19 @@ const OrganizationList = () => {
                                                             sm:left-6
                                                             sm:top-6
                                                         "
-                                            >
-                                                <span
-                                                    className="
+                                                >
+                                                    <span
+                                                        className="
                                                                 h-px
                                                                 w-6
 
                                                                 bg-white/65
                                                             "
-                                                />
+                                                    />
 
-                                                <span
-                                                    className="
-                                                                font-poppins
+                                                    <span
+                                                        className="
+                                                                font-bengali
 
                                                                 text-[10px]
                                                                 font-medium!
@@ -864,20 +869,21 @@ const OrganizationList = () => {
 
                                                                 text-white/85
                                                             "
-                                                >
-                                                    {String(index + 1).padStart(
-                                                        2,
-                                                        '0',
-                                                    )}
-                                                </span>
-                                            </div>
+                                                    >
+                                                        {toBanglaDigits(
+                                                            String(
+                                                                index + 1,
+                                                            ).padStart(2, '0'),
+                                                        )}
+                                                    </span>
+                                                </div>
 
-                                            {/* =========================
+                                                {/* =========================
                                                         VERIFIED MARK
                                                     ========================== */}
 
-                                            <div
-                                                className="
+                                                <div
+                                                    className="
                                                             absolute
                                                             right-5
                                                             top-5
@@ -899,19 +905,19 @@ const OrganizationList = () => {
                                                             sm:right-6
                                                             sm:top-6
                                                         "
-                                            >
-                                                <TbShieldCheck
-                                                    size={16}
-                                                    strokeWidth={1.7}
-                                                />
-                                            </div>
+                                                >
+                                                    <TbShieldCheck
+                                                        size={16}
+                                                        strokeWidth={1.7}
+                                                    />
+                                                </div>
 
-                                            {/* =========================
+                                                {/* =========================
                                                         ORGANIZATION CONTENT
                                                     ========================== */}
 
-                                            <div
-                                                className="
+                                                <div
+                                                    className="
                                                             absolute
                                                             inset-x-0
                                                             bottom-0
@@ -921,52 +927,52 @@ const OrganizationList = () => {
                                                             sm:p-6
                                                             lg:p-7
                                                         "
-                                            >
-                                                {/* TYPE */}
+                                                >
+                                                    {/* TYPE */}
 
-                                                {organization.organization_type && (
-                                                    <div
-                                                        className="
+                                                    {organization.organization_type && (
+                                                        <div
+                                                            className="
                                                                     mb-3
 
                                                                     flex
                                                                     items-center
                                                                     gap-2
                                                                 "
-                                                    >
-                                                        <span
-                                                            className="
+                                                        >
+                                                            <span
+                                                                className="
                                                                         size-1
 
                                                                         rounded-full
 
                                                                         bg-accent
                                                                     "
-                                                        />
+                                                            />
 
-                                                        <p
-                                                            className="
+                                                            <p
+                                                                className="
                                                                         font-bengali
 
-                                                                        text-[10.5px]
+                                                                        text-[11.5px]
                                                                         font-medium!
 
                                                                         text-white/70
 
                                                                         sm:text-[11px]
                                                                     "
-                                                        >
-                                                            {
-                                                                organization.organization_type
-                                                            }
-                                                        </p>
-                                                    </div>
-                                                )}
+                                                            >
+                                                                {
+                                                                    organization.organization_type
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                    )}
 
-                                                {/* NAME */}
+                                                    {/* NAME */}
 
-                                                <h3
-                                                    className="
+                                                    <h3
+                                                        className="
                                                                 max-w-[520px]
 
                                                                 font-bengali
@@ -983,14 +989,14 @@ const OrganizationList = () => {
 
                                                                 xl:text-[25px]
                                                             "
-                                                >
-                                                    {organization.name}
-                                                </h3>
+                                                    >
+                                                        {organization.name}
+                                                    </h3>
 
-                                                {/* LOCATION */}
+                                                    {/* LOCATION */}
 
-                                                <div
-                                                    className="
+                                                    <div
+                                                        className="
                                                                 mt-3
 
                                                                 flex
@@ -998,21 +1004,21 @@ const OrganizationList = () => {
                                                                 items-start
                                                                 gap-2
                                                             "
-                                                >
-                                                    <TbMapPin
-                                                        size={14}
-                                                        strokeWidth={1.8}
-                                                        className="
+                                                    >
+                                                        <TbMapPin
+                                                            size={14}
+                                                            strokeWidth={1.8}
+                                                            className="
                                                                     mt-[4px]
 
                                                                     shrink-0
 
                                                                     text-white/60
                                                                 "
-                                                    />
+                                                        />
 
-                                                    <p
-                                                        className="
+                                                        <p
+                                                            className="
                                                                     line-clamp-1
 
                                                                     font-bengali
@@ -1024,20 +1030,20 @@ const OrganizationList = () => {
 
                                                                     sm:text-[12px]
                                                                 "
-                                                    >
-                                                        {organization.address ||
-                                                            'ঠিকানা উল্লেখ করা হয়নি'}
-                                                    </p>
+                                                        >
+                                                            {organization.address ||
+                                                                'ঠিকানা উল্লেখ করা হয়নি'}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* =============================
+                                            {/* =============================
                                                     IDENTITY STRIP
                                                 ============================== */}
 
-                                        <div
-                                            className="
+                                            <div
+                                                className="
                                                         flex
                                                         items-center
                                                         justify-between
@@ -1049,51 +1055,51 @@ const OrganizationList = () => {
                                                         px-1
                                                         py-3.5
                                                     "
-                                        >
-                                            <div
-                                                className="
+                                            >
+                                                <div
+                                                    className="
                                                             flex
                                                             min-w-0
                                                             items-center
                                                             gap-2
                                                         "
-                                            >
-                                                <TbShieldCheck
-                                                    size={14}
-                                                    strokeWidth={1.7}
-                                                    className="
+                                                >
+                                                    <TbShieldCheck
+                                                        size={14}
+                                                        strokeWidth={1.7}
+                                                        className="
                                                                 shrink-0
 
                                                                 text-primary
                                                             "
-                                                />
+                                                    />
 
-                                                <span
-                                                    className="
+                                                    <span
+                                                        className="
                                                                 truncate
 
                                                                 font-bengali
 
-                                                                text-[10.5px]
+                                                                text-[11.5px]
                                                                 font-medium!
 
                                                                 text-text-secondary
                                                             "
-                                                >
-                                                    যাচাইকৃত প্রতিষ্ঠান
-                                                </span>
-                                            </div>
+                                                    >
+                                                        যাচাইকৃত প্রতিষ্ঠান
+                                                    </span>
+                                                </div>
 
-                                            <div
-                                                className="
+                                                <div
+                                                    className="
                                                             flex
                                                             shrink-0
                                                             items-center
                                                             gap-2
                                                         "
-                                            >
-                                                <span
-                                                    className="
+                                                >
+                                                    <span
+                                                        className="
                                                                 hidden
 
                                                                 font-bengali
@@ -1104,41 +1110,43 @@ const OrganizationList = () => {
 
                                                                 sm:inline
                                                             "
-                                                >
-                                                    SP নেটওয়ার্ক
-                                                </span>
+                                                    >
+                                                        Stand For People
+                                                        নেটওয়ার্ক
+                                                    </span>
 
-                                                <span
-                                                    className="
+                                                    <span
+                                                        className="
                                                                 h-px
                                                                 w-4
 
                                                                 bg-border-strong
                                                             "
-                                                />
+                                                    />
 
-                                                <span
-                                                    className="
-                                                                font-poppins
+                                                    <span
+                                                        className="
+                                                                font-bengali
 
-                                                                text-[9px]
+                                                                text-[11px]
                                                                 font-medium!
 
                                                                 tracking-[0.14em]
 
                                                                 text-text-muted
                                                             "
-                                                >
-                                                    {String(index + 1).padStart(
-                                                        2,
-                                                        '0',
-                                                    )}
-                                                </span>
+                                                    >
+                                                        {toBanglaDigits(
+                                                            String(
+                                                                index + 1,
+                                                            ).padStart(2, '0'),
+                                                        )}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </article>
-                                );
-                            })}
+                                        </article>
+                                    );
+                                })}
                         </div>
 
                         {/* =====================================
@@ -1186,14 +1194,14 @@ const OrganizationList = () => {
                                     className="
                                             font-bengali
 
-                                            text-[10.5px]
+                                            text-[11.5px]
 
                                             text-text-muted
 
                                             sm:text-[11px]
                                         "
                                 >
-                                    স্ট্যান্ড ফর পিপল নেটওয়ার্ক
+                                    Stand For People-এর নেটওয়ার্ক
                                 </p>
                             </div>
 

@@ -364,6 +364,7 @@ class AdminControllerTest extends TestCase
         $organization = \App\Models\Organization::create([
             'user_id' => $organizationUser->id,
             'name' => 'Verification Test Foundation',
+            'organization_type' => 'Foundation',
             'verification_status' => 'pending',
         ]);
 

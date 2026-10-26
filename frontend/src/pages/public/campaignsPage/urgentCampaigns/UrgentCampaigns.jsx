@@ -55,8 +55,26 @@ const UrgentCampaigns = () => {
                 const data = await fetchPublicCampaigns();
 
                 const urgent = [...data]
-                    .filter((campaign) => campaign?.status === 'active')
+                    .filter(
+                        (campaign) =>
+                            campaign?.status === 'active' &&
+                            (campaign?.is_urgent === true ||
+                                campaign?.is_urgent === 1 ||
+                                campaign?.is_urgent === '1'),
+                    )
                     .sort((a, b) => {
+                        // Admin-approved priority: 4 = critical, 3 = high,
+                        // 2 = medium, 1 = low. Higher priority comes first.
+                        const priorityDifference =
+                            Number(b.urgency_priority ?? 2) -
+                            Number(a.urgency_priority ?? 2);
+
+                        if (priorityDifference !== 0) {
+                            return priorityDifference;
+                        }
+
+                        // Within the same priority, favor campaigns with
+                        // greater deadline and funding urgency.
                         const scoreDifference =
                             getUrgencyScore(b) - getUrgencyScore(a);
 
@@ -64,9 +82,10 @@ const UrgentCampaigns = () => {
                             return scoreDifference;
                         }
 
-                        // If urgency is similar,
-                        // newer campaign comes first.
-                        return new Date(b.created_at) - new Date(a.created_at);
+                        return (
+                            new Date(b.created_at || 0) -
+                            new Date(a.created_at || 0)
+                        );
                     });
 
                 if (isMounted) {

@@ -184,37 +184,37 @@ const VolunteerForm = ({ focus }) => {
     return (
         <section
             id="volunteer-form"
-            className={`section-gap transition-colors duration-500 ${
+            className={`scroll-mt-20 bg-surface py-16 transition-colors duration-500 sm:py-20 lg:py-24 ${
                 focus ? 'bg-primary/5' : ''
             }`}
         >
-            <div className="container-width max-w-4xl">
+            <div className="container-width max-w-5xl">
                 {/* =====================================================
                     HEADING
                 ====================================================== */}
 
-                <div className="mb-10 text-center sm:mb-14">
+                <div className="mb-10 text-center sm:mb-12">
                     <span className="font-bengali text-xs font-semibold text-primary sm:text-sm">
                         স্বেচ্ছাসেবক হিসেবে যুক্ত হোন
                     </span>
 
-                    <h2 className="mt-3 font-bengali text-3xl font-semibold leading-[1.35] text-text-primary sm:mt-4 sm:text-4xl lg:text-5xl">
+                    <h2 className="mt-3 font-bengali text-[clamp(1.8rem,3.4vw,2.8rem)] font-medium! leading-[1.45] text-text-primary sm:mt-4 ">
                         মানুষের পাশে দাঁড়াতে আবেদন করুন
                     </h2>
 
-                    <p className="mx-auto mt-4 max-w-xl font-bengali text-sm leading-7 text-muted-foreground sm:text-base sm:leading-8 lg:text-lg">
+                    <p className="mx-auto mt-4 max-w-xl font-bengali text-sm leading-7 text-muted-foreground sm:text-base sm:leading-8 ">
                         প্রয়োজনীয় তথ্য আপনার অ্যাকাউন্টে ইতিমধ্যেই রয়েছে। আবেদন
                         পাঠানোর পর আমাদের দল সেটি পর্যালোচনা করবে।
                     </p>
                 </div>
 
-                <div className="mx-auto max-w-2xl">
+                <div className="mx-auto max-w-3xl">
                     {/* =================================================
                         LOADING
                     ================================================== */}
 
                     {loading ? (
-                        <div className="flex flex-col items-center justify-center rounded-3xl border border-border/70 bg-background/70 px-6 py-14 text-center shadow-sm">
+                        <div className="flex flex-col items-center justify-center rounded-2xl border border-border/70 bg-background/70 px-6 py-14 text-center ">
                             <Loader2
                                 size={28}
                                 className="animate-spin text-primary"
@@ -229,7 +229,7 @@ const VolunteerForm = ({ focus }) => {
                             GUEST
                         ============================================== */
 
-                        <div className="rounded-3xl border border-border/70 bg-background/70 px-6 py-10 text-center shadow-sm sm:px-10 sm:py-14">
+                        <div className="rounded-2xl border border-border/70 bg-background/70 px-6 py-10 text-center  sm:px-10 sm:py-14">
                             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                                 <UserCheck size={26} />
                             </div>
@@ -268,7 +268,7 @@ const VolunteerForm = ({ focus }) => {
                             ACTIVE VOLUNTEER
                         ============================================== */
 
-                        <div className="rounded-3xl border border-primary/20 bg-primary/5 px-6 py-10 text-center sm:px-10 sm:py-14">
+                        <div className="rounded-2xl border border-primary/20 bg-primary/5 px-6 py-10 text-center sm:px-10 sm:py-14">
                             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                                 <CheckCircle2 size={28} />
                             </div>
@@ -295,7 +295,7 @@ const VolunteerForm = ({ focus }) => {
                             PENDING
                         ============================================== */
 
-                        <div className="rounded-3xl border border-amber-500/20 bg-amber-500/5 px-6 py-10 text-center sm:px-10 sm:py-14">
+                        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 px-6 py-10 text-center sm:px-10 sm:py-14">
                             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10 text-amber-600">
                                 <Clock3 size={28} />
                             </div>
@@ -322,7 +322,7 @@ const VolunteerForm = ({ focus }) => {
                             INACTIVE
                         ============================================== */
 
-                        <div className="rounded-3xl border border-border/70 bg-background/70 px-6 py-10 text-center shadow-sm sm:px-10 sm:py-14">
+                        <div className="rounded-2xl border border-border/70 bg-background/70 px-6 py-10 text-center  sm:px-10 sm:py-14">
                             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                                 <UserCheck size={26} />
                             </div>
@@ -349,7 +349,7 @@ const VolunteerForm = ({ focus }) => {
                             SUSPENDED
                         ============================================== */
 
-                        <div className="rounded-3xl border border-border/70 bg-background/70 px-6 py-10 text-center shadow-sm sm:px-10 sm:py-14">
+                        <div className="rounded-2xl border border-border/70 bg-background/70 px-6 py-10 text-center  sm:px-10 sm:py-14">
                             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
                                 <AlertCircle size={26} />
                             </div>
@@ -376,7 +376,7 @@ const VolunteerForm = ({ focus }) => {
                             APPLICATION
                         ============================================== */
 
-                        <div className="rounded-3xl border border-border/70 bg-background/70 px-6 py-10 shadow-sm sm:px-10 sm:py-12">
+                        <div className="rounded-2xl border border-border/70 bg-background/70 px-6 py-10  sm:px-10 sm:py-12">
                             <div className="flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
                                 <div className="max-w-lg">
                                     <div className="flex items-center gap-3">

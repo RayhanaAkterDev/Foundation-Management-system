@@ -165,36 +165,142 @@ class CampaignService
      *
      * Campaign completion is controlled automatically by the system.
      */
+    /**
+     * Update a campaign's status.
+     *
+     * Completion is manually confirmed by an administrator.
+     *
+     * Rules:
+     * - Before the deadline, the funding target must be reached.
+     * - After the deadline, reaching the funding target is optional.
+     * - In both cases, all volunteer assignments must be finished.
+     */
     public function updateStatus(
         Campaign $campaign,
         string $status
     ): Campaign {
-        if ($status === Campaign::STATUS_COMPLETED) {
-            throw ValidationException::withMessages([
-                'status' =>
-                'Campaign completion is controlled automatically by the system.',
-            ]);
-        }
-
         if ($campaign->status !== Campaign::STATUS_ACTIVE) {
             throw ValidationException::withMessages([
-                'status' =>
-                "Campaign with status '{$campaign->status}' cannot be updated.",
+                'status' => "Campaign with status '{$campaign->status}' cannot be updated.",
             ]);
         }
 
-        if ($status !== Campaign::STATUS_CANCELLED) {
+        if (!in_array($status, [
+            Campaign::STATUS_COMPLETED,
+            Campaign::STATUS_CANCELLED,
+        ], true)) {
             throw ValidationException::withMessages([
-                'status' =>
-                'Campaign can only be cancelled while active.',
+                'status' => 'Campaign can only be completed or cancelled while active.',
             ]);
         }
 
-        $campaign->update([
-            'status' => Campaign::STATUS_CANCELLED,
-        ]);
+        /*
+     * Cancellation does not require completion checks.
+     */
+        if ($status === Campaign::STATUS_CANCELLED) {
+            $campaign->update([
+                'status' => Campaign::STATUS_CANCELLED,
+            ]);
 
-        return $campaign->fresh();
+            return $campaign->fresh();
+        }
+
+        /*
+     * Complete the campaign inside a transaction so its status
+     * and completion requirements are checked consistently.
+     */
+        return DB::transaction(function () use ($campaign) {
+            $campaign = Campaign::whereKey($campaign->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            /*
+         * Recheck status inside the transaction.
+         */
+            if ($campaign->status !== Campaign::STATUS_ACTIVE) {
+                throw ValidationException::withMessages([
+                    'status' => 'This campaign is no longer active and cannot be completed.',
+                ]);
+            }
+
+            /*
+         * The deadline includes the entire end date.
+         * It has passed starting from the following day.
+         */
+            $deadlinePassed = $campaign->end_date !== null
+                && \Illuminate\Support\Carbon::parse(
+                    $campaign->end_date
+                )->startOfDay()->lt(today());
+
+            /*
+         * RULE 1:
+         * Before the deadline, the target must be reached.
+         * After the deadline, reaching the target is not required.
+         */
+            if (!$deadlinePassed) {
+                $targetReached = $campaign->target_amount !== null
+                    && (float) $campaign->collected_amount
+                    >= (float) $campaign->target_amount;
+
+                if (!$targetReached) {
+                    throw ValidationException::withMessages([
+                        'status' => 'Target amount has not been achieved yet.',
+                    ]);
+                }
+            }
+
+            /*
+         * RULE 2:
+         * Check volunteer work only after the target check passes.
+         * Completed and rejected assignments count as resolved.
+         */
+            $hasIncompleteAssignments = $campaign
+                ->volunteerAssignments()
+                ->whereNotIn('status', [
+                    'completed',
+                    'rejected',
+                ])
+                ->exists();
+
+            if ($hasIncompleteAssignments) {
+                throw ValidationException::withMessages([
+                    'status' => 'Volunteer tasks are not completed yet. Complete or resolve all outstanding volunteer assignments before marking this campaign as completed.',
+                ]);
+            }
+
+            /*
+         * Both applicable rules passed.
+         * The admin explicitly completes the campaign.
+         */
+            $campaign->update([
+                'status' => Campaign::STATUS_COMPLETED,
+            ]);
+
+            /*
+         * Preserve existing behavior for linked local-case
+         * help requests that are currently in progress.
+         */
+            if (
+                $campaign->type === Campaign::TYPE_LOCAL_CASE
+                && $campaign->help_request_id
+            ) {
+                $helpRequest = HelpRequest::find(
+                    $campaign->help_request_id
+                );
+
+                if (
+                    $helpRequest
+                    && $helpRequest->status
+                    === HelpRequest::STATUS_IN_PROGRESS
+                ) {
+                    $helpRequest->update([
+                        'status' => HelpRequest::STATUS_COMPLETED,
+                    ]);
+                }
+            }
+
+            return $campaign->fresh();
+        });
     }
 
     /**

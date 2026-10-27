@@ -339,192 +339,245 @@ const Donate = () => {
         }
     };
 
-    /* =========================================================
-       LOADING
-    ========================================================= */
-
-    if (loading) {
+    if (loading)
         return (
-            <div className="flex min-h-screen items-center justify-center bg-background">
-                <p className="font-bengali text-sm text-text-secondary">
-                    অনুদানের পেজ লোড হচ্ছে...
-                </p>
-            </div>
-        );
-    }
-
-    /* =========================================================
-       CAMPAIGN NOT FOUND
-    ========================================================= */
-
-    if (!campaign) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-background px-4">
-                <div className="text-center">
-                    <h2 className="font-bengali text-xl font-semibold text-text-primary">
-                        ক্যাম্পেইন পাওয়া যায়নি
-                    </h2>
-
-                    <p className="mt-2 font-bengali text-sm text-text-secondary">
-                        {error ||
-                            'আপনি যে ক্যাম্পেইনটি খুঁজছেন সেটি বিদ্যমান নেই অথবা সরিয়ে নেওয়া হয়েছে।'}
+            <main className="grid min-h-[70vh] place-items-center bg-[#f5f7f6]">
+                <div className="text-center font-bengali">
+                    <div className="mx-auto mb-5 h-10 w-10 animate-spin rounded-full border-[3px] border-[#d9e9e4] border-t-[#08786d]" />
+                    <p className="text-sm text-slate-600">
+                        অনুদানের তথ্য প্রস্তুত হচ্ছে…
                     </p>
-
+                </div>
+            </main>
+        );
+    if (!campaign)
+        return (
+            <main className="grid min-h-[65vh] place-items-center bg-[#f5f7f6] px-5 font-bengali">
+                <div className="text-center">
+                    <h1 className="text-2xl font-semibold text-slate-900">
+                        ক্যাম্পেইন পাওয়া যায়নি
+                    </h1>
+                    <p className="mt-3 text-slate-500">
+                        {error || 'ক্যাম্পেইনটি এই মুহূর্তে পাওয়া যাচ্ছে না।'}
+                    </p>
                     <Link
                         to="/campaigns"
-                        className="mt-4 inline-block font-bengali text-primary"
+                        className="mt-6 inline-flex bg-[#08786d] px-6 py-3 text-white"
                     >
-                        ক্যাম্পেইনগুলো দেখুন
+                        সব ক্যাম্পেইন দেখুন
                     </Link>
                 </div>
-            </div>
+            </main>
         );
-    }
 
     const presets = [500, 1000, 2000, 5000];
+    const raised = Number(campaign.raised || 0);
+    const target = Number(campaign.targetAmount || 0);
+    const progress =
+        target > 0 ? Math.min(100, Math.max(0, (raised / target) * 100)) : 0;
+    const bn = (value) => Number(value || 0).toLocaleString('bn-BD');
+    const category =
+        typeof campaign.category === 'object'
+            ? campaign.category?.name
+            : campaign.category;
+    const inputStyle =
+        'w-full rounded-none border-0 border-b border-[#cbd9d6] bg-transparent px-0 py-3 text-[15px] text-[#122a2a] outline-none placeholder:text-slate-400 focus:border-[#08786d] focus:ring-0';
 
     return (
-        <div className="mt-20 min-h-screen bg-background py-10">
-            <div className="container-width max-w-5xl">
-                {/* Back */}
-                <Link
-                    to={`/campaign/${campaign.id}`}
-                    className="
-                        mb-6
-                        inline-flex
-                        items-center
-                        gap-2
-                        font-bengali
-                        text-sm
-                        text-text-secondary
-                        transition
-                        hover:text-primary
-                    "
-                >
-                    <TbArrowLeft />
-                    ক্যাম্পেইনে ফিরে যান
-                </Link>
-
-                <form
-                    onSubmit={handleDonate}
-                    className="
-                        grid
-                        grid-cols-1
-                        gap-8
-                        lg:grid-cols-2
-                        lg:gap-10
-                    "
-                >
-                    {/* =================================================
-                        LEFT COLUMN
-                    ================================================= */}
-                    <div className="order-2 space-y-6 lg:order-1">
-                        {/* Campaign Introduction */}
-                        <div>
-                            <Badge variant="primary" tone="soft">
-                                {campaign.category?.name ||
-                                    campaign.category ||
-                                    'ক্যাম্পেইন'}
-                            </Badge>
-
-                            <h1
-                                className="
-                                    mt-3
-                                    font-bengali
-                                    text-3xl
-                                    font-semibold
-                                    leading-tight
-                                    tracking-[-0.025em]
-                                    text-text-primary
-                                "
-                            >
-                                {campaign.title}-এ অনুদান দিন
-                            </h1>
-
-                            <p
-                                className="
-                                    mt-2
-                                    font-bengali
-                                    leading-relaxed
-                                    text-text-secondary
-                                "
-                            >
-                                আপনার অনুদান জরুরি প্রয়োজনে থাকা মানুষের কাছে
-                                দ্রুত সহায়তা পৌঁছে দিতে সাহায্য করবে।
-                            </p>
-
-                            {campaign.supporters !== undefined && (
-                                <div className="mt-3 font-bengali text-sm text-text-secondary">
-                                    <p className="font-medium!">
-                                        {campaign.supporters} জন এই ক্যাম্পেইন
-                                        থেকে সহায়তা পেয়েছেন।
-                                    </p>
-
-                                    <p>
-                                        বেশিরভাগ অনুদানের পরিমাণ{' '}
-                                        <span className="font-medium! text-primary">
-                                            ৳১০০০–২০০০
-                                        </span>
-                                        ।
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Donor Information */}
-                        <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
-                            <div className="flex items-start justify-between gap-4">
-                                <div>
-                                    <h3 className="font-bengali font-semibold text-text-primary">
-                                        দাতার তথ্য
-                                    </h3>
-
-                                    <p className="mt-1 font-bengali text-xs text-text-secondary">
-                                        {isLoggedIn
-                                            ? 'আপনার অ্যাকাউন্টের তথ্য স্বয়ংক্রিয়ভাবে পূরণ করা হয়েছে।'
-                                            : 'অনুদান চালিয়ে যেতে আপনার তথ্য লিখুন।'}
-                                    </p>
-                                </div>
-
-                                {isLoggedIn && (
-                                    <span
-                                        className="
-                                            shrink-0
-                                            rounded-full
-                                            bg-primary/10
-                                            px-2.5
-                                            py-1
-                                            font-bengali
-                                            text-xs
-                                            font-medium!
-                                            text-primary
-                                        "
-                                    >
-                                        লগইন করা আছে
-                                    </span>
-                                )}
+        <main
+            lang="bn"
+            className="min-h-screen bg-[#f5f7f6] pb-14 pt-5 font-bengali sm:pb-20 sm:pt-8 text-[#142e30] sm:pt-24 mt-20"
+        >
+            <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-9">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#dce6e3] pb-4 text-xs sm:text-sm">
+                    <Link
+                        to={`/campaign/${campaign.id}`}
+                        className="inline-flex items-center gap-2 text-slate-600 hover:text-[#08786d]"
+                    >
+                        <TbArrowLeft size={17} /> ক্যাম্পেইনে ফিরে যান
+                    </Link>
+                    <span className="inline-flex items-center gap-2 text-[#08786d]">
+                        <TbShieldCheck size={17} /> সুরক্ষিত অনুদান
+                    </span>
+                </div>
+                <header className="grid min-w-0 gap-6 border-b border-[#dce6e3] py-7 md:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] md:items-center md:gap-8 lg:gap-12 lg:py-10">
+                    <div className="relative order-2 mt-0 min-h-[240px] overflow-hidden bg-[#dce9e5] sm:min-h-[320px] md:order-1 md:min-h-[360px] lg:min-h-[400px]">
+                        {campaign.image ? (
+                            <img
+                                src={campaign.image}
+                                alt={campaign.title}
+                                className="absolute inset-0 h-full w-full object-cover"
+                            />
+                        ) : (
+                            <div className="absolute inset-0 grid place-items-center text-[#08786d]">
+                                <TbHeartFilled size={52} />
                             </div>
-
-                            <div className="mt-5 space-y-4">
-                                {/* Name */}
-                                <div>
+                        )}
+                        <span className="absolute bottom-0 left-0 bg-[#f5f7f6] px-4 py-3 text-xs text-[#08786d]">
+                            মানুষের পাশে দাঁড়ানোর উদ্যোগ
+                        </span>
+                    </div>
+                    <div className="order-1 flex min-w-0 flex-col justify-center md:order-2">
+                        <span className="mb-5 inline-flex w-fit items-center gap-2 border-l-[3px] border-[#e9a34a] pl-3 text-xs font-semibold text-[#08786d]">
+                            অনুদান কার্যক্রম {category ? `• ${category}` : ''}
+                        </span>
+                        <h1 className="max-w-[600px] text-[clamp(1.75rem,3.15vw,3.1rem)] font-semibold leading-[1.4] tracking-tight">
+                            {campaign.title}
+                        </h1>
+                        <p className="mt-5 max-w-lg text-sm leading-7 text-slate-600">
+                            {campaign.shortDescription ||
+                                'আপনার সহায়তা প্রয়োজনের সময় মানুষের পাশে দাঁড়াতে সাহায্য করবে।'}
+                        </p>
+                        <div className="mt-7 grid grid-cols-3 gap-2 sm:gap-4 border-t border-[#dce6e3] pt-6 sm:grid-cols-3">
+                            <div>
+                                <p className="text-xs text-slate-500">
+                                    সংগৃহীত
+                                </p>
+                                <strong className="mt-1 block break-words text-base sm:text-lg lg:text-xl">
+                                    ৳{bn(raised)}
+                                </strong>
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-500">
+                                    লক্ষ্যমাত্রা
+                                </p>
+                                <strong className="mt-1 block break-words text-base sm:text-lg lg:text-xl">
+                                    ৳{bn(target)}
+                                </strong>
+                            </div>
+                            <div>
+                                <p className="text-xs text-slate-500">
+                                    অগ্রগতি
+                                </p>
+                                <strong className="mt-1 block break-words text-base sm:text-lg lg:text-xl">
+                                    {bn(Math.round(progress))}%
+                                </strong>
+                            </div>
+                        </div>
+                        <div className="mt-5 h-1.5 bg-[#dce6e3]">
+                            <div
+                                className="h-full bg-[#08786d]"
+                                style={{ width: `${progress}%` }}
+                            />
+                        </div>
+                    </div>
+                </header>
+                <div className="grid min-w-0 gap-7 py-9 md:grid-cols-[minmax(0,190px)_minmax(0,1fr)] md:gap-7 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)] lg:gap-10 lg:py-14">
+                    <aside className="md:sticky md:top-24 md:self-start">
+                        <p className="text-xs font-semibold tracking-wide text-[#08786d]">
+                            অনুদান সম্পন্ন করুন
+                        </p>
+                        <h2 className="mt-3 text-2xl font-semibold leading-snug sm:text-3xl">
+                            আপনার সহায়তা,
+                            <br />
+                            কারও নতুন সম্ভাবনা।
+                        </h2>
+                        <p className="mt-4 text-sm leading-7 text-slate-500">
+                            তিনটি সহজ ধাপে অনুদানের তথ্য পূরণ করুন।
+                        </p>
+                        <div className="mt-7 hidden space-y-5 border-l border-[#cbd9d6] pl-4 text-xs md:block lg:text-sm">
+                            <p className="font-semibold text-[#08786d]">
+                                ০১ — অনুদানের পরিমাণ
+                            </p>
+                            <p className="text-slate-500">
+                                ০২ — যোগাযোগের তথ্য
+                            </p>
+                            <p className="text-slate-500">০৩ — পেমেন্ট</p>
+                        </div>
+                    </aside>
+                    <form
+                        onSubmit={handleDonate}
+                        className="min-w-0 overflow-hidden bg-white shadow-[0_12px_45px_rgba(19,54,50,0.045)]"
+                    >
+                        <section className="border-b border-[#e5eeeb] px-4 py-7 sm:px-7 sm:py-9 lg:px-9">
+                            <div className="flex items-center gap-4">
+                                <span className="text-3xl font-light text-[#9bbdb5]">
+                                    ০১
+                                </span>
+                                <h3 className="text-xl font-semibold sm:text-2xl">
+                                    অনুদানের পরিমাণ
+                                </h3>
+                            </div>
+                            <p className="mt-2 text-sm text-slate-500">
+                                যে পরিমাণ সহায়তা করতে চান, সেটি নির্বাচন করুন।
+                            </p>
+                            <div className="mt-7 grid grid-cols-2 gap-2 min-[560px]:grid-cols-4 sm:gap-3">
+                                {presets.map((val) => (
+                                    <button
+                                        type="button"
+                                        key={val}
+                                        aria-pressed={Number(amount) === val}
+                                        onClick={() => {
+                                            setAmount(val);
+                                            setError(null);
+                                        }}
+                                        className={`min-h-[70px] min-w-0 border px-2 py-3 text-center text-base sm:text-lg font-semibold transition ${Number(amount) === val ? 'border-[#08786d] bg-[#e6f3ef] text-[#086f65]' : 'border-[#dce6e3] bg-white hover:border-[#08786d]'}`}
+                                    >
+                                        ৳{bn(val)}
+                                        {Number(amount) === val && (
+                                            <span className="mt-1 block text-[10px] font-normal">
+                                                নির্বাচিত
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                            <label
+                                htmlFor="donation-amount"
+                                className="mt-7 block text-xs font-semibold text-slate-600"
+                            >
+                                নিজের পরিমাণ লিখুন
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl text-[#08786d]">
+                                    ৳
+                                </span>
+                                <input
+                                    id="donation-amount"
+                                    type="number"
+                                    min="10"
+                                    value={amount}
+                                    onChange={(e) => {
+                                        setAmount(
+                                            e.target.value === ''
+                                                ? ''
+                                                : Number(e.target.value),
+                                        );
+                                        setError(null);
+                                    }}
+                                    className={inputStyle + ' text-xl'}
+                                    placeholder="অনুদানের পরিমাণ"
+                                />
+                            </div>
+                            <p className="mt-2 text-xs text-slate-500">
+                                সর্বনিম্ন অনুদান ৳১০
+                            </p>
+                        </section>
+                        <section className="border-b border-[#e5eeeb] px-4 py-7 sm:px-7 sm:py-9 lg:px-9">
+                            <div className="flex items-center gap-4">
+                                <span className="text-3xl font-light text-[#9bbdb5]">
+                                    ০২
+                                </span>
+                                <h3 className="text-xl font-semibold sm:text-2xl">
+                                    আপনার পরিচয়
+                                </h3>
+                            </div>
+                            <p className="mt-2 text-sm text-slate-500">
+                                {isLoggedIn
+                                    ? 'অ্যাকাউন্টের তথ্য পূরণ করা হয়েছে।'
+                                    : 'অনুদানের জন্য প্রয়োজনীয় যোগাযোগের তথ্য দিন।'}
+                            </p>
+                            <div className="mt-7 grid min-w-0 gap-x-5 gap-y-6 lg:grid-cols-2">
+                                <div className="lg:col-span-2">
                                     <label
                                         htmlFor="donor-name"
-                                        className="
-                                            mb-1.5
-                                            block
-                                            font-bengali
-                                            text-sm
-                                            font-medium!
-                                            text-text-primary
-                                        "
+                                        className="text-xs font-semibold"
                                     >
                                         পূর্ণ নাম
                                     </label>
-
                                     <input
                                         id="donor-name"
-                                        type="text"
+                                        autoComplete="name"
                                         value={donor.name}
                                         onChange={(e) =>
                                             handleDonorChange(
@@ -532,46 +585,21 @@ const Donate = () => {
                                                 e.target.value,
                                             )
                                         }
-                                        placeholder="আপনার পূর্ণ নাম লিখুন"
-                                        autoComplete="name"
-                                        className="
-                                            w-full
-                                            rounded-xl
-                                            border
-                                            border-border
-                                            bg-surface-soft
-                                            px-3.5
-                                            py-3
-                                            text-sm
-                                            text-text-primary
-                                            outline-none
-                                            transition
-                                            focus:border-primary
-                                            focus:ring-2
-                                            focus:ring-primary/10
-                                        "
+                                        className={inputStyle}
+                                        placeholder="আপনার পূর্ণ নাম"
                                     />
                                 </div>
-
-                                {/* Email */}
                                 <div>
                                     <label
                                         htmlFor="donor-email"
-                                        className="
-                                            mb-1.5
-                                            block
-                                            font-bengali
-                                            text-sm
-                                            font-medium!
-                                            text-text-primary
-                                        "
+                                        className="text-xs font-semibold"
                                     >
                                         ইমেইল ঠিকানা
                                     </label>
-
                                     <input
                                         id="donor-email"
                                         type="email"
+                                        autoComplete="email"
                                         value={donor.email}
                                         onChange={(e) =>
                                             handleDonorChange(
@@ -579,46 +607,22 @@ const Donate = () => {
                                                 e.target.value,
                                             )
                                         }
-                                        placeholder="you@example.com"
-                                        autoComplete="email"
-                                        className="
-                                            w-full
-                                            rounded-xl
-                                            border
-                                            border-border
-                                            bg-surface-soft
-                                            px-3.5
-                                            py-3
-                                            text-sm
-                                            text-text-primary
-                                            outline-none
-                                            transition
-                                            focus:border-primary
-                                            focus:ring-2
-                                            focus:ring-primary/10
-                                        "
+                                        className={inputStyle}
+                                        placeholder="ইমেইল লিখুন"
                                     />
                                 </div>
-
-                                {/* Phone */}
                                 <div>
                                     <label
                                         htmlFor="donor-phone"
-                                        className="
-                                            mb-1.5
-                                            block
-                                            font-bengali
-                                            text-sm
-                                            font-medium!
-                                            text-text-primary
-                                        "
+                                        className="text-xs font-semibold"
                                     >
                                         ফোন নম্বর
                                     </label>
-
                                     <input
                                         id="donor-phone"
                                         type="tel"
+                                        autoComplete="tel"
+                                        maxLength={11}
                                         value={donor.phone}
                                         onChange={(e) =>
                                             handleDonorChange(
@@ -626,342 +630,102 @@ const Donate = () => {
                                                 e.target.value,
                                             )
                                         }
-                                        placeholder="01XXXXXXXXX"
-                                        maxLength={11}
-                                        autoComplete="tel"
-                                        className="
-                                            w-full
-                                            rounded-xl
-                                            border
-                                            border-border
-                                            bg-surface-soft
-                                            px-3.5
-                                            py-3
-                                            text-sm
-                                            text-text-primary
-                                            outline-none
-                                            transition
-                                            focus:border-primary
-                                            focus:ring-2
-                                            focus:ring-primary/10
-                                        "
+                                        className={inputStyle}
+                                        placeholder="০১XXXXXXXXX"
                                     />
-
-                                    <p className="mt-1.5 font-bengali text-[11px] text-text-secondary">
-                                        পেমেন্টের জন্য একটি সঠিক বাংলাদেশি ফোন
-                                        নম্বর প্রয়োজন।
-                                    </p>
                                 </div>
                             </div>
-                        </div>
-
-                        {/* Choose Amount */}
-                        <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
-                            <h3 className="mb-2 font-bengali font-semibold text-text-primary">
-                                অনুদানের পরিমাণ নির্বাচন করুন
-                            </h3>
-
-                            <p className="mb-4 font-bengali text-xs text-text-secondary">
-                                সাম্প্রতিক অনুদানের ভিত্তিতে প্রস্তাবিত পরিমাণ
+                        </section>
+                        <section className="px-4 py-7 sm:px-7 sm:py-9 lg:px-9">
+                            <div className="flex items-center gap-4">
+                                <span className="text-3xl font-light text-[#9bbdb5]">
+                                    ০৩
+                                </span>
+                                <h3 className="text-xl font-semibold sm:text-2xl">
+                                    পেমেন্টের মাধ্যম
+                                </h3>
+                            </div>
+                            <p className="mt-2 text-sm text-slate-500">
+                                নিরাপদ পেমেন্ট গেটওয়েতে আপনার পছন্দের মাধ্যম
+                                নির্বাচন করতে পারবেন।
                             </p>
-
-                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                                {presets.map((val) => {
-                                    const isSuggested = val === 1000;
-
-                                    return (
-                                        <button
-                                            key={val}
-                                            type="button"
-                                            onClick={() => setAmount(val)}
-                                            className={`
-                                                relative
-                                                rounded-xl
-                                                border
-                                                py-3
-                                                text-sm
-                                                font-medium!
-                                                transition-all
-                                                ${
-                                                    amount === val
-                                                        ? 'border-primary bg-primary text-white! shadow-sm'
-                                                        : isSuggested
-                                                          ? 'border-primary bg-primary/5 text-primary'
-                                                          : 'border-border bg-surface-soft hover:border-primary/40'
-                                                }
-                                            `}
+                            <div className="mt-6 grid gap-3 min-[560px]:grid-cols-2">
+                                <label className="flex min-w-0 min-h-[64px] cursor-pointer items-center gap-3 border border-[#dce6e3] px-4 text-sm">
+                                    <input
+                                        type="radio"
+                                        name="pay"
+                                        defaultChecked
+                                        className="accent-[#08786d]"
+                                    />
+                                    <TbCreditCard
+                                        size={21}
+                                        className="text-[#08786d]"
+                                    />{' '}
+                                    কার্ডের মাধ্যমে
+                                </label>
+                                <label className="flex min-w-0 min-h-[64px] cursor-pointer items-center gap-3 border border-[#dce6e3] px-4 text-sm">
+                                    <input
+                                        type="radio"
+                                        name="pay"
+                                        className="accent-[#08786d]"
+                                    />
+                                    <TbWallet
+                                        size={21}
+                                        className="text-[#08786d]"
+                                    />{' '}
+                                    মোবাইল ব্যাংকিং
+                                </label>
+                            </div>
+                        </section>
+                        <div className="bg-[#123f39] px-5 py-7 text-white sm:px-9">
+                            <div className="flex min-w-0 flex-wrap items-end justify-between gap-5">
+                                <div>
+                                    <p className="text-xs text-white/60">
+                                        আপনার মোট অনুদান
+                                    </p>
+                                    <p className="mt-1 break-words text-3xl font-semibold sm:text-4xl">
+                                        ৳{bn(amount)}
+                                    </p>
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="inline-flex min-h-[52px] w-full items-center justify-center gap-3 bg-[#e9a34a] px-6 text-sm font-semibold text-[#123f39] transition hover:bg-[#f4b85f] disabled:opacity-60 min-[560px]:w-auto"
+                                >
+                                    <TbHeartFilled size={17} />
+                                    {submitting
+                                        ? 'পেমেন্ট শুরু হচ্ছে…'
+                                        : 'অনুদান নিশ্চিত করুন'}{' '}
+                                    <span aria-hidden="true">→</span>
+                                </button>
+                            </div>
+                            <p className="mt-5 flex items-center gap-2 text-xs text-white/65">
+                                <TbShieldCheck size={16} /> সুরক্ষিত পেমেন্ট
+                                প্রক্রিয়া
+                            </p>
+                            {error && (
+                                <p
+                                    role="alert"
+                                    className="mt-4 border-l-2 border-[#e9a34a] bg-white/10 px-3 py-3 text-sm"
+                                >
+                                    {error}
+                                    {error.includes(
+                                        'এই ইমেইল দিয়ে একটি অ্যাকাউন্ট রয়েছে',
+                                    ) && (
+                                        <Link
+                                            to="/login"
+                                            className="ml-2 underline"
                                         >
-                                            ৳{val}
-                                            {isSuggested && (
-                                                <span
-                                                    className="
-                                                        absolute
-                                                        -right-1
-                                                        -top-2
-                                                        rounded-full
-                                                        bg-primary
-                                                        px-2
-                                                        py-0.5
-                                                        font-bengali
-                                                        text-[10px]
-                                                        text-white!
-                                                    "
-                                                >
-                                                    জনপ্রিয়
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            <input
-                                type="number"
-                                min="10"
-                                value={amount}
-                                onChange={(e) => {
-                                    setAmount(
-                                        e.target.value === ''
-                                            ? ''
-                                            : Number(e.target.value),
-                                    );
-
-                                    setError(null);
-                                }}
-                                className="
-                                    mt-4
-                                    w-full
-                                    rounded-xl
-                                    border
-                                    border-border
-                                    bg-surface-soft
-                                    p-3
-                                    outline-none
-                                    transition
-                                    focus:border-primary
-                                "
-                                placeholder="নিজের পরিমাণ লিখুন"
-                            />
-
-                            <div className="mt-4 font-bengali text-sm text-text-secondary">
-                                <span className="font-medium! text-primary">
-                                    ৳{Number(amount || 0).toLocaleString()}
-                                </span>{' '}
-                                দিয়ে ক্ষতিগ্রস্ত পরিবারগুলোর জন্য প্রয়োজনীয়
-                                সহায়তা পৌঁছে দিতে সাহায্য করতে পারেন।
-                            </div>
-                        </div>
-
-                        {/* Payment Method */}
-                        <div className="space-y-4 rounded-2xl border border-border bg-surface p-5 sm:p-6">
-                            <h3 className="flex items-center gap-2 font-bengali font-semibold text-text-primary">
-                                <TbCreditCard />
-                                পেমেন্ট পদ্ধতি
-                            </h3>
-
-                            <label
-                                className="
-                                    flex
-                                    cursor-pointer
-                                    items-center
-                                    gap-3
-                                    rounded-xl
-                                    border
-                                    border-border
-                                    p-3
-                                    transition
-                                    hover:border-primary/40
-                                "
-                            >
-                                <input type="radio" name="pay" defaultChecked />
-
-                                <TbCreditCard className="text-primary" />
-
-                                <span className="font-bengali text-sm text-text-primary">
-                                    ক্রেডিট / ডেবিট কার্ড
-                                </span>
-                            </label>
-
-                            <label
-                                className="
-                                    flex
-                                    cursor-pointer
-                                    items-center
-                                    gap-3
-                                    rounded-xl
-                                    border
-                                    border-border
-                                    p-3
-                                    transition
-                                    hover:border-primary/40
-                                "
-                            >
-                                <input type="radio" name="pay" />
-
-                                <TbWallet className="text-accent" />
-
-                                <span className="font-bengali text-sm text-text-primary">
-                                    মোবাইল ব্যাংকিং (বিকাশ / নগদ)
-                                </span>
-                            </label>
-                        </div>
-
-                        {/* Error */}
-                        {error && (
-                            <div className="mt-4 text-sm text-[#e28080]">
-                                <p>{error}</p>
-
-                                {error.includes(
-                                    'এই ইমেইল দিয়ে একটি অ্যাকাউন্ট রয়েছে',
-                                ) && (
-                                    <Link
-                                        to="/login"
-                                        className="mt-4 inline-block text-right font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800"
-                                    >
-                                        লগইন করুন
-                                    </Link>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Donate Button */}
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="
-                                flex
-                                w-full
-                                items-center
-                                justify-center
-                                gap-2
-                                rounded-xl
-                                bg-primary
-                                py-3
-                                font-bengali
-                                text-lg
-                                font-semibold
-                                text-white!
-                                transition
-                                hover:bg-primary-dark
-                                disabled:cursor-not-allowed
-                                disabled:opacity-60
-                            "
-                        >
-                            <TbHeartFilled />
-
-                            {submitting
-                                ? 'পেমেন্ট শুরু হচ্ছে...'
-                                : `৳${Number(
-                                      amount || 0,
-                                  ).toLocaleString()} অনুদান দিন`}
-                        </button>
-
-                        <p className="flex items-center gap-2 font-bengali text-xs text-text-secondary">
-                            <TbShieldCheck className="text-primary" />
-                            নিরাপদ অনুদান • কোনো গোপন চার্জ নেই • তাৎক্ষণিক
-                            নিশ্চিতকরণ
-                        </p>
-                    </div>
-
-                    {/* =================================================
-                        RIGHT COLUMN
-                    ================================================= */}
-                    <div className="order-1 space-y-6 lg:order-2">
-                        {/* Campaign Summary */}
-                        <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
-                            <h3 className="mb-4 font-bengali font-semibold text-text-primary">
-                                ক্যাম্পেইনের সংক্ষিপ্ত তথ্য
-                            </h3>
-
-                            {campaign.image && (
-                                <img
-                                    src={campaign.image}
-                                    alt={campaign.title}
-                                    className="h-52 w-full rounded-xl object-cover"
-                                />
-                            )}
-
-                            {campaign.shortDescription && (
-                                <p className="mt-4 font-bengali text-sm leading-relaxed text-text-secondary">
-                                    {campaign.shortDescription}
+                                            লগইন করুন
+                                        </Link>
+                                    )}
                                 </p>
                             )}
-
-                            <div className="mt-5 space-y-2 font-bengali text-sm">
-                                {campaign.raised !== undefined && (
-                                    <div className="flex justify-between text-text-secondary">
-                                        <span>সংগৃহীত</span>
-
-                                        <span className="font-medium! text-text-primary">
-                                            ৳
-                                            {Number(
-                                                campaign.raised,
-                                            ).toLocaleString()}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {campaign.targetAmount !== undefined && (
-                                    <div className="flex justify-between text-text-secondary">
-                                        <span>লক্ষ্য</span>
-
-                                        <span className="font-medium! text-text-primary">
-                                            ৳
-                                            {Number(
-                                                campaign.targetAmount,
-                                            ).toLocaleString()}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {campaign.supporters !== undefined && (
-                                    <div className="flex justify-between text-text-secondary">
-                                        <span>সহায়তাকারী</span>
-
-                                        <span className="font-medium! text-text-primary">
-                                            {campaign.supporters}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
                         </div>
-
-                        {/* Impact */}
-                        <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5 sm:p-6">
-                            <h3 className="flex items-center gap-2 font-bengali font-semibold text-primary">
-                                <TbUser />
-                                আপনার অবদান
-                            </h3>
-
-                            <p className="mt-2 font-bengali text-sm leading-relaxed text-text-secondary">
-                                আপনার ছোট একটি অনুদানও ক্ষতিগ্রস্ত পরিবারগুলোর
-                                জন্য খাবার, চিকিৎসা এবং জরুরি সহায়তা পৌঁছে দিতে
-                                সাহায্য করতে পারে।
-                            </p>
-
-                            <div className="mt-4 font-bengali text-sm font-medium! text-primary">
-                                প্রতিটি অবদান গুরুত্বপূর্ণ ❤️
-                            </div>
-                        </div>
-
-                        {/* Transparency */}
-                        <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
-                            <h3 className="flex items-center gap-2 font-bengali font-semibold text-text-primary">
-                                <TbWallet />
-                                স্বচ্ছতা
-                            </h3>
-
-                            <ul className="mt-3 space-y-2 font-bengali text-sm text-text-secondary">
-                                <li>• ১০০% যাচাইকৃত ক্যাম্পেইন</li>
-                                <li>• রিয়েল-টাইম আপডেট</li>
-                                <li>• জনসাধারণের জন্য তহবিলের তথ্য</li>
-                                <li>• এনজিও যাচাই ব্যবস্থা</li>
-                            </ul>
-                        </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
+        </main>
     );
 };
 

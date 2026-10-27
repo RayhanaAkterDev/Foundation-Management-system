@@ -1,5 +1,49 @@
 import React, { useState } from 'react';
+
 import { AlertCircle, CheckCircle2, ChevronDown, Info, X } from 'lucide-react';
+
+const getErrorMessage = (error) => {
+    if (!error) {
+        return '';
+    }
+
+    if (typeof error === 'string') {
+        return error;
+    }
+
+    if (typeof error !== 'object') {
+        return '';
+    }
+
+    // Handle Axios-style errors and API response objects.
+    const responseData = error.response?.data ?? error;
+
+    // Show the specific validation error before the generic message.
+    const statusError = responseData.errors?.status;
+
+    if (Array.isArray(statusError) && statusError.length > 0) {
+        return statusError[0];
+    }
+
+    if (typeof statusError === 'string') {
+        return statusError;
+    }
+
+    // Fall back to other validation errors, if present.
+    const validationErrors = responseData.errors;
+
+    if (validationErrors && typeof validationErrors === 'object') {
+        const firstError = Object.values(validationErrors)
+            .flat()
+            .find((message) => typeof message === 'string' && message);
+
+        if (firstError) {
+            return firstError;
+        }
+    }
+
+    return responseData.message || error.message || '';
+};
 
 const StatusUpdateModal = ({
     campaign,
@@ -8,16 +52,28 @@ const StatusUpdateModal = ({
     onClose,
     onConfirm,
 }) => {
-    const allowedStatuses = ['completed', 'cancelled'];
-
-    const [selectedStatus, setSelectedStatus] = useState('completed');
+    const [statusSelection, setStatusSelection] = useState({
+        campaignId: null,
+        status: 'completed',
+    });
 
     if (!campaign) {
         return null;
     }
 
+    const allowedStatuses = ['completed', 'cancelled'];
+
+    const campaignId = campaign.id ?? campaign;
+
+    const selectedStatus =
+        statusSelection.campaignId === campaignId
+            ? statusSelection.status
+            : 'completed';
+
     const currentStatus = String(campaign.status || '').toLowerCase();
+
     const isActive = currentStatus === 'active';
+    const errorMessage = getErrorMessage(error);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -37,6 +93,13 @@ const StatusUpdateModal = ({
         }
 
         onClose();
+    };
+
+    const handleStatusChange = (event) => {
+        setStatusSelection({
+            campaignId,
+            status: event.target.value,
+        });
     };
 
     return (
@@ -159,11 +222,7 @@ const StatusUpdateModal = ({
                                     <select
                                         id="campaign-status"
                                         value={selectedStatus}
-                                        onChange={(event) =>
-                                            setSelectedStatus(
-                                                event.target.value,
-                                            )
-                                        }
+                                        onChange={handleStatusChange}
                                         disabled={loading || !isActive}
                                         className="h-11 w-full appearance-none rounded-md border border-[#34404D] bg-[#10161E] px-3.5 pr-10 text-[12px] font-medium !text-[#E3EAF3] outline-none transition-colors hover:border-[#4B5A6B] focus:border-[#7890A8] focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
@@ -189,10 +248,11 @@ const StatusUpdateModal = ({
                                 </div>
                             </div>
 
-                            {/* Error */}
-                            {error && (
+                            {/* Backend validation error */}
+                            {errorMessage && (
                                 <div
                                     role="alert"
+                                    aria-live="assertive"
                                     className="flex items-start gap-2.5 rounded-md border border-[#704047] bg-[#342126] px-3.5 py-3"
                                 >
                                     <AlertCircle
@@ -200,9 +260,15 @@ const StatusUpdateModal = ({
                                         className="mt-0.5 shrink-0 text-[#E9A3AC]"
                                     />
 
-                                    <p className="m-0 text-[11px] leading-[1.7] !text-[#F0B5BC]">
-                                        {error}
-                                    </p>
+                                    <div className="min-w-0">
+                                        <p className="mb-1 text-[11px] font-semibold !text-[#F0B5BC]">
+                                            Unable to update campaign
+                                        </p>
+
+                                        <p className="m-0 break-words text-[11px] leading-[1.7] !text-[#F0B5BC]">
+                                            {errorMessage}
+                                        </p>
+                                    </div>
                                 </div>
                             )}
 
@@ -231,7 +297,8 @@ const StatusUpdateModal = ({
                                         <span className="font-semibold text-[#E3EAF3]">
                                             {selectedStatus}
                                         </span>
-                                        , it will no longer be editable.
+                                        , it will no longer be active or accept
+                                        new donations.
                                     </p>
                                 </div>
                             )}

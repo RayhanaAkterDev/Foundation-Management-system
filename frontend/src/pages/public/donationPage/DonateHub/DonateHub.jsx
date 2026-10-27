@@ -9,6 +9,8 @@ import BrowseCTA from './components/BrowseCTA';
 
 const DonateHub = () => {
     const [campaigns, setCampaigns] = useState([]);
+    const [campaignsLoading, setCampaignsLoading] = useState(true);
+    const [campaignsError, setCampaignsError] = useState(null);
 
     useEffect(() => {
         let isMounted = true;
@@ -17,7 +19,15 @@ const DonateHub = () => {
             try {
                 const data = await fetchPublicCampaigns();
 
-                const activeCampaigns = [...data]
+                const campaignList = Array.isArray(data)
+                    ? data
+                    : Array.isArray(data?.data)
+                      ? data.data
+                      : Array.isArray(data?.campaigns)
+                        ? data.campaigns
+                        : [];
+
+                const activeCampaigns = campaignList
                     .filter((campaign) => campaign?.status === 'active')
                     .sort(
                         (a, b) =>
@@ -26,12 +36,20 @@ const DonateHub = () => {
 
                 if (isMounted) {
                     setCampaigns(activeCampaigns);
+                    setCampaignsError(null);
                 }
             } catch (error) {
                 console.error('Failed to load donation hub campaigns:', error);
 
                 if (isMounted) {
                     setCampaigns([]);
+                    setCampaignsError(
+                        'ক্যাম্পেইনগুলো লোড করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
+                    );
+                }
+            } finally {
+                if (isMounted) {
+                    setCampaignsLoading(false);
                 }
             }
         };
@@ -46,9 +64,21 @@ const DonateHub = () => {
     return (
         <>
             <DonateHero />
-            <UrgentSection campaigns={campaigns} />
-            <FeaturedSection campaigns={campaigns} />
+
+            <UrgentSection
+                campaigns={campaigns}
+                loading={campaignsLoading}
+                error={campaignsError}
+            />
+
+            <FeaturedSection
+                campaigns={campaigns}
+                loading={campaignsLoading}
+                error={campaignsError}
+            />
+
             <CategoryQuickAccess />
+
             <BrowseCTA />
         </>
     );

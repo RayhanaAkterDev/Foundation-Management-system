@@ -9,10 +9,50 @@ import defaultCampaignImage from '@/assets/campaigns/campaignsHeroImage.png';
     HELPERS
 ========================================================== */
 
-const formatAmount = (amount) => Number(amount || 0).toLocaleString('en-BD');
+const formatAmount = (amount) =>
+    toBengaliNumber(Number(amount || 0).toLocaleString('en-BD'));
 
 const toBengaliNumber = (value) =>
     String(value).replace(/\d/g, (digit) => '০১২৩৪৫৬৭৮৯'[digit]);
+
+const categoryTranslations = {
+    Education: 'শিক্ষা',
+    Food: 'খাদ্য সহায়তা',
+    Health: 'স্বাস্থ্যসেবা',
+    Healthcare: 'স্বাস্থ্যসেবা',
+    Nutrition: 'পুষ্টি সহায়তা',
+    Water: 'পানি',
+    'Clean Water': 'বিশুদ্ধ পানি',
+    'Emergency Relief': 'জরুরি সহায়তা',
+    'Child Support': 'শিশু সহায়তা',
+    'Women Empowerment': 'নারীর ক্ষমতায়ন',
+    Shelter: 'আশ্রয়',
+    Disaster: 'দুর্যোগ সহায়তা',
+    Medical: 'চিকিৎসা',
+    Environment: 'পরিবেশ',
+    Livelihood: 'জীবিকা',
+    'Food Support': 'খাদ্য সহায়তা',
+};
+
+const titleTranslations = {
+    'School Supplies for Children in Need':
+        'সুবিধাবঞ্চিত শিশুদের জন্য শিক্ষা উপকরণ',
+    'Emergency Food Support for Flood-Affected Families':
+        'বন্যায় ক্ষতিগ্রস্ত পরিবারের জন্য জরুরি খাদ্য সহায়তা',
+    'Nutrition Support for Vulnerable Children':
+        'ঝুঁকিতে থাকা শিশুদের পুষ্টি সহায়তা',
+    'Clean Water for Coastal Communities': 'উপকূলীয় মানুষের জন্য বিশুদ্ধ পানি',
+    'Women’s Small Business Recovery Support':
+        'নারীদের ক্ষুদ্র ব্যবসা পুনরুদ্ধারে সহায়তা',
+    "Women's Small Business Recovery Support":
+        'নারীদের ক্ষুদ্র ব্যবসা পুনরুদ্ধারে সহায়তা',
+};
+
+const translateCategory = (category) =>
+    categoryTranslations[category] || category || '';
+
+const translateTitle = (title) =>
+    titleTranslations[title] || title || 'মানবিক উদ্যোগ';
 
 /* =========================================================
     CAMPAIGN IMAGE
@@ -85,7 +125,7 @@ function ImageMeta({ campaign, dark = true }) {
                             lg:text-[12px]
                         "
                     >
-                        {campaign.category}
+                        {translateCategory(campaign.category)}
                     </span>
                 </div>
             )}
@@ -126,7 +166,7 @@ function ImageMeta({ campaign, dark = true }) {
 ========================================================== */
 
 function Progress({ progress, light = false }) {
-    const safeProgress = Math.min(100, Math.max(0, Number(progress ?? 0)));
+    const safeProgress = Math.min(100, Math.max(0, Number(progress ?? 0) || 0));
 
     return (
         <div>
@@ -154,7 +194,7 @@ function Progress({ progress, light = false }) {
                         ${light ? 'text-white!' : 'text-primary'}
                     `}
                 >
-                    {toBengaliNumber(safeProgress)}%
+                    {toBengaliNumber(Number(safeProgress.toFixed(1)))}%
                 </span>
             </div>
 
@@ -222,21 +262,21 @@ export default function CampaignCard({
         return (
             <Link
                 to={`/campaign/${campaign.id}`}
-                className="group block h-full"
+                className="group block h-full min-w-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f766e]"
             >
                 <article
                     className="
                         relative
                         flex
                         h-full
-                        min-h-[560px]
+                        min-h-[520px]
                         flex-col
                         overflow-hidden
                         border
                         border-border/70
                         bg-[#faf8f3]
-                        sm:min-h-[590px]
-                        lg:min-h-[630px]
+                        sm:min-h-[560px]
+                        lg:min-h-[600px]
                     "
                 >
                     <div
@@ -298,7 +338,7 @@ export default function CampaignCard({
                     >
                         <CampaignImage
                             imageUrl={imageUrl}
-                            title={campaign.title}
+                            title={translateTitle(campaign.title)}
                         />
 
                         <ImageMeta campaign={campaign} />
@@ -375,7 +415,7 @@ export default function CampaignCard({
                                 xl:text-[27px]
                             "
                         >
-                            {campaign.title}
+                            {translateTitle(campaign.title)}
                         </h3>
 
                         {descriptionText && (
@@ -401,7 +441,7 @@ export default function CampaignCard({
                         <div className="mt-auto pt-6 sm:pt-7 lg:pt-9">
                             <Progress progress={campaign.progress} />
 
-                            <div className="mt-5 grid grid-cols-[1fr_auto] items-end gap-4 sm:gap-5 lg:mt-6 lg:gap-7">
+                            <div className="mt-5 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:gap-5 lg:mt-6 lg:gap-7">
                                 <div>
                                     <p className="font-bengali text-[10px] leading-none text-text-muted sm:text-[11px] lg:text-[12px]">
                                         সংগ্রহ হয়েছে
@@ -429,7 +469,7 @@ export default function CampaignCard({
                                     )}
                                 </div>
 
-                                <div className="border-l border-border pl-4 text-right sm:pl-5 lg:pl-6">
+                                <div className="min-w-0 border-l border-border pl-3 text-right sm:pl-5 lg:pl-6">
                                     <p className="font-bengali text-[10px] leading-none text-text-muted sm:text-[11px] lg:text-[12px]">
                                         সহায়তাকারী
                                     </p>
@@ -458,21 +498,21 @@ export default function CampaignCard({
         return (
             <Link
                 to={`/campaign/${campaign.id}`}
-                className="group block h-full"
+                className="group block h-full min-w-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f766e]"
             >
                 <article
                     className="
                         relative
                         grid
                         h-full
-                        min-h-[560px]
+                        min-h-[520px]
                         overflow-hidden
                         border
                         border-border/70
                         bg-[#f4efe4]
-                        sm:min-h-[590px]
-                        sm:grid-cols-[1.12fr_0.88fr]
-                        lg:min-h-[630px]
+                        sm:min-h-[560px]
+                        md:grid-cols-[1.12fr_0.88fr]
+                        lg:min-h-[600px]
                     "
                 >
                     <div
@@ -481,12 +521,12 @@ export default function CampaignCard({
                             min-h-[300px]
                             overflow-hidden
                             bg-background-alt
-                            sm:min-h-full
+                            md:min-h-full
                         "
                     >
                         <CampaignImage
                             imageUrl={imageUrl}
-                            title={campaign.title}
+                            title={translateTitle(campaign.title)}
                         />
 
                         <ImageMeta campaign={campaign} />
@@ -579,7 +619,7 @@ export default function CampaignCard({
                             className="
                                 mt-7
                                 font-bengali
-                                text-[22px]
+                                text-[21px]
                                 font-semibold
                                 leading-[1.52]
                                 tracking-[-0.02em]
@@ -591,7 +631,7 @@ export default function CampaignCard({
                                 xl:text-[33px]
                             "
                         >
-                            {campaign.title}
+                            {translateTitle(campaign.title)}
                         </h3>
 
                         {descriptionText && (
@@ -620,7 +660,7 @@ export default function CampaignCard({
                                     সংগ্রহ হয়েছে
                                 </p>
 
-                                <div className="mt-1 flex items-end justify-between gap-4 lg:mt-2">
+                                <div className="mt-1 flex flex-wrap items-end justify-between gap-2 lg:mt-2">
                                     <p
                                         className="
                                             text-[21px]
@@ -695,7 +735,10 @@ export default function CampaignCard({
     ====================================================== */
 
     return (
-        <Link to={`/campaign/${campaign.id}`} className="group block">
+        <Link
+            to={`/campaign/${campaign.id}`}
+            className="group block min-w-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f766e]"
+        >
             <article
                 className="
                     relative
@@ -706,19 +749,19 @@ export default function CampaignCard({
                     text-white!
                 "
             >
-                <div className="grid lg:min-h-[560px] lg:grid-cols-[1.18fr_0.82fr] xl:min-h-[600px]">
+                <div className="grid lg:min-h-[520px] xl:grid-cols-[1.18fr_0.82fr] xl:min-h-[600px]">
                     <div
                         className="
                             relative
                             min-h-[360px]
                             overflow-hidden
-                            sm:min-h-[430px]
-                            lg:min-h-full
+                            sm:min-h-[400px]
+                            xl:min-h-full
                         "
                     >
                         <CampaignImage
                             imageUrl={imageUrl}
-                            title={campaign.title}
+                            title={translateTitle(campaign.title)}
                             feature
                         />
 
@@ -743,7 +786,7 @@ export default function CampaignCard({
                                 from-black/65
                                 via-black/15
                                 to-transparent
-                                lg:hidden
+                                xl:hidden
                             "
                         />
 
@@ -768,7 +811,7 @@ export default function CampaignCard({
                                         lg:text-[12px]
                                     "
                                 >
-                                    {campaign.category}
+                                    {translateCategory(campaign.category)}
                                 </span>
                             </div>
                         )}
@@ -885,7 +928,7 @@ export default function CampaignCard({
                                 xl:text-[42px]
                             "
                         >
-                            {campaign.title}
+                            {translateTitle(campaign.title)}
                         </h3>
 
                         {descriptionText && (
@@ -912,7 +955,7 @@ export default function CampaignCard({
                         <div className="mt-auto pt-8 sm:pt-10 lg:pt-12">
                             <Progress progress={campaign.progress} light />
 
-                            <div className="mt-6 grid grid-cols-2 gap-5 sm:mt-7 sm:gap-6 lg:mt-8 lg:gap-8">
+                            <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-7 sm:gap-6 lg:mt-8 lg:gap-8">
                                 <div>
                                     <p className="font-bengali text-[10px] leading-none text-white!/45 sm:text-[11px] lg:text-[12px]">
                                         সংগ্রহ হয়েছে
@@ -921,7 +964,7 @@ export default function CampaignCard({
                                     <p
                                         className="
                                             mt-1
-                                            text-[22px]
+                                            text-[21px]
                                             font-semibold
                                             tracking-[-0.04em]
                                             text-white!
@@ -940,7 +983,7 @@ export default function CampaignCard({
                                     )}
                                 </div>
 
-                                <div className="border-l border-white/15 pl-5 sm:pl-6 lg:pl-7">
+                                <div className="min-w-0 border-l border-white/15 pl-3 sm:pl-6 lg:pl-7">
                                     <p className="font-bengali text-[10px] leading-none text-white!/45 sm:text-[11px] lg:text-[12px]">
                                         সহায়তাকারী
                                     </p>
@@ -955,7 +998,7 @@ export default function CampaignCard({
                                 </div>
                             </div>
 
-                            <div className="mt-7 flex items-center justify-between gap-5 border-t border-white/15 pt-5 sm:mt-8 sm:pt-6 lg:mt-9 lg:pt-7">
+                            <div className="mt-7 flex items-center justify-between gap-3 border-t border-white/15 pt-5 sm:mt-8 sm:pt-6 lg:mt-9 lg:pt-7">
                                 <span className="font-bengali text-[10px] font-semibold leading-[1.6] text-white!/85 sm:text-[11px] lg:text-[13px]">
                                     উদ্যোগটির সম্পূর্ণ গল্প দেখুন
                                 </span>

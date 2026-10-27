@@ -166,7 +166,7 @@ function HistoryGroup({ title, assignments }) {
     return (
         <div>
             <div className="mb-2.5 flex items-center justify-between gap-3">
-                <h4 className="m-0 text-[12px] font-semibold! text-[#C5CFDB]">
+                <h4 className="m-0 text-[12px] font-semibold! text-[#C5CFDB]!">
                     {title}
                 </h4>
 
@@ -391,7 +391,7 @@ function AssignmentModal({
                                     Assign volunteers
                                 </h2>
 
-                                <p className="mt-1.5 truncate text-[12px] leading-5 text-[#9BA8B7]">
+                                <p className="mt-1.5 truncate text-[14px] font-bengali! leading-5 text-[#9BA8B7]">
                                     {campaign.title || 'Campaign'}
                                 </p>
                             </div>
@@ -565,7 +565,7 @@ function AssignmentModal({
                                                 Existing assignments
                                             </span>
 
-                                            <span className="text-[12px] text-[#AAB8C8]">
+                                            <span className="text-[12px] text-[#AAB8C8]!">
                                                 {existingAssignments.length}{' '}
                                                 total ·{' '}
                                                 {showHistory ? 'Hide' : 'View'}

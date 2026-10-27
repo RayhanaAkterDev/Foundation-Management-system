@@ -669,6 +669,10 @@ export default function Campaigns() {
         setStatusCampaign(campaign);
     };
 
+    // =========================================================
+    // CAMPAIGN STATUS UPDATE
+    // =========================================================
+
     const handleStatusUpdateConfirm = async ({ status, status_note }) => {
         if (!statusCampaign) return;
 
@@ -721,8 +725,27 @@ export default function Campaigns() {
                 // Preserve the successful local update if refreshing fails.
             }
         } catch (err) {
+            // The API client may store validation errors directly on err.errors.
+            // Axios-style errors may instead store them in response.data.
+            const responseData = err?.response?.data;
+
+            const errors = responseData?.errors ?? err?.errors ?? {};
+
+            const statusError = errors.status;
+
+            const validationError =
+                (Array.isArray(statusError) ? statusError[0] : statusError) ||
+                Object.values(errors)
+                    .flat()
+                    .find((message) => typeof message === 'string' && message);
+
             setStatusUpdateError(
-                err?.message || 'Failed to update campaign status.',
+                validationError ||
+                    responseData?.message ||
+                    (err?.message !== 'Campaign status update failed.'
+                        ? err?.message
+                        : '') ||
+                    'Failed to update campaign status.',
             );
         } finally {
             setStatusUpdateLoading(false);

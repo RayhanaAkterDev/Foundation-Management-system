@@ -1,235 +1,87 @@
+import React from 'react';
 import logo from '@/assets/shared/logo.png';
 
 const Loader = () => {
     return (
-        <div
-            className="
-                fixed inset-0 z-[9999]
-                flex items-center justify-center
-                overflow-hidden
-                bg-background
-                px-6
-            "
+        <main
+            lang="bn"
+            role="status"
+            aria-live="polite"
+            aria-label="পৃষ্ঠা লোড হচ্ছে"
+            className="fixed inset-0 z-[9999] flex min-h-[100dvh] items-center justify-center overflow-hidden bg-background px-5 font-bengali"
         >
-            <div
-                className="
-                    flex w-full max-w-[520px]
-                    flex-col items-center
-                    text-center
-                    animate-[loaderReveal_.45s_ease-out_both]
-                "
-            >
-                {/* =====================================================
-                    LOGO
-                ====================================================== */}
-                <div className="relative flex items-center justify-center">
-                    {/* Subtle ambient background */}
-                    <div
-                        className="
-                            pointer-events-none
-                            absolute
-                            h-[220px]
-                            w-[220px]
-                            rounded-full
-                            bg-primary/[0.035]
-                            blur-[55px]
+            <div className="relative flex w-full max-w-[360px] flex-col items-center text-center">
+                {/* Brand identity and animation */}
+                <div className="relative mb-8 flex h-[176px] w-[176px] items-center justify-center sm:h-[192px] sm:w-[192px]">
+                    {/* Outer stationary ring */}
+                    <div className="absolute inset-0 rounded-full border border-primary/10" />
 
-                            sm:h-[270px]
-                            sm:w-[270px]
-                        "
-                    />
+                    {/* Animated orbit */}
+                    <div className="absolute inset-[8px] animate-[spin_3s_linear_infinite] rounded-full border-[2px] border-transparent border-t-primary/70 border-r-primary/15 motion-reduce:animate-none" />
 
+                    {/* Inner decorative circle */}
+                    <div className="absolute inset-[22px] rounded-full bg-primary/[0.035]" />
+
+                    {/* Logo */}
                     <img
                         src={logo}
                         alt="Stand For People"
-                        className="
-                            relative
-                            w-[150px]
-                            object-contain
-
-                            sm:w-[175px]
-                            md:w-[190px]
-
-                            animate-[logoBreathe_3s_ease-in-out_infinite]
-                        "
+                        className="relative z-10 h-auto w-[112px] object-contain sm:w-[124px]"
                     />
                 </div>
 
-                {/* =====================================================
-                    MESSAGE
-                ====================================================== */}
-                <div className="mt-8 sm:mt-9">
-                    <p
-                        className="
-                            font-bengali
-                            text-[18px]
-                            font-medium!
-                            leading-[1.7]
-                            tracking-[-0.01em]
-                            text-text-primary
+                {/* Text */}
+                <div className="space-y-2">
+                    <h1 className="text-[21px] font-semibold leading-[1.5] text-text-primary sm:text-[23px]">
+                        একটু অপেক্ষা করুন
+                    </h1>
 
-                            sm:text-[20px]
-                            md:text-[21px]
-                        "
-                    >
-                        মানুষের পাশে, মানুষের জন্য
-                    </p>
-
-                    <p
-                        className="
-                            mt-2
-                            font-bengali
-                            text-[13px]
-                            font-normal
-                            leading-7
-                            text-text-secondary
-
-                            sm:text-[14px]
-                        "
-                    >
-                        সহায়তার সাথে মানুষকে যুক্ত করছি
+                    <p className="mx-auto max-w-[290px] text-[12px] leading-[1.8] text-text-secondary sm:text-[13px]">
+                        আপনার জন্য প্রয়োজনীয় তথ্য প্রস্তুত করা হচ্ছে
                     </p>
                 </div>
 
-                {/* =====================================================
-                    LOADING
-                ====================================================== */}
+                {/* Progress indicator */}
                 <div
-                    className="
-                        mt-9
-                        flex
-                        flex-col
-                        items-center
-
-                        sm:mt-10
-                    "
+                    aria-hidden="true"
+                    className="mt-8 flex items-center justify-center gap-2"
                 >
-                    {/* Progress track */}
-                    <div
-                        className="
-                            relative
-                            h-[2px]
-                            w-[155px]
-                            overflow-hidden
-                            rounded-full
-                            bg-primary/10
-
-                            sm:w-[180px]
-                        "
-                    >
+                    {[0, 1, 2, 3].map((item) => (
                         <span
-                            className="
-                                absolute
-                                inset-y-0
-                                left-0
-                                w-[42%]
-                                rounded-full
-                                bg-primary
-
-                                animate-[loaderLine_1.8s_ease-in-out_infinite]
-                            "
+                            key={item}
+                            className="h-[5px] w-[5px] rounded-full bg-primary motion-safe:animate-[spPulse_1.4s_ease-in-out_infinite]"
+                            style={{
+                                animationDelay: `${item * 0.16}s`,
+                            }}
                         />
-                    </div>
+                    ))}
+                </div>
 
-                    {/* Loading text */}
-                    <div
-                        className="
-                            mt-5
-                            flex
-                            items-center
-                            gap-2
-                        "
-                    >
-                        <span
-                            className="
-                                h-1.5
-                                w-1.5
-                                rounded-full
-                                bg-accent
-                                animate-[statusPulse_1.6s_ease-in-out_infinite]
-                            "
-                        />
-
-                        <span
-                            className="
-                                font-bengali
-                                text-[12px]
-                                font-medium!
-                                leading-none
-                                text-text-secondary/75
-
-                                sm:text-[13px]
-                            "
-                        >
-                            একটু অপেক্ষা করুন
-                        </span>
-                    </div>
+                {/* Bottom brand line */}
+                <div className="mt-10 flex items-center gap-3">
+                    <span className="h-px w-7 bg-primary/15" />
+                    <span className="text-[11px] font-medium tracking-[0.01em] text-text-secondary/70">
+                        মানুষের পাশে, প্রতিটি মুহূর্তে
+                    </span>
+                    <span className="h-px w-7 bg-primary/15" />
                 </div>
             </div>
 
             <style>
                 {`
-                    @keyframes loaderReveal {
-                        from {
-                            opacity: 0;
-                            transform: translateY(6px);
-                        }
-
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
-                    }
-
-                    @keyframes logoBreathe {
-                        0%,
-                        100% {
-                            transform: scale(1);
-                            opacity: 0.95;
-                        }
-
-                        50% {
-                            transform: scale(1.025);
-                            opacity: 1;
-                        }
-                    }
-
-                    @keyframes loaderLine {
-                        0% {
-                            transform: translateX(-110%);
-                        }
-
-                        50% {
-                            transform: translateX(120%);
-                        }
-
-                        100% {
-                            transform: translateX(260%);
-                        }
-                    }
-
-                    @keyframes statusPulse {
-                        0%,
-                        100% {
-                            opacity: 0.4;
-                            transform: scale(0.85);
-                        }
-
-                        50% {
-                            opacity: 1;
-                            transform: scale(1);
-                        }
-                    }
-
-                    @media (prefers-reduced-motion: reduce) {
-                        * {
-                            animation-duration: 0.01ms !important;
-                            animation-iteration-count: 1 !important;
-                        }
-                    }
-                `}
+          @keyframes spPulse {
+            0%, 80%, 100% {
+              opacity: 0.25;
+              transform: scale(0.8);
+            }
+            40% {
+              opacity: 1;
+              transform: scale(1.3);
+            }
+          }
+        `}
             </style>
-        </div>
+        </main>
     );
 };
 

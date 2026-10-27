@@ -299,21 +299,21 @@ function Actions({ column, row, onManageClassification, onUpdateStatus }) {
         });
     }
 
-    if (canUpdateStatus) {
-        additionalActions.push({
-            label: 'Update campaign status',
-            onClick: () => onUpdateStatus?.(row),
-            disabled: typeof onUpdateStatus !== 'function',
-            tone: 'text-[#C9B58B]',
-        });
-    }
-
     if (canClassify) {
         additionalActions.push({
             label: 'Manage classification',
             onClick: () => onManageClassification?.(row),
             disabled: typeof onManageClassification !== 'function',
             tone: 'text-[#E4D0A0]',
+        });
+    }
+
+    if (canUpdateStatus) {
+        additionalActions.push({
+            label: 'Update campaign status',
+            onClick: () => onUpdateStatus?.(row),
+            disabled: typeof onUpdateStatus !== 'function',
+            tone: 'text-[#C9B58B]',
         });
     }
 

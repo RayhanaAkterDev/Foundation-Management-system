@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { TbArrowRight } from 'react-icons/tb';
 import {
+    TbArrowUpRight,
+    TbArrowRight,
     TbBook,
     TbFirstAidKit,
     TbHome,
@@ -12,258 +13,302 @@ import {
 } from 'react-icons/tb';
 
 import { fetchCategories } from '@/api/categories';
-import SectionHeading from '@/components/SectionHeading';
 
 const categoryVisuals = {
     Education: {
         icon: TbBook,
-        description: 'শিক্ষা ও শেখার সুযোগ নিশ্চিত করতে সহায়তা করুন।',
+        name: 'শিক্ষা',
+        description:
+            'প্রতিটি শিশুর শেখার সুযোগ তৈরি করতে শিক্ষাসামগ্রী ও প্রয়োজনীয় সহায়তা পৌঁছে দিন।',
     },
     Healthcare: {
         icon: TbFirstAidKit,
+        name: 'স্বাস্থ্যসেবা',
         description:
-            'প্রয়োজনীয় চিকিৎসা ও স্বাস্থ্যসেবা পেতে মানুষকে সহায়তা করুন।',
+            'চিকিৎসা ও জরুরি স্বাস্থ্যসেবার প্রয়োজনে থাকা মানুষের পাশে দাঁড়ান।',
     },
     'Food Assistance': {
         icon: TbToolsKitchen2,
-        description: 'খাদ্যসংকটে থাকা ব্যক্তি ও পরিবারের পাশে দাঁড়ান।',
+        name: 'খাদ্য সহায়তা',
+        description:
+            'খাদ্যসংকটে থাকা পরিবারগুলোর কাছে প্রয়োজনীয় খাবার পৌঁছে দিতে সহায়তা করুন।',
     },
     Shelter: {
         icon: TbHome,
-        description:
-            'অসহায় মানুষের জন্য নিরাপদ ও স্থায়ী আশ্রয় নিশ্চিত করতে সহায়তা করুন।',
+        name: 'আশ্রয়',
+        description: 'নিরাপদ আশ্রয়ের প্রয়োজন এমন মানুষের পাশে দাঁড়ান।',
     },
     Livelihood: {
         icon: TbBuildingCommunity,
-        description: 'মানুষকে টেকসই জীবিকা গড়ে তুলতে সহায়তা করুন।',
+        name: 'জীবিকা',
+        description:
+            'দক্ষতা, কর্মসংস্থান ও স্বনির্ভরতার মাধ্যমে নতুন সম্ভাবনা তৈরি করুন।',
     },
     'Disaster Relief': {
         icon: TbAlertTriangle,
+        name: 'দুর্যোগ সহায়তা',
         description:
-            'দুর্যোগ ও জরুরি পরিস্থিতিতে ক্ষতিগ্রস্ত মানুষের পাশে দাঁড়ান।',
+            'দুর্যোগে ক্ষতিগ্রস্ত মানুষের জরুরি সহায়তা ও পুনর্বাসনে অংশ নিন।',
     },
     Other: {
         icon: TbDots,
+        name: 'অন্যান্য',
         description:
-            'অন্যান্য বিভাগের বাইরে থাকা মানবিক সহায়তার প্রয়োজন পূরণে এগিয়ে আসুন।',
+            'বিভিন্ন মানবিক প্রয়োজন পূরণে চলমান উদ্যোগগুলোর সঙ্গে যুক্ত হোন।',
     },
 };
 
-const categoryNames = {
-    Education: 'শিক্ষা',
-    Healthcare: 'স্বাস্থ্যসেবা',
-    'Food Assistance': 'খাদ্য সহায়তা',
-    Shelter: 'আশ্রয়',
-    Livelihood: 'জীবিকা',
-    'Disaster Relief': 'দুর্যোগ সহায়তা',
-    Other: 'অন্যান্য',
-};
+const toBangla = (value) =>
+    String(value).replace(/\d/g, (digit) => '০১২৩৪৫৬৭৮৯'[digit]);
+
+const getVisual = (name) =>
+    categoryVisuals[name] || {
+        icon: TbDots,
+        name: name || 'অন্যান্য',
+        description: 'এই সহায়তার ক্ষেত্রের উদ্যোগগুলো সম্পর্কে জানুন।',
+    };
 
 const CategoryQuickAccess = () => {
     const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
     useEffect(() => {
+        let active = true;
+
         const loadCategories = async () => {
             try {
                 const data = await fetchCategories();
 
-                const featured = data
-                    .filter((category) => category.featured)
+                const source = Array.isArray(data)
+                    ? data
+                    : Array.isArray(data?.data)
+                      ? data.data
+                      : Array.isArray(data?.categories)
+                        ? data.categories
+                        : Array.isArray(data?.data?.data)
+                          ? data.data.data
+                          : [];
+                const featured = source
+                    .filter(
+                        (category) =>
+                            category.featured === true ||
+                            category.featured === 1 ||
+                            category.featured === '1',
+                    )
                     .slice(0, 4);
 
-                setCategories(featured);
+                if (active) {
+                    setCategories(featured);
+                    setError(false);
+                }
             } catch (error) {
-                console.error('Failed to load categories:', error);
-                setCategories([]);
+                console.error('বিভাগগুলো লোড করা যায়নি:', error);
+
+                if (active) {
+                    setCategories([]);
+                    setError(true);
+                }
+            } finally {
+                if (active) {
+                    setLoading(false);
+                }
             }
         };
 
         loadCategories();
+
+        return () => {
+            active = false;
+        };
     }, []);
 
+    if (loading) {
+        return (
+            <section className="section-gap bg-surface">
+                <div className="container-width animate-pulse">
+                    <div className="h-7 w-64 bg-[#e5ebe8]" />
+                    <div className="mt-4 h-4 w-80 max-w-full bg-[#e5ebe8]" />
+                    <div className="mt-9 grid gap-5 lg:grid-cols-[1.12fr_0.88fr]">
+                        <div className="h-[300px] bg-[#edf2ef]" />
+                        <div className="grid gap-3">
+                            {[1, 2, 3].map((item) => (
+                                <div
+                                    key={item}
+                                    className="h-[92px] bg-[#edf2ef]"
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    if (error) {
+        return (
+            <section className="section-gap bg-surface">
+                <div
+                    className="container-width border-y border-[#e1e9e3] py-12 text-center"
+                    role="alert"
+                >
+                    <p className="font-bengali text-[16px] font-semibold text-text-primary">
+                        সহায়তার বিভাগগুলো লোড করা যায়নি
+                    </p>
+                    <p className="mt-2 font-bengali text-[13px] text-text-secondary">
+                        অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।
+                    </p>
+                </div>
+            </section>
+        );
+    }
     if (!categories.length) return null;
 
     const [main, ...rest] = categories;
-
-    const mainVisual = categoryVisuals[main.name];
-    const MainIcon = mainVisual?.icon || TbDots;
+    const mainVisual = getVisual(main.name);
+    const MainIcon = mainVisual.icon;
 
     return (
-        <section className="section-gap bg-surface relative overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none">
-                <div className="absolute -top-40 right-0 h-125 w-125 rounded-full bg-primary/5 blur-3xl" />
-            </div>
+        <section className="section-gap overflow-hidden bg-surface">
+            <div className="container-width">
+                {/* Heading */}
+                <div className="mb-8 flex flex-col justify-between gap-5 border-b border-[#e1e9e3] pb-6 sm:mb-10 sm:flex-row sm:items-end">
+                    <div className="max-w-[650px]">
+                        <div className="mb-3 flex items-center gap-2">
+                            <span className="h-[6px] w-[6px] bg-[#d99a43]" />
+                            <span className="font-bengali text-[12px] font-semibold text-[#a5793f]">
+                                বিষয়ভিত্তিক উদ্যোগ
+                            </span>
+                        </div>
 
-            <div className="container-width relative z-10">
-                <div className="mb-10">
-                    <SectionHeading
-                        align="left"
-                        title="সহায়তার ক্ষেত্র অনুযায়ী খুঁজুন"
-                        description="বিভাগ অনুযায়ী জরুরি সহায়তার আবেদন ও চলমান ক্যাম্পেইনগুলো দেখুন"
-                        descriptionSize="hero"
-                    />
-                </div>
+                        <h2 className="font-bengali text-[clamp(1.7rem,2.8vw,2.3rem)] font-semibold leading-[1.45] text-text-primary">
+                            সহায়তার ক্ষেত্র বেছে নিন
+                        </h2>
 
-                <Link
-                    to={`/campaigns?category=${main.slug}`}
-                    className="
-                        group
-                        relative
-                        block
-                        overflow-hidden
-                        rounded-3xl
-                        border border-border
-                        bg-background
-                        p-8 md:p-10
-                        transition-all duration-300
-                        hover:-translate-y-1
-                        hover:border-primary/20
-                    "
-                >
-                    <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-                        <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
+                        <p className="mt-3 max-w-[560px] font-bengali text-[13px] leading-[1.9] text-text-secondary sm:text-[14px]">
+                            শিক্ষা, স্বাস্থ্য, খাদ্য কিংবা আশ্রয়—আপনার আগ্রহের
+                            ক্ষেত্র থেকে মানবিক উদ্যোগগুলো খুঁজে নিন।
+                        </p>
                     </div>
 
-                    <div className="relative flex items-start justify-between gap-8">
-                        <div className="max-w-2xl">
-                            <div
-                                className="
-                                    flex h-16 w-16 items-center justify-center
-                                    rounded-2xl
-                                    bg-primary/10
-                                    text-primary
-                                    ring-1 ring-primary/15
-                                "
-                            >
-                                <MainIcon size={30} />
-                            </div>
+                    <Link
+                        to="/categories"
+                        className="group inline-flex w-fit shrink-0 items-center gap-2 border-b border-primary/30 pb-1.5 font-bengali text-[12px] font-semibold text-primary transition-colors hover:border-primary"
+                    >
+                        সকল বিভাগ দেখুন
+                        <TbArrowUpRight
+                            size={17}
+                            className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                        />
+                    </Link>
+                </div>
 
-                            <div className="mt-6">
-                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                                    নির্বাচিত সহায়তার ক্ষেত্র
-                                </p>
-
-                                <h2 className="mt-3 text-3xl font-bold text-text-primary">
-                                    {categoryNames[main.name] || main.name}
-                                </h2>
-
-                                <p className="mt-4 max-w-xl leading-relaxed text-text-secondary">
-                                    {mainVisual?.description}
-                                </p>
-                            </div>
-
-                            <div className="mt-8 flex items-center gap-4">
-                                <span
-                                    className="
-                                        inline-flex items-center
-                                        rounded-full
-                                        bg-primary
-                                        px-5 py-2.5
-                                        text-sm font-medium!
-                                        text-white!
-                                    "
-                                >
-                                    ক্যাম্পেইনগুলো দেখুন
-                                </span>
-
-                                <TbArrowRight
-                                    size={20}
-                                    className="
-                                        text-primary
-                                        transition-transform duration-300
-                                        group-hover:translate-x-1
-                                    "
+                {/* Category directory */}
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] lg:gap-7">
+                    {/* Main category */}
+                    <Link
+                        to={`/campaigns?category=${encodeURIComponent(main.slug)}`}
+                        className="group relative flex min-h-[300px] min-w-0 flex-col justify-between overflow-hidden bg-[#eaf2ed] p-6 transition-colors hover:bg-[#e2eee7] sm:min-h-[330px] sm:p-9 lg:min-h-[355px]"
+                    >
+                        <div className="pointer-events-none absolute -bottom-14 -right-14 flex h-64 w-64 items-center justify-center border border-[#bfd7ca]/50 sm:h-80 sm:w-80">
+                            <div className="flex h-[74%] w-[74%] items-center justify-center border border-[#bfd7ca]/60">
+                                <MainIcon
+                                    size={115}
+                                    stroke={0.7}
+                                    className="text-[#9ec5b2]/45"
                                 />
                             </div>
                         </div>
 
-                        <div className="hidden md:flex flex-col items-end">
-                            <span className="text-xs uppercase tracking-wider text-text-secondary">
-                                সর্বাধিক সক্রিয় সহায়তার ক্ষেত্র
+                        <div className="relative z-10 flex items-start justify-between gap-4">
+                            <span className="inline-flex items-center gap-2 font-bengali text-[11px] font-semibold text-[#4c8068]">
+                                <span className="h-1.5 w-1.5 bg-primary" />
+                                নির্বাচিত সহায়তার ক্ষেত্র
                             </span>
 
-                            <span className="mt-2 text-sm font-medium! text-text-primary">
-                                সংশ্লিষ্ট ক্যাম্পেইনগুলো দেখুন
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#bcd4c5] bg-white/70 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                                <TbArrowUpRight size={19} />
                             </span>
                         </div>
-                    </div>
-                </Link>
 
-                <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                    {rest.map((cat) => {
-                        const visual = categoryVisuals[cat.name];
-                        const Icon = visual?.icon || TbDots;
+                        <div className="relative z-10 max-w-[410px]">
+                            <div className="mb-5 flex h-12 w-12 items-center justify-center border border-[#c6ded0] bg-white/70 text-primary">
+                                <MainIcon size={25} stroke={1.5} />
+                            </div>
 
-                        return (
-                            <Link
-                                key={cat.id}
-                                to={`/campaigns?category=${cat.slug}`}
-                                className="
-                                    group
-                                    flex items-center gap-4
-                                    rounded-2xl
-                                    border border-border
-                                    bg-background
-                                    p-5
-                                    transition-all duration-300
-                                    hover:border-primary/20
-                                    hover:-translate-y-1
-                                "
-                            >
-                                <div
-                                    className="
-                                        flex h-11 w-11 shrink-0
-                                        items-center justify-center
-                                        rounded-xl
-                                        bg-primary/10
-                                        text-primary
-                                    "
+                            <h3 className="font-bengali text-[clamp(1.8rem,3vw,2.7rem)] font-semibold leading-[1.4] text-[#163f32]">
+                                {mainVisual.name}
+                            </h3>
+
+                            <p className="mt-3 max-w-[340px] font-bengali text-[13px] leading-[1.85] text-[#607b6c]">
+                                {mainVisual.description}
+                            </p>
+
+                            <span className="mt-6 inline-flex items-center gap-2 border-b border-primary/40 pb-1.5 font-bengali text-[12px] font-semibold text-primary">
+                                সংশ্লিষ্ট উদ্যোগ দেখুন
+                                <TbArrowRight
+                                    size={17}
+                                    className="transition-transform group-hover:translate-x-1"
+                                />
+                            </span>
+                        </div>
+                    </Link>
+
+                    {/* Supporting category rows */}
+                    <div className="flex min-w-0 flex-col border-t border-[#e2eae4] lg:border-t-0">
+                        {rest.map((category, index) => {
+                            const visual = getVisual(category.name);
+                            const Icon = visual.icon;
+
+                            return (
+                                <Link
+                                    key={category.id}
+                                    to={`/campaigns?category=${encodeURIComponent(category.slug)}`}
+                                    className="group flex min-w-0 flex-1 items-center gap-4 border-b border-[#e2eae4] py-5 transition-colors hover:bg-[#f7faf7] sm:gap-5 sm:px-3 lg:px-4"
                                 >
-                                    <Icon size={20} />
-                                </div>
+                                    <span className="hidden shrink-0 self-start pt-1 text-[11px] font-medium text-[#a4b5a9] sm:block">
+                                        {toBangla(
+                                            String(index + 2).padStart(2, '0'),
+                                        )}
+                                    </span>
 
-                                <div className="min-w-0 flex-1">
-                                    <h4 className="font-semibold text-text-primary">
-                                        {categoryNames[cat.name] || cat.name}
-                                    </h4>
+                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-[#edf3ee] text-primary transition-colors group-hover:bg-[#dcece2] sm:h-14 sm:w-14">
+                                        <Icon size={25} stroke={1.4} />
+                                    </div>
 
-                                    <p className="mt-1 line-clamp-1 text-xs text-text-secondary">
-                                        {visual?.description}
-                                    </p>
-                                </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="font-bengali text-[16px] font-semibold text-text-primary transition-colors group-hover:text-primary sm:text-[18px]">
+                                            {visual.name}
+                                        </h3>
 
-                                <div
-                                    className="
-                                        opacity-0
-                                        -translate-x-1
-                                        transition-all duration-300
-                                        group-hover:translate-x-0
-                                        group-hover:opacity-100
-                                    "
-                                >
-                                    <TbArrowRight
-                                        size={18}
-                                        className="text-primary"
+                                        <p className="mt-1 line-clamp-2 font-bengali text-[12px] leading-[1.75] text-text-secondary sm:text-[13px]">
+                                            {visual.description}
+                                        </p>
+                                    </div>
+
+                                    <TbArrowUpRight
+                                        size={19}
+                                        className="shrink-0 text-[#87a799] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
                                     />
-                                </div>
-                            </Link>
-                        );
-                    })}
+                                </Link>
+                            );
+                        })}
+                    </div>
                 </div>
 
-                <div className="mt-12 flex justify-center">
+                {/* Bottom editorial note */}
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-[#e2eae4] pt-5">
+                    <p className="font-bengali text-[12px] leading-6 text-text-secondary">
+                        প্রতিটি সহায়তার ক্ষেত্রেই রয়েছে মানুষের পাশে দাঁড়ানোর
+                        সুযোগ।
+                    </p>
+
                     <Link
                         to="/categories"
-                        className="
-                            inline-flex items-center gap-2
-                            text-primary
-                            font-medium!
-                            transition-all duration-300
-                            hover:gap-3
-                        "
+                        className="inline-flex items-center gap-2 font-bengali text-[12px] font-semibold text-primary"
                     >
-                        সকল বিভাগ দেখুন
-                        <TbArrowRight size={18} />
+                        আরও সহায়তার ক্ষেত্র
+                        <TbArrowRight size={17} />
                     </Link>
                 </div>
             </div>

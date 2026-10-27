@@ -1,469 +1,196 @@
 import React from 'react';
-
-import { Link } from 'react-router-dom';
-
+import { Link, useNavigate } from 'react-router-dom';
 import {
     TbArrowLeft,
     TbArrowRight,
-    TbHeartHandshake,
+    TbArrowUpRight,
     TbHome,
-    TbLifebuoy,
+    TbSearch,
+    TbHeartHandshake,
+    TbCategory,
 } from 'react-icons/tb';
 
 import logo from '@/assets/shared/logo.png';
 
+const quickLinks = [
+    {
+        to: '/campaigns',
+        title: 'চলমান উদ্যোগ',
+        description: 'মানুষের পাশে দাঁড়ানোর সুযোগ',
+        icon: TbHeartHandshake,
+    },
+    {
+        to: '/categories',
+        title: 'সহায়তার বিভাগ',
+        description: 'প্রয়োজন অনুযায়ী উদ্যোগ খুঁজুন',
+        icon: TbCategory,
+    },
+    {
+        to: '/about',
+        title: 'আমাদের সম্পর্কে',
+        description: 'আমাদের লক্ষ্য ও কার্যক্রম জানুন',
+        icon: TbHome,
+    },
+];
+
 const NotFound = () => {
+    const navigate = useNavigate();
+
     return (
         <main
             lang="bn"
-            className="min-h-screen bg-background font-bengali text-text-primary"
+            className="flex min-h-[100dvh] flex-col bg-background font-bengali text-text-primary"
         >
-            <section className="relative flex min-h-screen overflow-hidden">
-                {/* =====================================================
-                    LEFT BRAND RAIL
-                ====================================================== */}
-                <div className="hidden w-[88px] shrink-0 border-r border-white/10 bg-primary-deep lg:flex lg:flex-col lg:items-center lg:justify-between lg:py-8">
+            {/* Header */}
+            <header className="border-b border-border/70">
+                <div className="container-width flex min-h-[76px] items-center justify-between gap-4 py-3">
                     <Link
                         to="/"
-                        aria-label="Stand For People হোম"
-                        className="
-                            flex h-12 w-12 items-center justify-center
-                            rounded-full border border-white/15
-                            text-text-on-dark
-                            transition-colors duration-200
-                            hover:bg-white/10
-                        "
+                        aria-label="Stand For People — হোমপেজ"
+                        className="inline-flex items-center"
                     >
-                        <img src={logo} alt="SP" />
+                        <img
+                            src={logo}
+                            alt="Stand For People"
+                            className="h-11 w-auto max-w-[125px] object-contain sm:h-12"
+                        />
                     </Link>
 
-                    <span
-                        className="
-                            [writing-mode:vertical-rl]
-                            rotate-180
-                            font-sans
-                            text-[11px]
-                            font-medium!
-                            tracking-[0.18em]
-                            text-text-on-dark-muted
-                        "
-                    >
-                        STAND FOR PEOPLE
+                    <span className="flex items-center gap-2.5 text-[11px] font-medium text-text-secondary sm:text-[12px]">
+                        <span className="h-1.5 w-1.5 bg-[#d49b48]" />
+                        পৃষ্ঠা খুঁজে পাওয়া যায়নি
                     </span>
-
-                    <span className="h-2 w-2 rounded-full bg-accent" />
                 </div>
+            </header>
 
-                {/* =====================================================
-                    MAIN CONTENT
-                ====================================================== */}
-                <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-                    {/* Top */}
-                    <header className="border-b border-border/80">
-                        <div className="container-width flex h-[72px] items-center justify-between sm:h-20">
-                            {/* Mobile brand */}
-                            <Link
-                                to="/"
-                                aria-label="Stand For People হোম"
-                                className="flex items-center gap-3 lg:hidden"
-                            >
-                                <span
-                                    className="
-                                        flex h-9 w-9 items-center justify-center
-                                        rounded-full bg-primary
-                                        text-white!
-                                        sm:h-10 sm:w-10
-                                    "
-                                >
-                                    <TbHeartHandshake size={19} />
-                                </span>
-
-                                <span className="font-sans text-sm font-semibold text-primary-deep sm:text-[15px]">
-                                    Stand For People
-                                </span>
-                            </Link>
-
-                            {/* Desktop page indicator */}
-                            <div className="hidden items-center gap-3 lg:flex">
-                                <span className="h-px w-8 bg-primary" />
-
-                                <span className="font-sans text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                                    Page not found
-                                </span>
-                            </div>
-
-                            <span
-                                className="
-                                    rounded-full
-                                    bg-primary-soft
-                                    px-3.5 py-1.5
-                                    font-sans
-                                    text-xs
-                                    font-semibold
-                                    text-primary-deep
-                                "
-                            >
-                                404
+            {/* Main content */}
+            <section className="container-width flex w-full flex-1 items-center py-12 sm:py-16 lg:py-20">
+                <div className="grid w-full items-center gap-12 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:gap-16 xl:gap-24">
+                    {/* Left content */}
+                    <div className="min-w-0">
+                        <div className="mb-7 flex items-center gap-2.5">
+                            <span className="h-px w-6 bg-[#d49b48]" />
+                            <span className="text-[12px] font-semibold text-primary">
+                                অনুরোধ করা পৃষ্ঠাটি পাওয়া যায়নি
                             </span>
                         </div>
-                    </header>
 
-                    {/* Main */}
-                    <div className="container-width flex flex-1 items-center">
+                        {/* Error number */}
                         <div
-                            className="
-                                grid
-                                w-full
-                                py-12
-                                sm:py-14
-                                md:py-16
-                                lg:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.62fr)]
-                                lg:items-center
-                                lg:gap-16
-                                lg:py-16
-                                xl:gap-24
-                                xl:py-20
-                            "
+                            className="mb-5 select-none font-sans text-[clamp(5.5rem,11vw,8rem)] font-bold leading-[0.95] tracking-[-0.075em] text-primary/20"
+                            aria-label="ত্রুটি ৪০৪"
                         >
-                            {/* =================================================
-                                MESSAGE
-                            ================================================== */}
-                            <div className="max-w-3xl">
-                                <div className="mb-6 flex items-center gap-3 sm:mb-7">
-                                    <span
-                                        className="
-                                            flex h-9 w-9 shrink-0
-                                            items-center justify-center
-                                            rounded-full
-                                            bg-accent-soft
-                                            text-accent-hover
-                                        "
-                                    >
-                                        <TbLifebuoy size={18} />
-                                    </span>
+                            ৪০৪
+                        </div>
 
-                                    <p className="text-sm font-medium! text-primary">
-                                        সঠিক পথটি খুঁজে নিতে আমরা সাহায্য করছি
-                                    </p>
-                                </div>
+                        <div className="mb-7 h-[2px] w-16 bg-[#d49b48]" />
 
-                                <h1
-                                    className="
-                                        max-w-[760px]
-                                        text-[2.35rem]
-                                        font-medium!
-                                        leading-[1.28]
-                                        tracking-normal
-                                        text-text-primary
-                                        sm:text-[3rem]
-                                        sm:leading-[1.25]
-                                        lg:text-[3.35rem]
-                                        xl:text-[4rem]
-                                    "
-                                >
-                                    এই ঠিকানায় কোনো{' '}
-                                    <span className="text-primary">
-                                        পৃষ্ঠা পাওয়া যায়নি।
-                                    </span>
-                                </h1>
+                        <h1 className="max-w-[630px] text-[clamp(1.85rem,3.2vw,2.75rem)] font-semibold leading-[1.5] tracking-tight text-text-primary">
+                            মনে হচ্ছে, আপনি
+                            <span className="block">
+                                ভুল ঠিকানায় পৌঁছেছেন।
+                            </span>
+                        </h1>
 
-                                <p
-                                    className="
-                                        mt-5
-                                        max-w-[650px]
-                                        text-[15px]
-                                        leading-[1.9]
-                                        text-text-secondary
-                                        sm:mt-6
-                                        sm:text-base
-                                        lg:mt-7
-                                        lg:text-[17px]
-                                    "
-                                >
-                                    আপনি যে পৃষ্ঠাটি খুঁজছেন সেটি হয়তো
-                                    স্থানান্তরিত হয়েছে, মুছে ফেলা হয়েছে অথবা
-                                    লিংকটির ঠিকানা পরিবর্তন হয়েছে। নিচের পথগুলো
-                                    থেকে আপনি আবার Stand For People-এর মূল
-                                    কার্যক্রমে ফিরে যেতে পারেন।
-                                </p>
+                        <p className="mt-4 max-w-[510px] text-[13px] leading-[1.95] text-text-secondary sm:text-[14px]">
+                            আপনি যে পৃষ্ঠাটি খুঁজছেন, সেটি সরিয়ে ফেলা হয়ে
+                            থাকতে পারে অথবা ঠিকানায় কোনো ভুল রয়েছে। নিচের
+                            বিকল্পগুলো থেকে আপনার প্রয়োজনীয় তথ্য খুঁজে নিতে
+                            পারেন।
+                        </p>
 
-                                {/* Actions */}
-                                <div
-                                    className="
-                                        mt-7
-                                        flex flex-col gap-2.5
-                                        sm:mt-9
-                                        sm:flex-row
-                                        sm:items-center
-                                    "
-                                >
-                                    <Link
-                                        to="/"
-                                        className="
-                                            group
-                                            inline-flex
-                                            min-h-12
-                                            items-center
-                                            justify-center
-                                            gap-2.5
-                                            rounded-lg
-                                            bg-primary
-                                            px-5.5
-                                            text-[15px]
-                                            font-medium!
-                                            text-white!
-                                            transition-colors
-                                            duration-200
-                                            hover:bg-primary-hover
-                                            sm:min-h-13
-                                            sm:px-6
-                                        "
-                                    >
-                                        <TbHome size={19} />
-                                        হোমপেজে ফিরে যান
-                                        <TbArrowRight
-                                            size={18}
-                                            className="
-                                                transition-transform
-                                                duration-200
-                                                group-hover:translate-x-1
-                                            "
-                                        />
-                                    </Link>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => window.history.back()}
-                                        className="
-                                            group
-                                            inline-flex
-                                            min-h-12
-                                            items-center
-                                            justify-center
-                                            gap-2.5
-                                            px-4
-                                            text-[15px]
-                                            font-medium!
-                                            text-text-body
-                                            transition-colors
-                                            duration-200
-                                            hover:text-primary
-                                            sm:min-h-13
-                                            sm:px-5
-                                        "
-                                    >
-                                        <TbArrowLeft
-                                            size={19}
-                                            className="
-                                                transition-transform
-                                                duration-200
-                                                group-hover:-translate-x-1
-                                            "
-                                        />
-                                        আগের পৃষ্ঠায় যান
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* =================================================
-                                HUMANITARIAN WAYFINDING
-                            ================================================== */}
-                            <aside
-                                className="
-                                    relative
-                                    mt-12
-                                    border-l-2
-                                    border-primary-muted
-                                    pl-6
-                                    sm:mt-14
-                                    sm:pl-8
-                                    lg:mt-0
-                                    lg:pl-8
-                                    xl:pl-9
-                                "
+                        {/* Main actions */}
+                        <div className="mt-7 flex flex-wrap items-center gap-3">
+                            <Link
+                                to="/"
+                                className="group inline-flex min-h-[46px] items-center justify-center gap-2.5 bg-primary px-5 py-3 text-[12px] font-semibold !text-white transition-colors hover:bg-primary-hover sm:text-[13px]"
                             >
-                                {/* Accent marker */}
-                                <span
-                                    className="
-                                        absolute
-                                        -left-[5px]
-                                        top-0
-                                        h-2 w-2
-                                        rounded-full
-                                        bg-accent
-                                    "
+                                <TbHome size={18} strokeWidth={1.7} />
+                                হোমপেজে ফিরে যান
+                                <TbArrowRight
+                                    size={17}
+                                    className="transition-transform group-hover:translate-x-1"
                                 />
+                            </Link>
 
-                                <p className="text-sm font-medium! text-primary">
-                                    কোথায় যেতে চান?
-                                </p>
-
-                                <h2
-                                    className="
-                                        mt-2
-                                        text-2xl
-                                        font-medium!
-                                        leading-[1.45]
-                                        tracking-normal
-                                        text-text-primary
-                                        sm:text-[1.65rem]
-                                    "
-                                >
-                                    সহায়তার পথগুলো
-                                </h2>
-
-                                <nav
-                                    aria-label="সহায়তার গুরুত্বপূর্ণ পৃষ্ঠা"
-                                    className="mt-5 sm:mt-6"
-                                >
-                                    <Link
-                                        to="/campaigns"
-                                        className="
-                                            group
-                                            flex items-center justify-between
-                                            border-b border-border
-                                            py-3.5
-                                            text-[15px]
-                                            font-medium!
-                                            text-text-body
-                                            transition-colors
-                                            duration-200
-                                            hover:text-primary
-                                            sm:py-4
-                                            sm:text-base
-                                        "
-                                    >
-                                        চলমান উদ্যোগ দেখুন
-                                        <TbArrowRight
-                                            size={19}
-                                            className="
-                                                transition-transform
-                                                duration-200
-                                                group-hover:translate-x-1
-                                            "
-                                        />
-                                    </Link>
-
-                                    <Link
-                                        to="/categories"
-                                        className="
-                                            group
-                                            flex items-center justify-between
-                                            border-b border-border
-                                            py-3.5
-                                            text-[15px]
-                                            font-medium!
-                                            text-text-body
-                                            transition-colors
-                                            duration-200
-                                            hover:text-primary
-                                            sm:py-4
-                                            sm:text-base
-                                        "
-                                    >
-                                        সহায়তার ক্ষেত্র খুঁজুন
-                                        <TbArrowRight
-                                            size={19}
-                                            className="
-                                                transition-transform
-                                                duration-200
-                                                group-hover:translate-x-1
-                                            "
-                                        />
-                                    </Link>
-
-                                    <Link
-                                        to="/about"
-                                        className="
-                                            group
-                                            flex items-center justify-between
-                                            border-b border-border
-                                            py-3.5
-                                            text-[15px]
-                                            font-medium!
-                                            text-text-body
-                                            transition-colors
-                                            duration-200
-                                            hover:text-primary
-                                            sm:py-4
-                                            sm:text-base
-                                        "
-                                    >
-                                        আমাদের সম্পর্কে জানুন
-                                        <TbArrowRight
-                                            size={19}
-                                            className="
-                                                transition-transform
-                                                duration-200
-                                                group-hover:translate-x-1
-                                            "
-                                        />
-                                    </Link>
-                                </nav>
-
-                                <div className="mt-7 bg-background-warm px-5 py-4.5 sm:mt-8 sm:px-6 sm:py-5">
-                                    <p className="text-sm leading-7 text-text-secondary">
-                                        জরুরি সহায়তা বা কোনো উদ্যোগ খুঁজছেন?
-                                        চলমান উদ্যোগগুলো থেকে প্রয়োজনীয়
-                                        সহায়তার ক্ষেত্র বেছে নিতে পারেন।
-                                    </p>
-
-                                    <Link
-                                        to="/campaigns"
-                                        className="
-                                            group
-                                            mt-2.5
-                                            inline-flex
-                                            items-center
-                                            gap-1.5
-                                            text-sm
-                                            font-medium!
-                                            text-primary
-                                            transition-colors
-                                            hover:text-primary-hover
-                                        "
-                                    >
-                                        উদ্যোগগুলো দেখুন
-                                        <TbArrowRight
-                                            size={17}
-                                            className="
-                                                transition-transform
-                                                duration-200
-                                                group-hover:translate-x-1
-                                            "
-                                        />
-                                    </Link>
-                                </div>
-                            </aside>
+                            <button
+                                type="button"
+                                onClick={() => navigate(-1)}
+                                className="inline-flex min-h-[46px] items-center justify-center gap-2 border border-border px-5 py-3 text-[12px] font-semibold text-text-primary transition-colors hover:border-primary hover:text-primary sm:text-[13px]"
+                            >
+                                <TbArrowLeft size={18} />
+                                আগের পৃষ্ঠায় যান
+                            </button>
                         </div>
                     </div>
 
-                    {/* Bottom */}
-                    <footer className="border-t border-border/80">
-                        <div
-                            className="
-                                container-width
-                                flex flex-col
-                                gap-1.5
-                                py-4
-                                text-sm
-                                text-text-secondary
-                                sm:flex-row
-                                sm:items-center
-                                sm:justify-between
-                                sm:gap-2
-                                sm:py-5
-                            "
-                        >
-                            <p>মানুষের প্রয়োজনে, মানুষের পাশে।</p>
+                    {/* Right navigation */}
+                    <aside
+                        aria-label="বিকল্প পৃষ্ঠা"
+                        className="min-w-0 border-t border-border pt-8 lg:border-l lg:border-t-0 lg:py-4 lg:pl-10 xl:pl-12"
+                    >
+                        <div className="mb-6">
+                            <div className="mb-3 flex items-center gap-2 text-primary">
+                                <TbSearch size={18} strokeWidth={1.7} />
+                                <span className="text-[11px] font-semibold">
+                                    আপনার পরবর্তী গন্তব্য
+                                </span>
+                            </div>
 
-                            <p className="font-sans text-xs text-text-muted">
-                                Stand For People
+                            <h2 className="text-[clamp(1.35rem,2vw,1.75rem)] font-semibold leading-[1.5] text-text-primary">
+                                এখান থেকে শুরু করুন
+                            </h2>
+
+                            <p className="mt-2 text-[12px] leading-6 text-text-secondary">
+                                প্রয়োজনীয় তথ্য ও উদ্যোগগুলো সহজেই খুঁজে নিন।
                             </p>
                         </div>
-                    </footer>
+
+                        <nav className="border-t border-border">
+                            {quickLinks.map(
+                                ({ to, title, description, icon: Icon }) => (
+                                    <Link
+                                        key={to}
+                                        to={to}
+                                        className="group flex min-w-0 items-center gap-4 border-b border-border py-5 transition-colors hover:text-primary"
+                                    >
+                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary/5 text-primary transition-colors group-hover:bg-primary/10">
+                                            <Icon size={21} strokeWidth={1.5} />
+                                        </span>
+
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block text-[14px] font-semibold text-text-primary transition-colors group-hover:text-primary">
+                                                {title}
+                                            </span>
+
+                                            <span className="mt-1 block text-[12px] leading-5 text-text-secondary">
+                                                {description}
+                                            </span>
+                                        </span>
+
+                                        <TbArrowUpRight
+                                            size={19}
+                                            className="shrink-0 text-primary transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                                        />
+                                    </Link>
+                                ),
+                            )}
+                        </nav>
+
+                        <p className="mt-6 border-l-2 border-[#d49b48] pl-4 text-[12px] leading-6 text-text-secondary">
+                            সঠিক উদ্যোগ খুঁজে পেতে আমরা আপনার পাশে আছি।
+                        </p>
+                    </aside>
                 </div>
             </section>
+
+            {/* Footer */}
+            <footer className="border-t border-border/70">
+                <div className="container-width flex flex-col gap-2 py-5 text-[11px] text-text-secondary sm:flex-row sm:items-center sm:justify-between">
+                    <span>মানুষের প্রয়োজনে, মানুষের পাশে।</span>
+                    <span className="font-sans">Stand For People</span>
+                </div>
+            </footer>
         </main>
     );
 };

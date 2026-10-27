@@ -3,13 +3,12 @@ import { ArrowUpRight, HeartHandshake, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import defaultCampaignImage from '@/assets/campaigns/campaignsHeroImage.png';
 
-const banglaDigits = (value) =>
-    String(value).replace(/\d/g, (digit) => '০১২৩৪৫৬৭৮৯'[Number(digit)]);
+const bn = (value) =>
+    String(value).replace(/\d/g, (d) => '০১২৩৪৫৬৭৮৯'[Number(d)]);
 
-const currency = (value) =>
-    `৳${banglaDigits(Number(value || 0).toLocaleString('en-BD'))}`;
+const money = (value) => `৳${bn(Number(value || 0).toLocaleString('en-BD'))}`;
 
-const imageOf = (campaign) =>
+const getImage = (campaign) =>
     campaign?.cover_image_url ||
     campaign?.cover_image ||
     campaign?.banner_url ||
@@ -18,13 +17,27 @@ const imageOf = (campaign) =>
     campaign?.image ||
     defaultCampaignImage;
 
-const FeaturedCampaignCard = ({ campaign, index = 0 }) => {
+const categoryNames = {
+    Education: 'শিক্ষা',
+    Food: 'খাদ্য সহায়তা',
+    Health: 'স্বাস্থ্যসেবা',
+    Healthcare: 'স্বাস্থ্যসেবা',
+    Nutrition: 'পুষ্টি সহায়তা',
+    Water: 'বিশুদ্ধ পানি',
+    'Clean Water': 'বিশুদ্ধ পানি',
+    'Emergency Relief': 'জরুরি সহায়তা',
+    'Child Support': 'শিশু সহায়তা',
+    'Women Empowerment': 'নারীর ক্ষমতায়ন',
+};
+
+const FeaturedCampaignCard = ({ campaign }) => {
     if (!campaign) return null;
 
     const raised = Math.max(
         0,
         Number(campaign.raised ?? campaign.collected_amount ?? 0) || 0,
     );
+
     const goal = Math.max(
         0,
         Number(
@@ -35,104 +48,106 @@ const FeaturedCampaignCard = ({ campaign, index = 0 }) => {
                 0,
         ) || 0,
     );
+
     const progress =
-        goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : null;
+        goal > 0 ? Math.min(100, Math.round((raised / goal) * 100)) : 0;
+
+    const title = campaign.title || 'মানবিক সহায়তার উদ্যোগ';
     const location = campaign.location || campaign.district;
+    const category =
+        categoryNames[campaign.category] ||
+        campaign.category ||
+        'মানবিক উদ্যোগ';
 
     return (
         <Link
             to={`/campaign/${campaign.id}`}
-            aria-label={`${campaign.title || 'নির্বাচিত ক্যাম্পেইন'} — বিস্তারিত দেখুন`}
-            className="group block min-w-0 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
+            aria-label={`${title} — বিস্তারিত দেখুন`}
+            className="group block h-full min-w-0 rounded-[18px] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0f766e]"
         >
-            <article className="relative isolate aspect-[4/5] min-h-[350px] overflow-hidden rounded-xl bg-[#173e3b] sm:aspect-[5/6] sm:min-h-[390px] xl:aspect-[4/5]">
+            <article className="relative isolate h-[425px] overflow-hidden rounded-[18px] bg-[#163b36] transition-transform duration-300 group-hover:-translate-y-1 sm:h-[450px] lg:h-[465px]">
+                {/* Full photographic background */}
                 <img
-                    src={imageOf(campaign)}
-                    alt={campaign.title || 'নির্বাচিত ক্যাম্পেইন'}
+                    src={getImage(campaign)}
+                    alt={title}
                     loading="lazy"
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.045]"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.055]"
                     onError={(event) => {
                         event.currentTarget.onerror = null;
                         event.currentTarget.src = defaultCampaignImage;
                     }}
                 />
-                {/* Preserve the photograph at the top; reserve dark contrast for the text. */}
-                <div className="absolute inset-0 bg-linear-to-b from-black/25 via-transparent via-30% to-[#071c1a]/95" />
-                <div className="absolute inset-0 bg-linear-to-t from-[#071c1a]/45 via-transparent to-transparent" />
 
-                <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4 sm:p-5">
-                    <span className="inline-flex max-w-[75%] items-center gap-1.5 rounded-full border border-white/20 bg-white/95 px-3 py-1.5 font-bengali text-xs font-semibold text-[#115e59] shadow-sm">
+                {/* Gentle contrast only */}
+                <div
+                    className="pointer-events-none absolute inset-0"
+                    style={{
+                        background:
+                            'linear-gradient(180deg,rgba(5,25,22,.24) 0%,transparent 38%,rgba(5,25,22,.12) 60%,rgba(5,25,22,.55) 100%)',
+                    }}
+                />
+
+                {/* Top category */}
+                <div className="absolute left-4 top-4 right-4">
+                    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 font-bengali text-[11px] font-semibold text-[#115e59] shadow-sm">
                         <HeartHandshake size={13} className="shrink-0" />
-                        <span className="truncate">
-                            {campaign.category || 'নির্বাচিত উদ্যোগ'}
-                        </span>
-                    </span>
-                    <span className="text-xs font-medium tracking-widest text-white/90">
-                        {banglaDigits(String(index + 1).padStart(2, '0'))}
+                        <span className="truncate">{category}</span>
                     </span>
                 </div>
 
-                <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-                    {location && (
-                        <p className="mb-2 flex items-center gap-1.5 truncate font-bengali text-xs text-white/75">
-                            <MapPin size={13} className="shrink-0" />
-                            <span className="truncate">{location}</span>
-                        </p>
-                    )}
-
-                    <h3 className="line-clamp-3 font-bengali text-[20px] font-semibold leading-[1.45] text-white sm:text-[22px]">
-                        {campaign.title || 'মানবিক সহায়তার উদ্যোগ'}
-                    </h3>
-
-                    <div className="mt-5 flex items-end justify-between gap-3">
-                        <div className="min-w-0">
-                            <p className="font-bengali text-[11px] text-white/70">
-                                সংগৃহীত অনুদান
+                {/* Floating information panel */}
+                <div className="absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4">
+                    <div className="rounded-[14px] bg-[#f9faf6] px-4 pb-4 pt-4 shadow-[0_12px_32px_rgba(0,0,0,.12)] sm:px-5 sm:pb-5 sm:pt-5">
+                        {location && (
+                            <p className="mb-2 flex items-center gap-1.5 font-bengali text-[11px] text-[#72827d]">
+                                <MapPin size={12} className="shrink-0" />
+                                <span className="truncate">{location}</span>
                             </p>
-                            <p className="mt-0.5 text-lg font-semibold text-white sm:text-xl">
-                                {currency(raised)}
-                            </p>
-                        </div>
-                        {goal > 0 && (
-                            <div className="min-w-0 text-right">
-                                <p className="font-bengali text-[11px] text-white/70">
-                                    লক্ষ্যমাত্রা
-                                </p>
-                                <p className="mt-0.5 text-sm font-medium text-white/90">
-                                    {currency(goal)}
-                                </p>
-                            </div>
                         )}
-                    </div>
 
-                    {progress !== null && (
-                        <div className="mt-3 flex items-center gap-3">
-                            <div
-                                className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/30"
-                                role="progressbar"
-                                aria-label="অনুদান সংগ্রহের অগ্রগতি"
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                                aria-valuenow={progress}
-                            >
-                                <div
-                                    className="h-full rounded-full bg-[#79dfc6]"
-                                    style={{ width: `${progress}%` }}
-                                />
+                        <h3 className="line-clamp-2 min-h-[3.15em] font-bengali text-[18px] font-semibold leading-[1.55] text-[#142c29] transition-colors group-hover:text-[#0f766e] sm:text-[19px]">
+                            {title}
+                        </h3>
+
+                        <div className="mt-4 flex items-end justify-between gap-3">
+                            <div className="min-w-0">
+                                <p className="font-bengali text-[11px] text-[#81908b]">
+                                    সংগৃহীত অনুদান
+                                </p>
+                                <p className="mt-0.5 text-[20px] font-semibold text-[#0f766e]">
+                                    {money(raised)}
+                                </p>
                             </div>
-                            <span className="shrink-0 text-xs font-semibold text-white">
-                                {banglaDigits(progress)}%
+
+                            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#0f766e] text-white transition-all duration-300 group-hover:bg-[#134e4a]">
+                                <ArrowUpRight size={19} />
                             </span>
                         </div>
-                    )}
 
-                    <div className="mt-5 flex items-center justify-between border-t border-white/20 pt-4">
-                        <span className="font-bengali text-sm font-semibold text-white">
-                            উদ্যোগটি দেখুন
-                        </span>
-                        <span className="flex size-9 items-center justify-center rounded-full border border-white/55 text-white transition-colors group-hover:border-[#79dfc6] group-hover:bg-[#79dfc6] group-hover:text-[#073d34]">
-                            <ArrowUpRight size={18} />
-                        </span>
+                        {goal > 0 && (
+                            <div className="mt-4">
+                                <div
+                                    className="h-[5px] overflow-hidden rounded-full bg-[#e0e9e4]"
+                                    role="progressbar"
+                                    aria-label="অনুদান সংগ্রহের অগ্রগতি"
+                                    aria-valuemin={0}
+                                    aria-valuemax={100}
+                                    aria-valuenow={progress}
+                                >
+                                    <div
+                                        className="h-full rounded-full bg-[#0f766e]"
+                                        style={{ width: `${progress}%` }}
+                                    />
+                                </div>
+
+                                <div className="mt-2 flex items-center justify-between gap-2 font-bengali text-[11px] text-[#71827d]">
+                                    <span>লক্ষ্য {money(goal)}</span>
+                                    <span className="font-semibold text-[#0f766e]">
+                                        {bn(progress)}% সম্পন্ন
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </article>

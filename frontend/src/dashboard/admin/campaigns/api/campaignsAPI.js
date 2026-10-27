@@ -329,20 +329,14 @@ export const verifyCampaign = async (
 |
 */
 
-export const updateCampaignStatus = async (
-    campaignId,
-    payload,
-) => {
+export const updateCampaignStatus = async (campaignId, payload) => {
     if (!campaignId) {
         throw new Error('Campaign ID is required.');
     }
 
     const status = payload?.status;
 
-    if (
-        status !== 'completed' &&
-        status !== 'cancelled'
-    ) {
+    if (!['completed', 'cancelled'].includes(status)) {
         throw new Error(
             'Invalid campaign status. Use "completed" or "cancelled".',
         );
@@ -352,11 +346,10 @@ export const updateCampaignStatus = async (
         `${API_BASE_URL}/admin/campaigns/${campaignId}/status`,
         {
             method: 'PATCH',
-            headers: getHeaders({
-                json: true,
-            }),
+            headers: getHeaders({ json: true }),
             body: JSON.stringify({
                 status,
+                status_note: payload?.status_note ?? null,
             }),
         },
     );

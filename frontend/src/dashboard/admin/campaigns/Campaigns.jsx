@@ -25,6 +25,7 @@ import CampaignPagination from './components/Pagination';
 import CampaignVerificationModal from './modals/VerificationModal';
 import ClassificationModal from './modals/ClassificationModal';
 import CampaignAssignmentModal from './modals/AssignmentModal';
+import StatusUpdateModal from './modals/StatusUpdateModal';
 
 import {
     fetchCampaigns,
@@ -32,6 +33,7 @@ import {
     fetchCampaignVolunteerAssignments,
     assignCampaignVolunteer,
     verifyCampaign,
+    updateCampaignStatus,
 } from './api/campaignsAPI';
 
 const CAMPAIGNS_PER_PAGE = 25;
@@ -168,6 +170,14 @@ export default function Campaigns() {
     const [verificationError, setVerificationError] = useState('');
 
     // =========================================================
+    // CAMPAIGN STATUS UPDATE MODAL
+    // =========================================================
+
+    const [statusCampaign, setStatusCampaign] = useState(null);
+    const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
+    const [statusUpdateError, setStatusUpdateError] = useState('');
+
+    // =========================================================
     // VOLUNTEER ASSIGNMENT MODAL
     // =========================================================
 
@@ -188,6 +198,7 @@ export default function Campaigns() {
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [organizationFilter, setOrganizationFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [deadlineFilter, setDeadlineFilter] = useState('all');
 
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -349,6 +360,23 @@ export default function Campaigns() {
             );
         }
 
+        // DEADLINE FILTER
+        if (deadlineFilter === 'fixed') {
+            result = result.filter(
+                (campaign) =>
+                    campaign.end_date !== null &&
+                    campaign.end_date !== undefined &&
+                    String(campaign.end_date).trim() !== '',
+            );
+        } else if (deadlineFilter === 'open') {
+            result = result.filter(
+                (campaign) =>
+                    campaign.end_date === null ||
+                    campaign.end_date === undefined ||
+                    String(campaign.end_date).trim() === '',
+            );
+        }
+
         const search = searchTerm.trim().toLowerCase();
 
         if (search) {
@@ -391,6 +419,7 @@ export default function Campaigns() {
         organizationFilter,
         statusFilter,
         classificationFilter,
+        deadlineFilter,
         searchTerm,
         sortConfig,
     ]);
@@ -437,9 +466,12 @@ export default function Campaigns() {
     };
 
     const handleClassificationChange = (event) => {
-        const value = event.target.value;
+        setClassificationFilter(event.target.value);
+        setCurrentPage(1);
+    };
 
-        setClassificationFilter(value);
+    const handleDeadlineChange = (event) => {
+        setDeadlineFilter(event.target.value);
         setCurrentPage(1);
     };
 
@@ -455,6 +487,7 @@ export default function Campaigns() {
         setOrganizationFilter('all');
         setStatusFilter('all');
         setClassificationFilter('all');
+        setDeadlineFilter('all');
         setSearchTerm('');
         setCurrentPage(1);
     };
@@ -623,6 +656,84 @@ export default function Campaigns() {
         } finally {
             setVerificationLoading(false);
         }
+    };
+
+    // =========================================================
+    // CAMPAIGN STATUS UPDATE
+    // =========================================================
+
+    const handleOpenStatusModal = (campaign) => {
+        if (!campaign?.id || campaign.status !== 'active') return;
+
+        setStatusUpdateError('');
+        setStatusCampaign(campaign);
+    };
+
+    const handleStatusUpdateConfirm = async ({ status, status_note }) => {
+        if (!statusCampaign) return;
+
+        if (statusCampaign.status !== 'active') {
+            setStatusUpdateError(
+                'Only active campaigns can be completed or cancelled.',
+            );
+            return;
+        }
+
+        if (!['completed', 'cancelled'].includes(status)) {
+            setStatusUpdateError('Invalid campaign status.');
+            return;
+        }
+
+        try {
+            setStatusUpdateLoading(true);
+            setStatusUpdateError('');
+
+            await updateCampaignStatus(statusCampaign.id, {
+                status,
+                status_note: status_note || null,
+            });
+
+            setCampaigns((current) =>
+                current.map((campaign) =>
+                    campaign.id === statusCampaign.id
+                        ? {
+                              ...campaign,
+                              status,
+                              status_note: status_note || null,
+                          }
+                        : campaign,
+                ),
+            );
+
+            setStatusCampaign(null);
+
+            showSuccessToast(
+                status === 'completed'
+                    ? 'Campaign marked as completed successfully.'
+                    : 'Campaign cancelled successfully.',
+            );
+
+            try {
+                const response = await fetchCampaigns();
+
+                setCampaigns(extractCampaigns(response));
+            } catch {
+                // Preserve the successful local update if refreshing fails.
+            }
+        } catch (err) {
+            setStatusUpdateError(
+                err?.message || 'Failed to update campaign status.',
+            );
+        } finally {
+            setStatusUpdateLoading(false);
+        }
+    };
+
+    const handleStatusModalClose = () => {
+        if (statusUpdateLoading) return;
+
+        setStatusCampaign(null);
+        setStatusUpdateError('');
     };
 
     // =========================================================
@@ -984,11 +1095,11 @@ export default function Campaigns() {
                 const canAssign = row.status === 'active';
 
                 return (
-                    <div className="flex items-center justify-end gap-4">
+                    <div className="flex flex-col items-end gap-3">
                         <button
                             type="button"
                             onClick={() => handleView(row)}
-                            className="text-xs font-semibold text-[#8792A1] transition-colors hover:text-[#A9B7C7]"
+                            className="text-right text-xs font-semibold text-[#8792A1] transition-colors hover:text-[#A9B7C7]"
                         >
                             View
                         </button>
@@ -997,7 +1108,7 @@ export default function Campaigns() {
                             <button
                                 type="button"
                                 onClick={() => handleEdit(row)}
-                                className="text-xs font-semibold text-[#8792A1] transition-colors hover:text-[#A9B7C7]"
+                                className="text-right text-xs font-semibold text-[#8792A1] transition-colors hover:text-[#A9B7C7]"
                             >
                                 Edit
                             </button>
@@ -1007,26 +1118,36 @@ export default function Campaigns() {
                             <button
                                 type="button"
                                 onClick={() => handleReview(row)}
-                                className="text-xs font-semibold text-[#A9B7C7] transition-colors hover:text-[#EEF1F5]"
+                                className="text-right text-xs font-semibold text-[#A9B7C7] transition-colors hover:text-[#EEF1F5]"
                             >
                                 Verify
                             </button>
                         )}
 
                         {canAssign && (
-                            <button
-                                type="button"
-                                onClick={() => handleAssignment(row)}
-                                className="text-xs font-semibold text-[#A9B7C7] transition-colors hover:text-[#EEF1F5]"
-                            >
-                                Assign Volunteers
-                            </button>
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => handleAssignment(row)}
+                                    className="text-right text-xs font-semibold text-[#A9B7C7] transition-colors hover:text-[#EEF1F5]"
+                                >
+                                    Assign Volunteers
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => handleOpenStatusModal(row)}
+                                    className="text-right text-xs font-semibold text-[#C9B58B] transition-colors hover:text-[#F0D9A7]"
+                                >
+                                    Update Status
+                                </button>
+                            </>
                         )}
 
                         <button
                             type="button"
                             onClick={() => handleManageClassification(row)}
-                            className="text-xs font-semibold text-[#C9B58B] transition-colors hover:text-[#F0D9A7]"
+                            className="text-right text-xs font-semibold text-[#C9B58B] transition-colors hover:text-[#F0D9A7]"
                         >
                             Classification
                         </button>
@@ -1049,11 +1170,13 @@ export default function Campaigns() {
             categoryFilter={categoryFilter}
             organizationFilter={organizationFilter}
             classificationFilter={classificationFilter}
+            deadlineFilter={deadlineFilter}
             campaigns={campaigns}
             onTypeChange={handleTypeChange}
             onCategoryChange={handleCategoryFilterChange}
             onOrganizationChange={handleOrganizationChange}
             onClassificationChange={handleClassificationChange}
+            onDeadlineChange={handleDeadlineChange}
             onClearFilters={resetFilters}
         />
     );
@@ -1215,6 +1338,7 @@ export default function Campaigns() {
                                         onManageClassification={
                                             handleManageClassification
                                         }
+                                        onUpdateStatus={handleOpenStatusModal}
                                     />
                                 </div>
 
@@ -1274,6 +1398,18 @@ export default function Campaigns() {
                         }
                     }}
                     onConfirm={handleVerificationConfirm}
+                />
+            )}
+
+            {/* CAMPAIGN STATUS UPDATE MODAL */}
+            {statusCampaign && (
+                <StatusUpdateModal
+                    key={statusCampaign.id}
+                    campaign={statusCampaign}
+                    loading={statusUpdateLoading}
+                    error={statusUpdateError}
+                    onClose={handleStatusModalClose}
+                    onConfirm={handleStatusUpdateConfirm}
                 />
             )}
 

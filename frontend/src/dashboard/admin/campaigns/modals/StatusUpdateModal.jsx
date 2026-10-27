@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, ChevronDown, Info, X } from 'lucide-react';
 
 const StatusUpdateModal = ({
     campaign,
@@ -12,14 +12,11 @@ const StatusUpdateModal = ({
 
     const [selectedStatus, setSelectedStatus] = useState('completed');
 
-    const [statusNote, setStatusNote] = useState('');
-
     if (!campaign) {
         return null;
     }
 
     const currentStatus = String(campaign.status || '').toLowerCase();
-
     const isActive = currentStatus === 'active';
 
     const handleSubmit = async (event) => {
@@ -31,7 +28,6 @@ const StatusUpdateModal = ({
 
         await onConfirm({
             status: selectedStatus,
-            status_note: statusNote.trim() || null,
         });
     };
 
@@ -44,193 +40,229 @@ const StatusUpdateModal = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6">
-            <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl">
-                {/* =================================================
-                    Header
-                ================================================= */}
-                <div className="flex items-start justify-between border-b border-border px-6 py-5">
-                    <div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                            Campaign status
+        <div className="fixed inset-0 z-150 flex items-center justify-center bg-[#05080D]/80 px-4 py-6 backdrop-blur-[3px]">
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="campaign-status-modal-title"
+                className="flex max-h-[calc(100dvh-32px)] w-full max-w-[510px] flex-col overflow-hidden rounded-xl border border-[#34404D] bg-[#151C25] shadow-[0_24px_80px_rgba(0,0,0,0.5)]"
+            >
+                {/* Header */}
+                <div className="flex shrink-0 items-start justify-between gap-4 border-b border-[#29323E] px-5 py-5 sm:px-6">
+                    <div className="min-w-0">
+                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] !text-[#8EA0B4]">
+                            Campaign management
                         </p>
 
-                        <h2 className="mt-1 text-lg font-bold text-text-primary">
+                        <h2
+                            id="campaign-status-modal-title"
+                            className="m-0 text-[19px] font-semibold tracking-[-0.025em] !text-[#EEF1F5] font-display"
+                        >
                             Update campaign status
                         </h2>
-
-                        <p className="mt-1 text-xs leading-5 text-text-secondary">
-                            Complete or cancel an active campaign.
-                        </p>
                     </div>
 
                     <button
                         type="button"
                         onClick={handleClose}
                         disabled={loading}
-                        className="rounded-lg p-2 text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Close modal"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-transparent text-[#8F9CAD] transition-colors hover:border-[#34404D] hover:bg-[#202A35] hover:text-[#EEF1F5] disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                        <X size={18} />
+                        <X size={17} strokeWidth={1.8} />
                     </button>
                 </div>
 
-                {/* =================================================
-                    Campaign information
-                ================================================= */}
-                <div className="border-b border-border bg-background-alt px-6 py-4">
-                    <p className="text-sm font-semibold text-text-primary">
-                        {campaign.title || 'Untitled campaign'}
-                    </p>
+                {/* Scrollable body */}
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                    {/* Campaign information */}
+                    <div className="border-b border-[#29323E] bg-[#1A222D] px-5 py-4 sm:px-6">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                                <p className="mb-1.5 text-[10px] font-medium uppercase tracking-[0.08em] !text-[#8291A3]">
+                                    Selected campaign
+                                </p>
 
-                    <div className="mt-2 flex items-center gap-2">
-                        <span className="text-xs text-text-secondary">
-                            Current status:
-                        </span>
-
-                        <span
-                            className={`rounded-full px-2.5 py-1 text-[10px] font-bold capitalize ${
-                                isActive
-                                    ? 'bg-emerald-100 text-emerald-700'
-                                    : 'bg-white text-text-secondary'
-                            }`}
-                        >
-                            {currentStatus.replace(/_/g, ' ') || 'unknown'}
-                        </span>
-                    </div>
-                </div>
-
-                {/* =================================================
-                    Non-active warning
-                ================================================= */}
-                {!isActive && (
-                    <div className="mx-6 mt-5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                        <p className="text-xs font-semibold text-amber-800">
-                            This campaign cannot be updated.
-                        </p>
-
-                        <p className="mt-1 text-xs leading-5 text-amber-700">
-                            Only campaigns with the backend status{' '}
-                            <strong>active</strong> can be changed to{' '}
-                            <strong>completed</strong> or{' '}
-                            <strong>cancelled</strong>.
-                        </p>
-                    </div>
-                )}
-
-                {/* =================================================
-                    Form
-                ================================================= */}
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-6 px-6 py-6">
-                        {/* Status */}
-                        <div>
-                            <label
-                                htmlFor="campaign-status"
-                                className="mb-2 block text-sm font-semibold text-text-primary"
-                            >
-                                New status
-                            </label>
-
-                            <select
-                                id="campaign-status"
-                                value={selectedStatus}
-                                onChange={(event) =>
-                                    setSelectedStatus(event.target.value)
-                                }
-                                disabled={loading || !isActive}
-                                className="h-11 w-full rounded-lg border border-border bg-white px-3 text-sm text-text-primary outline-none transition-colors focus:border-primary disabled:cursor-not-allowed disabled:bg-background-alt"
-                            >
-                                {allowedStatuses.map((status) => (
-                                    <option key={status} value={status}>
-                                        {status === 'completed'
-                                            ? 'Completed'
-                                            : 'Cancelled'}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <p className="mt-2 text-xs leading-5 text-text-secondary">
-                                Only an active campaign can be moved to
-                                completed or cancelled.
-                            </p>
-                        </div>
-
-                        {/* Status note */}
-                        <div>
-                            <label
-                                htmlFor="campaign-status-note"
-                                className="mb-2 block text-sm font-semibold text-text-primary"
-                            >
-                                Status note
-                                <span className="ml-1 font-normal text-text-secondary">
-                                    (optional)
-                                </span>
-                            </label>
-
-                            <textarea
-                                id="campaign-status-note"
-                                value={statusNote}
-                                onChange={(event) =>
-                                    setStatusNote(event.target.value)
-                                }
-                                disabled={loading || !isActive}
-                                rows={4}
-                                placeholder={
-                                    selectedStatus === 'completed'
-                                        ? 'Add a short note about why the campaign is being marked completed...'
-                                        : 'Add a short note explaining why the campaign is being cancelled...'
-                                }
-                                className="w-full resize-none rounded-lg border border-border bg-white px-3 py-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-secondary/60 focus:border-primary disabled:cursor-not-allowed disabled:bg-background-alt"
-                            />
-                        </div>
-
-                        {/* Error */}
-                        {error && (
-                            <div className="border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm leading-5 text-red-600">
-                                {error}
-                            </div>
-                        )}
-
-                        {/* Warning */}
-                        {isActive && (
-                            <div className="rounded-lg border border-border bg-background-alt px-4 py-3">
-                                <p className="text-xs leading-5 text-text-secondary">
-                                    <span className="font-semibold text-text-primary">
-                                        Important:
-                                    </span>{' '}
-                                    Once a campaign is marked{' '}
-                                    <span className="font-semibold">
-                                        {selectedStatus}
-                                    </span>
-                                    , it will no longer be editable.
+                                <p
+                                    title={campaign.title}
+                                    className="m-0 text-[13px] font-semibold leading-[1.7] !text-[#E5EBF3]"
+                                    style={{
+                                        fontFamily:
+                                            "'Poppins', 'Noto Sans Bengali', sans-serif",
+                                    }}
+                                >
+                                    {campaign.title || 'Untitled campaign'}
                                 </p>
                             </div>
-                        )}
+
+                            <span
+                                className={`inline-flex shrink-0 items-center gap-1.5 rounded-[4px] border px-2.5 py-1.5 text-[10px] font-semibold capitalize ${
+                                    isActive
+                                        ? 'border-[#345043] bg-[#20362C] text-[#9BCFB0]'
+                                        : 'border-[#3B4552] bg-[#252E39] text-[#B3BFCD]'
+                                }`}
+                            >
+                                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                                {currentStatus.replace(/_/g, ' ') || 'unknown'}
+                            </span>
+                        </div>
                     </div>
 
-                    {/* =================================================
-                        Footer
-                    ================================================= */}
-                    <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">
-                        <button
-                            type="button"
-                            onClick={handleClose}
-                            disabled={loading}
-                            className="h-10 rounded-lg border border-border bg-white px-4 text-sm font-medium! text-text-primary transition-colors hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            Cancel
-                        </button>
+                    {/* Non-active warning */}
+                    {!isActive && (
+                        <div className="mx-5 mt-5 flex items-start gap-3 rounded-md border border-[#665037] bg-[#30271D] px-4 py-3.5 sm:mx-6">
+                            <AlertCircle
+                                size={17}
+                                strokeWidth={1.8}
+                                className="mt-0.5 shrink-0 text-[#E0B678]"
+                            />
 
-                        <button
-                            type="submit"
-                            disabled={loading || !isActive || !selectedStatus}
-                            className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-white! transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            {loading ? 'Updating...' : 'Update Status'}
-                        </button>
-                    </div>
-                </form>
+                            <div className="min-w-0">
+                                <p className="m-0 text-[12px] font-semibold !text-[#E8C998]">
+                                    This campaign cannot be updated
+                                </p>
+
+                                <p className="mb-0 mt-1 text-[11px] leading-[1.8] !text-[#C6AE8B]">
+                                    Only campaigns with the backend status{' '}
+                                    <strong className="font-semibold text-[#F0D4A7]">
+                                        active
+                                    </strong>{' '}
+                                    can be changed to{' '}
+                                    <strong className="font-semibold text-[#F0D4A7]">
+                                        completed
+                                    </strong>{' '}
+                                    or{' '}
+                                    <strong className="font-semibold text-[#F0D4A7]">
+                                        cancelled
+                                    </strong>
+                                    .
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    <form
+                        id="campaign-status-update-form"
+                        onSubmit={handleSubmit}
+                    >
+                        <div className="space-y-5 px-5 py-5 sm:px-6 sm:py-6">
+                            {/* New status */}
+                            <div>
+                                <label
+                                    htmlFor="campaign-status"
+                                    className="mb-2 block text-[12px] font-semibold !text-[#DCE4ED]"
+                                >
+                                    New status
+                                </label>
+
+                                <div className="relative">
+                                    <select
+                                        id="campaign-status"
+                                        value={selectedStatus}
+                                        onChange={(event) =>
+                                            setSelectedStatus(
+                                                event.target.value,
+                                            )
+                                        }
+                                        disabled={loading || !isActive}
+                                        className="h-11 w-full appearance-none rounded-md border border-[#34404D] bg-[#10161E] px-3.5 pr-10 text-[12px] font-medium !text-[#E3EAF3] outline-none transition-colors hover:border-[#4B5A6B] focus:border-[#7890A8] focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        {allowedStatuses.map((status) => (
+                                            <option
+                                                key={status}
+                                                value={status}
+                                                className="bg-[#151C25] text-[#EEF1F5]"
+                                            >
+                                                {status === 'completed'
+                                                    ? 'Completed'
+                                                    : 'Cancelled'}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    <ChevronDown
+                                        size={15}
+                                        strokeWidth={1.8}
+                                        aria-hidden="true"
+                                        className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8F9CAD]"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Error */}
+                            {error && (
+                                <div
+                                    role="alert"
+                                    className="flex items-start gap-2.5 rounded-md border border-[#704047] bg-[#342126] px-3.5 py-3"
+                                >
+                                    <AlertCircle
+                                        size={16}
+                                        className="mt-0.5 shrink-0 text-[#E9A3AC]"
+                                    />
+
+                                    <p className="m-0 text-[11px] leading-[1.7] !text-[#F0B5BC]">
+                                        {error}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Important notice */}
+                            {isActive && (
+                                <div className="flex items-start gap-3 rounded-md border border-[#34404D] bg-[#1B2632] px-3.5 py-3.5">
+                                    {selectedStatus === 'completed' ? (
+                                        <CheckCircle2
+                                            size={16}
+                                            strokeWidth={1.8}
+                                            className="mt-0.5 shrink-0 text-[#9BCFB0]"
+                                        />
+                                    ) : (
+                                        <Info
+                                            size={16}
+                                            strokeWidth={1.8}
+                                            className="mt-0.5 shrink-0 text-[#D6B47C]"
+                                        />
+                                    )}
+
+                                    <p className="m-0 text-[11px] leading-[1.8] !text-[#A4B2C3]">
+                                        <span className="font-semibold text-[#E3EAF3]">
+                                            Important:
+                                        </span>{' '}
+                                        Once this campaign is marked{' '}
+                                        <span className="font-semibold text-[#E3EAF3]">
+                                            {selectedStatus}
+                                        </span>
+                                        , it will no longer be editable.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </form>
+                </div>
+
+                {/* Footer */}
+                <div className="flex shrink-0 flex-wrap items-center justify-end gap-2.5 border-t border-[#29323E] bg-[#151C25] px-5 py-4 sm:px-6">
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        disabled={loading}
+                        className="inline-flex h-10 items-center justify-center rounded-md border border-[#34404D] bg-[#1B242E] px-4 text-[12px] font-medium !text-[#C7D1DE] transition-colors hover:border-[#526276] hover:bg-[#25313F] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        form="campaign-status-update-form"
+                        disabled={loading || !isActive || !selectedStatus}
+                        className={`inline-flex h-10 min-w-[135px] items-center justify-center rounded-md border px-4 text-[12px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                            selectedStatus === 'cancelled'
+                                ? 'border-[#75464A] bg-[#633238] text-[#F4D8DA] hover:bg-[#784047]'
+                                : 'border-[#416B5D] bg-[#275344] text-[#D8F0E3] hover:bg-[#326653]'
+                        }`}
+                    >
+                        {loading ? 'Updating...' : 'Update Status'}
+                    </button>
+                </div>
             </div>
         </div>
     );

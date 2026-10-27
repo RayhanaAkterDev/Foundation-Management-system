@@ -230,7 +230,8 @@ class DonationController extends Controller
     /**
      * SSLCOMMERZ browser success callback.
      *
-     * Payment is validated server-side before redirecting.
+     * Redirect according to the actual payment result,
+     * not merely the HTTP response status.
      */
     public function success(
         Request $request,
@@ -243,13 +244,31 @@ class DonationController extends Controller
             $campaignService
         );
 
+        // A payment that could not be verified must not be reported
+        // as successful.
         if ($response->getStatusCode() !== 200) {
             return $response;
         }
 
+        $transactionId = $request->input('tran_id');
+
+        // A successful donation must exist in the donations table.
+        // The attempt may already have been deleted after completion.
+        $donationExists = Donation::where(
+            'transaction_id',
+            $transactionId
+        )->exists();
+
+        if (!$donationExists) {
+            return $this->frontendPaymentRedirect(
+                'failed',
+                $transactionId
+            );
+        }
+
         return $this->frontendPaymentRedirect(
             'success',
-            $request->input('tran_id')
+            $transactionId
         );
     }
 

@@ -10,6 +10,7 @@ import {
     RotateCcw,
     Star,
     UsersRound,
+    CalendarDays,
 } from 'lucide-react';
 
 import CategoryTabs from './CategoryTabs';
@@ -33,6 +34,12 @@ const CLASSIFICATION_OPTIONS = [
         value: 'unclassified',
         label: 'Neither featured nor urgent',
     },
+];
+
+const DEADLINE_OPTIONS = [
+    { value: 'all', label: 'All deadlines' },
+    { value: 'fixed', label: 'Fixed deadline' },
+    { value: 'open', label: 'Open-ended' },
 ];
 
 /*
@@ -188,17 +195,12 @@ const buildCategoryOptions = (campaigns) => {
         if (!englishLabel) return;
 
         const key = englishLabel.toLowerCase();
-
         const existing = categoryMap.get(key);
-
         const rawValue = String(rawCategory).trim();
 
         /*
          * Prefer an English API value when both English and
          * Bangla values represent the same category.
-         *
-         * This avoids changing the existing filtering contract
-         * for English category values.
          */
         if (!existing) {
             categoryMap.set(key, {
@@ -337,11 +339,13 @@ const Filters = ({
     categoryFilter = 'all',
     organizationFilter = 'all',
     classificationFilter = 'all',
+    deadlineFilter = 'all',
     campaigns = [],
     onTypeChange,
     onCategoryChange,
     onOrganizationChange,
     onClassificationChange,
+    onDeadlineChange,
     activeFilterCount,
     onClearFilters,
 }) => {
@@ -381,6 +385,7 @@ const Filters = ({
             categoryFilter,
             organizationFilter,
             classificationFilter,
+            deadlineFilter,
         ].filter((value) => value && value !== 'all').length;
 
     const emitChange = (handler, value) => handler?.({ target: { value } });
@@ -396,6 +401,7 @@ const Filters = ({
         emitChange(onCategoryChange, 'all');
         emitChange(onOrganizationChange, 'all');
         emitChange(onClassificationChange, 'all');
+        emitChange(onDeadlineChange, 'all');
     };
 
     return (
@@ -430,19 +436,13 @@ const Filters = ({
                     />
                 </FilterSection>
 
-                <FilterSection title="Campaign type" icon={Layers3}>
-                    <div className="space-y-1">
-                        {CAMPAIGN_TYPES.map(({ value, label, icon }) => (
-                            <FilterOption
-                                key={value}
-                                label={label}
-                                icon={icon}
-                                active={typeFilter === value}
-                                onClick={() => emitChange(onTypeChange, value)}
-                            />
-                        ))}
-                    </div>
-                </FilterSection>
+                <DropdownFilter
+                    label="Campaign type"
+                    icon={Layers3}
+                    value={typeFilter}
+                    options={CAMPAIGN_TYPES}
+                    onChange={onTypeChange}
+                />
 
                 <DropdownFilter
                     label="Category"
@@ -461,6 +461,14 @@ const Filters = ({
                     value={classificationFilter}
                     options={CLASSIFICATION_OPTIONS}
                     onChange={onClassificationChange}
+                />
+
+                <DropdownFilter
+                    label="Deadline"
+                    icon={CalendarDays}
+                    value={deadlineFilter}
+                    options={DEADLINE_OPTIONS}
+                    onChange={onDeadlineChange}
                 />
             </div>
         </aside>

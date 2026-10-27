@@ -220,36 +220,74 @@ class SSLCOMMERZService
             ];
         }
 
-        $response = Http::timeout(30)->get(
-            $this->validationUrl,
-            [
-                'val_id' => $validationId,
-                'store_id' => $this->storeId,
-                'store_passwd' => $this->storePassword,
-                'format' => 'json',
-            ]
-        );
+        /*
+     * Validate the transaction directly with SSLCOMMERZ.
+     * Network failures are retryable because the payment
+     * may already have been completed by the gateway.
+     */
+        try {
+            $response = Http::timeout(30)->get(
+                $this->validationUrl,
+                [
+                    'val_id' => $validationId,
+                    'store_id' => $this->storeId,
+                    'store_passwd' => $this->storePassword,
+                    'format' => 'json',
+                ]
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
 
-        if (!$response->successful()) {
             return [
                 'success' => false,
-                'status' => DonationAttempt::STATUS_FAILED,
+                'retryable' => true,
+                'status' => DonationAttempt::STATUS_PENDING,
+                'message' =>
+                'Unable to reach SSLCOMMERZ for payment validation.',
+            ];
+        }
+
+        /*
+     * Retry rate limits and server-side failures.
+     * Other HTTP errors are treated as definitive failures.
+     */
+        if (!$response->successful()) {
+            $httpStatus = $response->status();
+
+            $retryable = $httpStatus === 429
+                || $httpStatus >= 500;
+
+            return [
+                'success' => false,
+                'retryable' => $retryable,
+                'status' => $retryable
+                    ? DonationAttempt::STATUS_PENDING
+                    : DonationAttempt::STATUS_FAILED,
                 'message' =>
                 'Unable to validate payment with SSLCOMMERZ.',
             ];
         }
 
+        /*
+     * A successful HTTP status does not guarantee that
+     * the gateway returned a valid JSON response.
+     */
         $result = $response->json();
 
         if (!is_array($result)) {
             return [
                 'success' => false,
-                'status' => DonationAttempt::STATUS_FAILED,
+                'retryable' => true,
+                'status' => DonationAttempt::STATUS_PENDING,
                 'message' =>
                 'Invalid validation response from SSLCOMMERZ.',
             ];
         }
 
+        /*
+     * Only accept a transaction confirmed by the
+     * SSLCOMMERZ validation API.
+     */
         $validatedStatus = strtoupper(
             (string) ($result['status'] ?? '')
         );
@@ -269,13 +307,17 @@ class SSLCOMMERZService
             ];
         }
 
+        /*
+     * Ensure the validated transaction matches the
+     * original donation attempt.
+     */
         $validatedTransactionId = (string) (
             $result['tran_id'] ?? ''
         );
 
         if (
-            $validatedTransactionId !==
-            $attempt->transaction_id
+            $validatedTransactionId === ''
+            || $validatedTransactionId !== $attempt->transaction_id
         ) {
             return [
                 'success' => false,
@@ -285,14 +327,29 @@ class SSLCOMMERZService
             ];
         }
 
-        $gatewayAmount = (float) (
-            $result['amount'] ?? 0
-        );
+        /*
+     * Require a valid amount and compare it with the
+     * amount originally requested.
+     */
+        if (
+            !isset($result['amount'])
+            || !is_numeric($result['amount'])
+        ) {
+            return [
+                'success' => false,
+                'status' => DonationAttempt::STATUS_FAILED,
+                'message' =>
+                'SSLCOMMERZ returned an invalid payment amount.',
+            ];
+        }
 
+        $gatewayAmount = (float) $result['amount'];
         $attemptAmount = (float) $attempt->amount;
 
         if (
-            abs($gatewayAmount - $attemptAmount) > 0.01
+            !is_finite($gatewayAmount)
+            || $gatewayAmount <= 0
+            || abs($gatewayAmount - $attemptAmount) > 0.01
         ) {
             return [
                 'success' => false,
@@ -302,6 +359,9 @@ class SSLCOMMERZService
             ];
         }
 
+        /*
+     * Donations on this platform are processed in BDT.
+     */
         $currency = strtoupper(
             (string) ($result['currency'] ?? '')
         );
@@ -321,12 +381,10 @@ class SSLCOMMERZService
             'validation_id' => $validationId,
             'amount' => $gatewayAmount,
             'currency' => $currency,
-
             'payment_method' =>
             $result['card_type']
                 ?? $result['card_brand']
                 ?? 'SSLCOMMERZ',
-
             'gateway_response' => $result,
         ];
     }

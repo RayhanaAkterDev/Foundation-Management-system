@@ -380,28 +380,86 @@ const Donate = () => {
         typeof campaign.category === 'object'
             ? campaign.category?.name
             : campaign.category;
-    const inputStyle =
-        'w-full rounded-none border-0 border-b border-[#cbd9d6] bg-transparent px-0 py-3 text-[15px] text-[#122a2a] outline-none placeholder:text-slate-400 focus:border-[#08786d] focus:ring-0';
+    const fieldClass =
+        'mt-2 block h-12 w-full min-w-0 appearance-none border-0 border-b border-[#cbd9d6] bg-transparent px-0 font-bengali text-[15px] text-[#163b36] placeholder:text-[#8b9d99]! outline-none! shadow-none! ring-0! focus:border-[#08786d]! focus:outline-none! focus:ring-0! focus:shadow-none! focus-visible:outline-none! focus-visible:ring-0!';
 
     return (
         <main
             lang="bn"
-            className="min-h-screen bg-[#f5f7f6] pb-14 pt-5 font-bengali sm:pb-20 sm:pt-8 text-[#142e30] sm:pt-24 mt-20"
+            className="min-h-screen bg-[#f7f8f6] pb-16 pt-25 font-bengali text-[#17352f] sm:pb-24 sm:pt-30"
         >
-            <div className="mx-auto max-w-[1180px] px-4 sm:px-6 lg:px-9">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#dce6e3] pb-4 text-xs sm:text-sm">
+            <div className="mx-auto w-full max-w-300 px-4 sm:px-6 lg:px-9">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#dbe5e0] pb-5 text-xs sm:text-sm">
                     <Link
                         to={`/campaign/${campaign.id}`}
-                        className="inline-flex items-center gap-2 text-slate-600 hover:text-[#08786d]"
+                        className="inline-flex items-center gap-2 text-[#536c65] transition hover:text-[#08786d]"
                     >
-                        <TbArrowLeft size={17} /> ক্যাম্পেইনে ফিরে যান
+                        <TbArrowLeft size={18} /> উদ্যোগে ফিরে যান
                     </Link>
                     <span className="inline-flex items-center gap-2 text-[#08786d]">
-                        <TbShieldCheck size={17} /> সুরক্ষিত অনুদান
+                        <TbShieldCheck size={18} /> নিরাপদ অনুদান প্রক্রিয়া
                     </span>
                 </div>
-                <header className="grid min-w-0 gap-6 border-b border-[#dce6e3] py-7 md:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] md:items-center md:gap-8 lg:gap-12 lg:py-10">
-                    <div className="relative order-2 mt-0 min-h-[240px] overflow-hidden bg-[#dce9e5] sm:min-h-[320px] md:order-1 md:min-h-[360px] lg:min-h-[400px]">
+
+                {/* Campaign introduction: restrained, editorial layout */}
+                <header className="grid min-w-0 gap-7 border-b border-[#dbe5e0] py-9 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center md:gap-10 lg:gap-15 lg:py-13">
+                    <div className="min-w-0 md:order-2">
+                        <div className="mb-5 flex items-center gap-3 text-xs font-semibold text-[#08786d]">
+                            <span className="h-px w-8 bg-[#d99b42]" />
+                            <span>
+                                মানবিক উদ্যোগ {category ? ` / ${category}` : ''}
+                            </span>
+                        </div>
+                        <h1 className="max-w-145 text-[clamp(1.8rem,3.3vw,3.25rem)] font-semibold leading-[1.35] tracking-tight">
+                            {campaign.title}
+                        </h1>
+                        <p className="mt-5 max-w-xl text-sm leading-8 text-[#61756e] sm:text-[15px]">
+                            {campaign.shortDescription ||
+                                'আপনার সহায়তা প্রয়োজনের সময়ে মানুষের পাশে দাঁড়াতে সাহায্য করবে।'}
+                        </p>
+                        <div className="mt-8 border-t border-[#dbe5e0] pt-5">
+                            <div className="grid grid-cols-3 gap-3">
+                                <div>
+                                    <p className="text-xs text-[#71877f]">
+                                        সংগৃহীত
+                                    </p>
+                                    <strong className="mt-2 block break-words text-base sm:text-xl">
+                                        ৳{bn(raised)}
+                                    </strong>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-[#71877f]">
+                                        লক্ষ্যমাত্রা
+                                    </p>
+                                    <strong className="mt-2 block break-words text-base sm:text-xl">
+                                        ৳{bn(target)}
+                                    </strong>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-[#71877f]">
+                                        অগ্রগতি
+                                    </p>
+                                    <strong className="mt-2 block text-base sm:text-xl">
+                                        {bn(Math.round(progress))}%
+                                    </strong>
+                                </div>
+                            </div>
+                            <div
+                                className="mt-5 h-1 overflow-hidden bg-[#dce7e2]"
+                                role="progressbar"
+                                aria-valuenow={Math.round(progress)}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                aria-label="অনুদান সংগ্রহের অগ্রগতি"
+                            >
+                                <div
+                                    className="h-full bg-[#08786d]"
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="relative min-h-65 overflow-hidden bg-[#dce7e2] sm:min-h-85 md:order-1 md:min-h-95 lg:min-h-105">
                         {campaign.image ? (
                             <img
                                 src={campaign.image}
@@ -410,126 +468,109 @@ const Donate = () => {
                             />
                         ) : (
                             <div className="absolute inset-0 grid place-items-center text-[#08786d]">
-                                <TbHeartFilled size={52} />
+                                <TbHeartFilled size={54} />
                             </div>
                         )}
-                        <span className="absolute bottom-0 left-0 bg-[#f5f7f6] px-4 py-3 text-xs text-[#08786d]">
-                            মানুষের পাশে দাঁড়ানোর উদ্যোগ
-                        </span>
-                    </div>
-                    <div className="order-1 flex min-w-0 flex-col justify-center md:order-2">
-                        <span className="mb-5 inline-flex w-fit items-center gap-2 border-l-[3px] border-[#e9a34a] pl-3 text-xs font-semibold text-[#08786d]">
-                            অনুদান কার্যক্রম {category ? `• ${category}` : ''}
-                        </span>
-                        <h1 className="max-w-[600px] text-[clamp(1.75rem,3.15vw,3.1rem)] font-semibold leading-[1.4] tracking-tight">
-                            {campaign.title}
-                        </h1>
-                        <p className="mt-5 max-w-lg text-sm leading-7 text-slate-600">
-                            {campaign.shortDescription ||
-                                'আপনার সহায়তা প্রয়োজনের সময় মানুষের পাশে দাঁড়াতে সাহায্য করবে।'}
-                        </p>
-                        <div className="mt-7 grid grid-cols-3 gap-2 sm:gap-4 border-t border-[#dce6e3] pt-6 sm:grid-cols-3">
-                            <div>
-                                <p className="text-xs text-slate-500">
-                                    সংগৃহীত
-                                </p>
-                                <strong className="mt-1 block break-words text-base sm:text-lg lg:text-xl">
-                                    ৳{bn(raised)}
-                                </strong>
-                            </div>
-                            <div>
-                                <p className="text-xs text-slate-500">
-                                    লক্ষ্যমাত্রা
-                                </p>
-                                <strong className="mt-1 block break-words text-base sm:text-lg lg:text-xl">
-                                    ৳{bn(target)}
-                                </strong>
-                            </div>
-                            <div>
-                                <p className="text-xs text-slate-500">
-                                    অগ্রগতি
-                                </p>
-                                <strong className="mt-1 block break-words text-base sm:text-lg lg:text-xl">
-                                    {bn(Math.round(progress))}%
-                                </strong>
-                            </div>
-                        </div>
-                        <div className="mt-5 h-1.5 bg-[#dce6e3]">
-                            <div
-                                className="h-full bg-[#08786d]"
-                                style={{ width: `${progress}%` }}
-                            />
+                        <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/55 to-transparent px-5 pb-5 pt-14">
+                            <span className="text-xs font-medium text-white">
+                                মানুষের পাশে দাঁড়ানোর একটি উদ্যোগ
+                            </span>
                         </div>
                     </div>
                 </header>
-                <div className="grid min-w-0 gap-7 py-9 md:grid-cols-[minmax(0,190px)_minmax(0,1fr)] md:gap-7 lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)] lg:gap-10 lg:py-14">
-                    <aside className="md:sticky md:top-24 md:self-start">
-                        <p className="text-xs font-semibold tracking-wide text-[#08786d]">
-                            অনুদান সম্পন্ন করুন
-                        </p>
-                        <h2 className="mt-3 text-2xl font-semibold leading-snug sm:text-3xl">
-                            আপনার সহায়তা,
-                            <br />
-                            কারও নতুন সম্ভাবনা।
+
+                {/* Donation workspace */}
+                <div className="grid min-w-0 gap-8 pt-10 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.5fr)] lg:gap-12 lg:pt-15">
+                    <aside className="min-w-0 lg:sticky lg:top-28 lg:self-start">
+                        <div className="flex items-center gap-3 text-xs font-semibold text-[#08786d]">
+                            <span className="h-px w-8 bg-[#d99b42]" /> অনুদান
+                            সম্পন্ন করুন
+                        </div>
+                        <h2 className="mt-5 max-w-90 text-[clamp(1.7rem,3vw,2.7rem)] font-semibold leading-[1.4]">
+                            আপনার ছোট সহায়তায় বড় পরিবর্তনের শুরু।
                         </h2>
-                        <p className="mt-4 text-sm leading-7 text-slate-500">
-                            তিনটি সহজ ধাপে অনুদানের তথ্য পূরণ করুন।
+                        <p className="mt-4 max-w-90 text-sm leading-8 text-[#687e75]">
+                            পরিমাণ ও যোগাযোগের তথ্য দিন। এরপর নিরাপদ পেমেন্ট
+                            পৃষ্ঠায় অনুদান সম্পন্ন করুন।
                         </p>
-                        <div className="mt-7 hidden space-y-5 border-l border-[#cbd9d6] pl-4 text-xs md:block lg:text-sm">
-                            <p className="font-semibold text-[#08786d]">
-                                ০১ — অনুদানের পরিমাণ
+                        <div className="mt-7 hidden border-t border-[#dbe5e0] pt-6 lg:block">
+                            <p className="mb-5 text-xs font-semibold text-[#6a8179]">
+                                সহজ তিনটি ধাপ
                             </p>
-                            <p className="text-slate-500">
-                                ০২ — যোগাযোগের তথ্য
-                            </p>
-                            <p className="text-slate-500">০৩ — পেমেন্ট</p>
+                            {[
+                                'অনুদানের পরিমাণ',
+                                'আপনার পরিচয়',
+                                'পেমেন্ট সম্পন্ন',
+                            ].map((step, index) => (
+                                <div
+                                    key={step}
+                                    className="flex items-center gap-4 border-l border-[#d7e2dd] py-3 pl-4 text-sm"
+                                >
+                                    <span className="text-[#08786d]">
+                                        {['০১', '০২', '০৩'][index]}
+                                    </span>
+                                    <span>{step}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-8 hidden items-start gap-3 border-t border-[#dbe5e0] pt-6 text-xs leading-6 text-[#687e75] lg:flex">
+                            <TbShieldCheck
+                                size={22}
+                                className="shrink-0 text-[#08786d]"
+                            />
+                            <span>
+                                পেমেন্টের তথ্য নিরাপদ পেমেন্ট গেটওয়েতে
+                                প্রক্রিয়াকৃত হবে।
+                            </span>
                         </div>
                     </aside>
+
                     <form
                         onSubmit={handleDonate}
-                        className="min-w-0 overflow-hidden bg-white shadow-[0_12px_45px_rgba(19,54,50,0.045)]"
+                        className="min-w-0 bg-white shadow-[0_16px_60px_rgba(23,53,47,0.045)]"
                     >
-                        <section className="border-b border-[#e5eeeb] px-4 py-7 sm:px-7 sm:py-9 lg:px-9">
-                            <div className="flex items-center gap-4">
-                                <span className="text-3xl font-light text-[#9bbdb5]">
+                        <div className="border-b border-[#e5ece8] px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
+                            <div className="flex items-start gap-4">
+                                <span className="pt-0.5 text-2xl font-light text-[#84b3a7]">
                                     ০১
                                 </span>
-                                <h3 className="text-xl font-semibold sm:text-2xl">
-                                    অনুদানের পরিমাণ
-                                </h3>
+                                <div>
+                                    <h3 className="text-xl font-semibold sm:text-2xl">
+                                        অনুদানের পরিমাণ
+                                    </h3>
+                                    <p className="mt-2 text-sm leading-7 text-[#71857e]">
+                                        আপনার সামর্থ্য অনুযায়ী পরিমাণ নির্বাচন
+                                        করুন।
+                                    </p>
+                                </div>
                             </div>
-                            <p className="mt-2 text-sm text-slate-500">
-                                যে পরিমাণ সহায়তা করতে চান, সেটি নির্বাচন করুন।
-                            </p>
                             <div className="mt-7 grid grid-cols-2 gap-2 min-[560px]:grid-cols-4 sm:gap-3">
                                 {presets.map((val) => (
                                     <button
-                                        type="button"
                                         key={val}
+                                        type="button"
                                         aria-pressed={Number(amount) === val}
                                         onClick={() => {
                                             setAmount(val);
                                             setError(null);
                                         }}
-                                        className={`min-h-[70px] min-w-0 border px-2 py-3 text-center text-base sm:text-lg font-semibold transition ${Number(amount) === val ? 'border-[#08786d] bg-[#e6f3ef] text-[#086f65]' : 'border-[#dce6e3] bg-white hover:border-[#08786d]'}`}
+                                        className={`relative flex min-h-17 items-center justify-center border px-2 py-3 text-base font-semibold transition-colors sm:text-lg ${Number(amount) === val ? 'border-[#08786d] bg-[#e9f4f0] text-[#08786d]' : 'border-[#e0e8e4] bg-white hover:border-[#08786d]/60'}`}
                                     >
                                         ৳{bn(val)}
                                         {Number(amount) === val && (
-                                            <span className="mt-1 block text-[10px] font-normal">
-                                                নির্বাচিত
-                                            </span>
+                                            <span className="absolute right-2 top-2 size-1.5 rounded-full bg-[#08786d]" />
                                         )}
                                     </button>
                                 ))}
                             </div>
                             <label
                                 htmlFor="donation-amount"
-                                className="mt-7 block text-xs font-semibold text-slate-600"
+                                className="mt-7 block text-xs font-semibold text-[#4b625a]"
                             >
-                                নিজের পরিমাণ লিখুন
+                                অন্য পরিমাণ লিখুন
                             </label>
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl text-[#08786d]">
+                            <div className="flex items-center gap-3">
+                                <span className="text-xl font-semibold text-[#08786d]">
                                     ৳
                                 </span>
                                 <input
@@ -545,30 +586,33 @@ const Donate = () => {
                                         );
                                         setError(null);
                                     }}
-                                    className={inputStyle + ' text-xl'}
-                                    placeholder="অনুদানের পরিমাণ"
+                                    className={fieldClass + ' text-lg'}
+                                    placeholder="পরিমাণ লিখুন"
                                 />
                             </div>
-                            <p className="mt-2 text-xs text-slate-500">
+                            <p className="mt-2 text-xs text-[#84958e]">
                                 সর্বনিম্ন অনুদান ৳১০
                             </p>
-                        </section>
-                        <section className="border-b border-[#e5eeeb] px-4 py-7 sm:px-7 sm:py-9 lg:px-9">
-                            <div className="flex items-center gap-4">
-                                <span className="text-3xl font-light text-[#9bbdb5]">
+                        </div>
+
+                        <div className="border-b border-[#e5ece8] px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
+                            <div className="flex items-start gap-4">
+                                <span className="pt-0.5 text-2xl font-light text-[#84b3a7]">
                                     ০২
                                 </span>
-                                <h3 className="text-xl font-semibold sm:text-2xl">
-                                    আপনার পরিচয়
-                                </h3>
+                                <div>
+                                    <h3 className="text-xl font-semibold sm:text-2xl">
+                                        আপনার পরিচয়
+                                    </h3>
+                                    <p className="mt-2 text-sm leading-7 text-[#71857e]">
+                                        {isLoggedIn
+                                            ? 'আপনার অ্যাকাউন্টের তথ্য দেওয়া আছে। প্রয়োজনে সংশোধন করুন।'
+                                            : 'অনুদানের জন্য প্রয়োজনীয় যোগাযোগের তথ্য দিন।'}
+                                    </p>
+                                </div>
                             </div>
-                            <p className="mt-2 text-sm text-slate-500">
-                                {isLoggedIn
-                                    ? 'অ্যাকাউন্টের তথ্য পূরণ করা হয়েছে।'
-                                    : 'অনুদানের জন্য প্রয়োজনীয় যোগাযোগের তথ্য দিন।'}
-                            </p>
-                            <div className="mt-7 grid min-w-0 gap-x-5 gap-y-6 lg:grid-cols-2">
-                                <div className="lg:col-span-2">
+                            <div className="mt-7 grid min-w-0 gap-x-6 gap-y-6 sm:grid-cols-2">
+                                <div className="sm:col-span-2">
                                     <label
                                         htmlFor="donor-name"
                                         className="text-xs font-semibold"
@@ -585,7 +629,7 @@ const Donate = () => {
                                                 e.target.value,
                                             )
                                         }
-                                        className={inputStyle}
+                                        className={fieldClass}
                                         placeholder="আপনার পূর্ণ নাম"
                                     />
                                 </div>
@@ -607,7 +651,7 @@ const Donate = () => {
                                                 e.target.value,
                                             )
                                         }
-                                        className={inputStyle}
+                                        className={fieldClass}
                                         placeholder="ইমেইল লিখুন"
                                     />
                                 </div>
@@ -630,83 +674,76 @@ const Donate = () => {
                                                 e.target.value,
                                             )
                                         }
-                                        className={inputStyle}
-                                        placeholder="০১XXXXXXXXX"
+                                        className={fieldClass}
+                                        placeholder="01XXXXXXXXX"
                                     />
                                 </div>
                             </div>
-                        </section>
-                        <section className="px-4 py-7 sm:px-7 sm:py-9 lg:px-9">
-                            <div className="flex items-center gap-4">
-                                <span className="text-3xl font-light text-[#9bbdb5]">
+                        </div>
+
+                        <div className="px-5 py-7 sm:px-8 sm:py-9 lg:px-10">
+                            <div className="flex items-start gap-4">
+                                <span className="pt-0.5 text-2xl font-light text-[#84b3a7]">
                                     ০৩
                                 </span>
-                                <h3 className="text-xl font-semibold sm:text-2xl">
-                                    পেমেন্টের মাধ্যম
-                                </h3>
+                                <div>
+                                    <h3 className="text-xl font-semibold sm:text-2xl">
+                                        পেমেন্ট সম্পন্ন করুন
+                                    </h3>
+                                    <p className="mt-2 text-sm leading-7 text-[#71857e]">
+                                        পরবর্তী ধাপে নিরাপদ পেমেন্ট গেটওয়েতে
+                                        মাধ্যম নির্বাচন করতে পারবেন।
+                                    </p>
+                                </div>
                             </div>
-                            <p className="mt-2 text-sm text-slate-500">
-                                নিরাপদ পেমেন্ট গেটওয়েতে আপনার পছন্দের মাধ্যম
-                                নির্বাচন করতে পারবেন।
-                            </p>
-                            <div className="mt-6 grid gap-3 min-[560px]:grid-cols-2">
-                                <label className="flex min-w-0 min-h-[64px] cursor-pointer items-center gap-3 border border-[#dce6e3] px-4 text-sm">
-                                    <input
-                                        type="radio"
-                                        name="pay"
-                                        defaultChecked
-                                        className="accent-[#08786d]"
-                                    />
+                            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[#e5ece8] pt-5 text-xs text-[#60786f] sm:text-sm">
+                                <span className="inline-flex items-center gap-2">
                                     <TbCreditCard
-                                        size={21}
+                                        size={19}
                                         className="text-[#08786d]"
                                     />{' '}
-                                    কার্ডের মাধ্যমে
-                                </label>
-                                <label className="flex min-w-0 min-h-[64px] cursor-pointer items-center gap-3 border border-[#dce6e3] px-4 text-sm">
-                                    <input
-                                        type="radio"
-                                        name="pay"
-                                        className="accent-[#08786d]"
-                                    />
+                                    কার্ড পেমেন্ট
+                                </span>
+                                <span className="inline-flex items-center gap-2">
                                     <TbWallet
-                                        size={21}
+                                        size={19}
                                         className="text-[#08786d]"
                                     />{' '}
                                     মোবাইল ব্যাংকিং
-                                </label>
+                                </span>
                             </div>
-                        </section>
-                        <div className="bg-[#123f39] px-5 py-7 text-white sm:px-9">
-                            <div className="flex min-w-0 flex-wrap items-end justify-between gap-5">
+                        </div>
+
+                        <div className="bg-[#123f39] px-5 py-7 text-white sm:px-8 sm:py-8 lg:px-10">
+                            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <p className="text-xs text-white/60">
+                                    <p className="text-xs text-white/65">
                                         আপনার মোট অনুদান
                                     </p>
-                                    <p className="mt-1 break-words text-3xl font-semibold sm:text-4xl">
+                                    <p className="mt-2 break-words text-3xl font-semibold sm:text-4xl">
                                         ৳{bn(amount)}
                                     </p>
                                 </div>
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="inline-flex min-h-[52px] w-full items-center justify-center gap-3 bg-[#e9a34a] px-6 text-sm font-semibold text-[#123f39] transition hover:bg-[#f4b85f] disabled:opacity-60 min-[560px]:w-auto"
+                                    className="inline-flex min-h-13 w-full items-center justify-center gap-3 bg-[#e9ad53] px-6 text-sm font-semibold text-[#123f39] transition-colors hover:bg-[#f3bc68] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                                 >
-                                    <TbHeartFilled size={17} />
+                                    <TbHeartFilled size={18} />
                                     {submitting
                                         ? 'পেমেন্ট শুরু হচ্ছে…'
-                                        : 'অনুদান নিশ্চিত করুন'}{' '}
+                                        : 'অনুদান নিশ্চিত করুন'}
                                     <span aria-hidden="true">→</span>
                                 </button>
                             </div>
                             <p className="mt-5 flex items-center gap-2 text-xs text-white/65">
-                                <TbShieldCheck size={16} /> সুরক্ষিত পেমেন্ট
-                                প্রক্রিয়া
+                                <TbShieldCheck size={16} /> নিরাপদ পেমেন্ট
+                                প্রক্রিয়া
                             </p>
                             {error && (
                                 <p
                                     role="alert"
-                                    className="mt-4 border-l-2 border-[#e9a34a] bg-white/10 px-3 py-3 text-sm"
+                                    className="mt-5 border-l-2 border-[#e9ad53] bg-white/10 px-4 py-3 text-sm leading-7"
                                 >
                                     {error}
                                     {error.includes(

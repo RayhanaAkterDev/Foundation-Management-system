@@ -12,16 +12,7 @@ const Loader = () => {
         >
             <div className="relative flex w-full max-w-[360px] flex-col items-center text-center">
                 {/* Brand identity and animation */}
-                <div className="relative mb-8 flex h-[176px] w-[176px] items-center justify-center sm:h-[192px] sm:w-[192px]">
-                    {/* Outer stationary ring */}
-                    <div className="absolute inset-0 rounded-full border border-primary/10" />
-
-                    {/* Animated orbit */}
-                    <div className="absolute inset-[8px] animate-[spin_3s_linear_infinite] rounded-full border-[2px] border-transparent border-t-primary/70 border-r-primary/15 motion-reduce:animate-none" />
-
-                    {/* Inner decorative circle */}
-                    <div className="absolute inset-[22px] rounded-full bg-primary/[0.035]" />
-
+                <div className="relative flex h-[176px] w-[176px] items-center justify-center sm:h-[192px] sm:w-[192px]">
                     {/* Logo */}
                     <img
                         src={logo}

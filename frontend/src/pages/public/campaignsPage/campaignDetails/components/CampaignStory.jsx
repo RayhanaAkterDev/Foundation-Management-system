@@ -41,7 +41,7 @@ const CampaignStory = ({ story = [] }) => {
                 </div>
 
                 <span className="hidden font-serif text-[9px] italic text-text-muted sm:block">
-                    The Story
+                    উদ্যোগের কথা
                 </span>
             </div>
 
@@ -53,11 +53,11 @@ const CampaignStory = ({ story = [] }) => {
                             key={index}
                             className="
                                 font-bengali
-                                text-[13px]
+                                text-[15px]
                                 leading-[2.05]
                                 text-text-secondary
 
-                                sm:text-[14px]
+                                sm:text-[16px]
                             "
                         >
                             {index === 0 && (
@@ -93,7 +93,7 @@ const CampaignStory = ({ story = [] }) => {
                                 items-center
                                 gap-2
                                 font-bengali
-                                text-[10px]
+                                text-[13px]
                                 font-semibold
                                 text-primary
                                 transition-colors

@@ -42,7 +42,7 @@ const CampaignDetails = () => {
 
                 if (!cancelled) {
                     setCampaign(null);
-                    setError('Unable to load this campaign right now.');
+                    setError('এই মুহূর্তে উদ্যোগের তথ্য লোড করা যাচ্ছে না।');
                 }
             } finally {
                 if (!cancelled) {
@@ -132,7 +132,7 @@ const CampaignDetails = () => {
 
                         <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-text-secondary">
                             {error ||
-                                'The campaign you are looking for does not exist or may have been removed.'}
+                                'আপনি যে উদ্যোগটি খুঁজছেন সেটি পাওয়া যায়নি অথবা সরিয়ে নেওয়া হয়েছে।'}
                         </p>
                     </div>
                 </div>
@@ -165,11 +165,11 @@ const CampaignDetails = () => {
                         grid
                         grid-cols-1
                         items-start
-                        gap-12
-                        lg:grid-cols-[minmax(0,1fr)_340px]
-                        lg:gap-16
-                        xl:grid-cols-[minmax(0,1fr)_360px]
-                        xl:gap-20
+                        gap-9
+                        lg:grid-cols-[minmax(0,1fr)_350px]
+                        lg:gap-10
+                        xl:grid-cols-[minmax(0,1fr)_380px]
+                        xl:gap-14
                     "
                 >
                     <CampaignMainContent campaign={campaign} />

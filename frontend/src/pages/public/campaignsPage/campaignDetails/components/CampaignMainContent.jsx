@@ -41,7 +41,7 @@ const CampaignMainContent = ({ campaign }) => {
                         <span
                             className={`
                                 font-bengali
-                                text-[9px]
+                                text-[12px]
                                 font-semibold
                                 uppercase
                                 tracking-[0.08em]
@@ -60,7 +60,7 @@ const CampaignMainContent = ({ campaign }) => {
                     <span className="h-3 w-px bg-border" />
 
                     {campaign.category && (
-                        <span className="font-bengali text-[9px] text-text-secondary">
+                        <span className="font-bengali text-[12px] text-text-secondary">
                             {campaign.category}
                         </span>
                     )}
@@ -69,7 +69,7 @@ const CampaignMainContent = ({ campaign }) => {
                         <>
                             <span className="hidden h-[3px] w-[3px] rounded-full bg-text-muted sm:block" />
 
-                            <span className="flex items-center gap-1.5 font-bengali text-[9px] text-text-secondary">
+                            <span className="flex items-center gap-1.5 font-bengali text-[12px] text-text-secondary">
                                 <TbMapPin size={12} />
 
                                 {campaign.location}
@@ -77,13 +77,13 @@ const CampaignMainContent = ({ campaign }) => {
                         </>
                     )}
 
-                    <span className="ml-auto hidden text-[8px] uppercase tracking-[0.2em] text-text-muted sm:block">
+                    <span className="ml-auto hidden text-[13px] uppercase tracking-[0.2em] text-text-muted sm:block">
                         Stand For People
                     </span>
                 </div>
 
                 {/* TITLE */}
-                <div className="py-9 sm:py-11 lg:py-12">
+                <div className="py-7 sm:py-9 lg:py-10">
                     <div className="flex items-center gap-3">
                         <span className="h-px w-9 bg-accent" />
 
@@ -111,21 +111,13 @@ const CampaignMainContent = ({ campaign }) => {
                         {campaign.title}
                     </h1>
 
-                    {campaign.shortDescription && (
-                        <p
-                            className="
-                                mt-5
-                                max-w-[680px]
-                                font-bengali
-                                text-[13px]
-                                leading-[2]
-                                text-text-secondary
-
-                                sm:text-[14px]
-                            "
-                        >
-                            {campaign.shortDescription}
-                        </p>
+                    {(campaign.description || campaign.shortDescription) && (
+                        <div className="mt-6 max-w-[760px]">
+                            <p className="whitespace-pre-line break-words font-bengali text-[14px] leading-[2] text-text-secondary sm:text-[15px] sm:leading-[2.1]">
+                                {campaign.description ||
+                                    campaign.shortDescription}
+                            </p>
+                        </div>
                     )}
                 </div>
             </header>
@@ -138,11 +130,11 @@ const CampaignMainContent = ({ campaign }) => {
                     <div
                         className="
                             relative
-                            h-[330px]
+                            h-[280px]
                             overflow-hidden
 
-                            sm:h-[430px]
-                            lg:h-[500px]
+                            sm:h-[390px]
+                            lg:h-[460px]
                         "
                     >
                         <img
@@ -176,13 +168,13 @@ const CampaignMainContent = ({ campaign }) => {
                             py-3
                         "
                     >
-                        <span className="font-bengali text-[8px] text-text-muted">
+                        <span className="font-bengali text-[13px] text-text-muted">
                             চলমান মানবিক উদ্যোগ
                         </span>
 
                         <span className="h-px flex-1 bg-border" />
 
-                        <span className="text-[8px] uppercase tracking-[0.16em] text-text-muted">
+                        <span className="text-[13px] uppercase tracking-[0.16em] text-text-muted">
                             Stand For People
                         </span>
                     </figcaption>
@@ -204,7 +196,7 @@ const CampaignMainContent = ({ campaign }) => {
                             <div className="flex items-center gap-3">
                                 <span className="h-px w-8 bg-accent" />
 
-                                <span className="font-bengali text-[9px] font-semibold text-accent">
+                                <span className="font-bengali text-[12px] font-semibold text-accent">
                                     সর্বশেষ খবর
                                 </span>
                             </div>
@@ -224,8 +216,8 @@ const CampaignMainContent = ({ campaign }) => {
                             </h2>
                         </div>
 
-                        <span className="hidden text-[8px] uppercase tracking-[0.18em] text-text-muted sm:block">
-                            Field Updates
+                        <span className="hidden text-[13px] uppercase tracking-[0.18em] text-text-muted sm:block">
+                            সর্বশেষ অগ্রগতি
                         </span>
                     </div>
 
@@ -286,12 +278,12 @@ const CampaignMainContent = ({ campaign }) => {
                                                 {update.title}
                                             </h3>
 
-                                            <span className="shrink-0 text-[9px] text-text-muted">
+                                            <span className="shrink-0 text-[12px] text-text-muted">
                                                 {update.date}
                                             </span>
                                         </div>
 
-                                        <p className="mt-2 font-bengali text-[11px] leading-[1.9] text-text-secondary">
+                                        <p className="mt-2 font-bengali text-[13px] leading-[1.9] text-text-secondary">
                                             {update.content}
                                         </p>
                                     </div>

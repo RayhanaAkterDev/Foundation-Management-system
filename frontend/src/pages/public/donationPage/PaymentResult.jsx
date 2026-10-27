@@ -53,7 +53,7 @@ const PaymentResult = () => {
             className="flex min-h-screen flex-col bg-background font-bengali text-text-primary"
         >
             <header className="border-b border-border/70 bg-surface">
-                <div className="container-width mx-auto flex min-h-20 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+                <div className="container-width mx-auto flex min-h-20">
                     <Link
                         to="/"
                         className="inline-flex items-center gap-3 text-primary"

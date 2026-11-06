@@ -16,8 +16,8 @@ class HelpRequest extends Model
     | Help Request lifecycle:
     |
     | pending -> verified -> in_progress -> completed
-    |              |
-    |              └──────> rejected
+    |               |
+    |               └──────> rejected
     |
     | Assignment statuses such as "assigned", "accepted",
     | "withdrawn", etc. do NOT belong here.
@@ -60,6 +60,7 @@ class HelpRequest extends Model
         'urgency',
         'status',
         'verification_note',
+        'contact_phone',
     ];
 
     /*
@@ -80,22 +81,6 @@ class HelpRequest extends Model
     |--------------------------------------------------------------------------
     | Assignments
     |--------------------------------------------------------------------------
-    |
-    | One Help Request can have multiple assignment rows.
-    |
-    | Examples:
-    |
-    | Organization only:
-    |   organization_id = 10
-    |   volunteer_id = null
-    |
-    | Volunteer only:
-    |   organization_id = null
-    |   volunteer_id = 21
-    |
-    | Organization + volunteers:
-    |   multiple assignment rows
-    |
     */
 
     public function assignments(): HasMany
@@ -110,15 +95,46 @@ class HelpRequest extends Model
     |--------------------------------------------------------------------------
     | Campaigns
     |--------------------------------------------------------------------------
-    |
-    | A Help Request may be used as the basis for campaigns.
-    |
     */
 
     public function campaigns(): HasMany
     {
+        return $this->hasMany(Campaign::class);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Evidence Requests
+    |--------------------------------------------------------------------------
+    |
+    | Admin requests for additional evidence.
+    | These requests do not change the Help Request status.
+    |
+    */
+
+    public function evidenceRequests(): HasMany
+    {
         return $this->hasMany(
-            Campaign::class
+            HelpRequestEvidenceRequest::class,
+            'help_request_id'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Evidences
+    |--------------------------------------------------------------------------
+    |
+    | Original evidence and additional evidence uploaded
+    | in response to admin requests.
+    |
+    */
+
+    public function evidences(): HasMany
+    {
+        return $this->hasMany(
+            HelpRequestEvidence::class,
+            'help_request_id'
         );
     }
 }

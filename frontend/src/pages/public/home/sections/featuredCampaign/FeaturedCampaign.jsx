@@ -12,7 +12,7 @@ import {
 
 import { Link } from 'react-router-dom';
 
-import { fetchFeaturedCampaign } from '@/api/publicCampaignsApi';
+import { fetchPublicCampaigns } from '@/api/publicCampaignsApi';
 
 import Button from '@/components/Button';
 import Motion from '@/components/motion/Motion';
@@ -20,6 +20,35 @@ import Motion from '@/components/motion/Motion';
 /* =========================================================
    HELPERS
 ========================================================= */
+
+const isEnabled = (value) => value === true || value === 1 || value === '1';
+
+// Get today's date in local YYYY-MM-DD format.
+const getTodayDate = () => {
+    const today = new Date();
+
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+};
+
+// Check whether the campaign end date has not passed.
+// Today's date is still considered valid.
+const hasValidDeadline = (endDate) => {
+    if (!endDate) {
+        return false;
+    }
+
+    const campaignEndDate = String(endDate).slice(0, 10);
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(campaignEndDate)) {
+        return false;
+    }
+
+    return campaignEndDate >= getTodayDate();
+};
 
 const toBanglaNumber = (value) => {
     if (value === null || value === undefined) {
@@ -197,23 +226,53 @@ const FeaturedCampaign = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        let isMounted = true;
+
         const loadCampaign = async () => {
             try {
                 setLoading(true);
 
-                const featuredCampaign = await fetchFeaturedCampaign();
+                // Fetch all public campaigns.
+                const data = await fetchPublicCampaigns();
 
-                setCampaign(featuredCampaign);
+                // Select the newest campaign that:
+                // 1. Is active.
+                // 2. Has been featured by admin.
+                // 3. Has an end date that has not passed.
+                const featuredCampaigns = (Array.isArray(data) ? data : [])
+                    .filter(
+                        (item) =>
+                            item?.status === 'active' &&
+                            isEnabled(item?.is_featured) &&
+                            hasValidDeadline(item?.end_date),
+                    )
+                    .sort(
+                        (a, b) =>
+                            new Date(b.created_at || 0) -
+                            new Date(a.created_at || 0),
+                    );
+
+                if (isMounted) {
+                    setCampaign(featuredCampaigns[0] || null);
+                }
             } catch (error) {
                 console.error('Failed to load featured campaign:', error);
 
-                setCampaign(null);
+                if (isMounted) {
+                    setCampaign(null);
+                }
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         };
 
         loadCampaign();
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     /* =====================================================
@@ -225,7 +284,7 @@ const FeaturedCampaign = () => {
     }
 
     /* =====================================================
-       NO ACTIVE CAMPAIGN
+       NO FEATURED CAMPAIGN
     ====================================================== */
 
     if (!campaign) {

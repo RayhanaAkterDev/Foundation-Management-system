@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\HelpRequest;
-use App\Notifications\PlatformNotification;
+use App\Models\HelpRequestEvidence;
 use App\Models\User;
+use App\Notifications\PlatformNotification;
+use App\Rules\HelpRequestEvidenceRules;
 use App\Services\HelpRequestAiService;
+use App\Services\HelpRequestEvidenceService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class HelpRequestController extends Controller
 {
@@ -73,8 +79,11 @@ class HelpRequestController extends Controller
     */
 
 
-    public function store(Request $request)
-    {
+
+    public function store(
+        Request $request,
+        HelpRequestEvidenceService $evidenceService
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
@@ -89,7 +98,7 @@ class HelpRequestController extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'title' => [
                 'required',
                 'string',
@@ -123,25 +132,104 @@ class HelpRequestController extends Controller
                 'nullable',
                 'in:low,normal,high,critical',
             ],
-        ]);
+
+            'contact_phone' => [
+                'nullable',
+                'string',
+                'max:11',
+            ],
+        ], HelpRequestEvidenceRules::rules()));
 
         /*
     |--------------------------------------------------------------------------
-    | Create Help Request
+    | Validate Combined Evidence File Size
     |--------------------------------------------------------------------------
     */
 
-        $helpRequest = HelpRequest::create([
-            'user_id' => $user->id,
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'category' => $validated['category'],
-            'district' => $validated['district'],
-            'address' => $validated['address'] ?? null,
-            'urgency' => $validated['urgency'] ?? 'normal',
-            'status' => HelpRequest::STATUS_PENDING,
-            'verification_note' => null,
-        ]);
+        $evidenceFiles = $request->file('evidences', []);
+
+        if (!HelpRequestEvidenceRules::totalSizeIsValid($evidenceFiles)) {
+            return response()->json([
+                'message' => 'The combined evidence file size cannot exceed 35 MB.',
+                'errors' => [
+                    'evidences' => [
+                        'The combined evidence file size cannot exceed 35 MB.',
+                    ],
+                ],
+            ], 422);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Upload Evidence and Create Help Request
+    |--------------------------------------------------------------------------
+    */
+
+        $uploadedFileIds = [];
+
+        try {
+            $helpRequest = DB::transaction(function () use (
+                $user,
+                $validated,
+                $evidenceFiles,
+                $evidenceService,
+                &$uploadedFileIds
+            ) {
+                $helpRequest = HelpRequest::create([
+                    'user_id' => $user->id,
+                    'title' => $validated['title'],
+                    'description' => $validated['description'],
+                    'category' => $validated['category'],
+                    'district' => $validated['district'],
+                    'address' => $validated['address'] ?? null,
+                    'contact_phone' => $validated['contact_phone'] ?? null,
+                    'urgency' => $validated['urgency'] ?? 'normal',
+                    'status' => HelpRequest::STATUS_PENDING,
+                    'verification_note' => null,
+                ]);
+
+                foreach ($evidenceFiles as $file) {
+                    $uploadedEvidence = $evidenceService->uploadPrivateFile(
+                        $file
+                    );
+
+                    $uploadedFileIds[] = $uploadedEvidence['file_id'];
+
+                    $helpRequest->evidences()->create([
+                        'uploaded_by' => $user->id,
+                        'evidence_request_id' => null,
+                        'source' => HelpRequestEvidence::SOURCE_ORIGINAL,
+                        'file_name' => $uploadedEvidence['file_name'],
+                        'file_id' => $uploadedEvidence['file_id'],
+                        'file_path' => $uploadedEvidence['file_path'],
+                        'mime_type' => $uploadedEvidence['mime_type'],
+                        'file_size' => $uploadedEvidence['file_size'],
+                    ]);
+                }
+
+                return $helpRequest;
+            });
+        } catch (Throwable $exception) {
+            /*
+        |--------------------------------------------------------------------------
+        | Clean Up Uploaded ImageKit Files if Database Operation Fails
+        |--------------------------------------------------------------------------
+        */
+
+            foreach ($uploadedFileIds as $fileId) {
+                try {
+                    $evidenceService->deleteFile($fileId);
+                } catch (Throwable $cleanupException) {
+                    report($cleanupException);
+                }
+            }
+
+            report($exception);
+
+            return response()->json([
+                'message' => 'Unable to submit the help request right now.',
+            ], 500);
+        }
 
         /*
     |--------------------------------------------------------------------------
@@ -156,7 +244,7 @@ class HelpRequestController extends Controller
         try {
             app(\App\Services\HelpRequestDuplicateDetectionService::class)
                 ->analyze($helpRequest);
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             \Illuminate\Support\Facades\Log::error(
                 'Automatic help request duplicate analysis failed.',
                 [
@@ -200,6 +288,31 @@ class HelpRequestController extends Controller
                     'assignments.organization',
                     'assignments.volunteer',
                     'assignments.assignedBy',
+                    'evidences' => function ($query) {
+                        $query->select([
+                            'id',
+                            'help_request_id',
+                            'uploaded_by',
+                            'evidence_request_id',
+                            'source',
+                            'file_name',
+                            'mime_type',
+                            'file_size',
+                            'created_at',
+                        ]);
+                    },
+
+                    'evidenceRequests' => function ($query) {
+                        $query->select([
+                            'id',
+                            'help_request_id',
+                            'requested_by',
+                            'message',
+                            'status',
+                            'submitted_at',
+                            'created_at',
+                        ])->latest();
+                    },
                 ]),
         ], 201);
     }
@@ -229,6 +342,31 @@ class HelpRequestController extends Controller
             'assignments.organization',
             'assignments.volunteer',
             'assignments.assignedBy',
+            'evidences' => function ($query) {
+                $query->select([
+                    'id',
+                    'help_request_id',
+                    'uploaded_by',
+                    'evidence_request_id',
+                    'source',
+                    'file_name',
+                    'mime_type',
+                    'file_size',
+                    'created_at',
+                ]);
+            },
+
+            'evidenceRequests' => function ($query) {
+                $query->select([
+                    'id',
+                    'help_request_id',
+                    'requested_by',
+                    'message',
+                    'status',
+                    'submitted_at',
+                    'created_at',
+                ])->latest();
+            },
         ])
             ->where('user_id', $user->id)
             ->latest()
@@ -264,6 +402,19 @@ class HelpRequestController extends Controller
             'assignments.organization',
             'assignments.volunteer',
             'assignments.assignedBy',
+            'evidences' => function ($query) {
+                $query->select([
+                    'id',
+                    'help_request_id',
+                    'uploaded_by',
+                    'evidence_request_id',
+                    'source',
+                    'file_name',
+                    'mime_type',
+                    'file_size',
+                    'created_at',
+                ]);
+            },
         ])->find($id);
 
         if (!$helpRequest) {
@@ -396,6 +547,13 @@ class HelpRequestController extends Controller
                 'required',
                 'in:low,normal,high,critical',
             ],
+
+            'contact_phone' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:11',
+            ],
         ]);
 
         /*
@@ -422,6 +580,223 @@ class HelpRequestController extends Controller
     }
 
     /*
+|--------------------------------------------------------------------------
+| Submit Additional Help Request Evidence
+|--------------------------------------------------------------------------
+|
+| An individual can submit additional evidence only when an
+| admin has explicitly requested it.
+|
+| Original evidence is never overwritten.
+|
+*/
+
+    public function submitAdditionalEvidence(
+        Request $request,
+        int $id,
+        int $evidenceRequestId,
+        HelpRequestEvidenceService $evidenceService
+    ) {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'individual') {
+            return response()->json([
+                'message' => 'Only individual users can submit additional evidence.',
+            ], 403);
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        if ($helpRequest->user_id !== $user->id) {
+            return response()->json([
+                'message' => 'You are not authorized to submit evidence for this request.',
+            ], 403);
+        }
+
+        $evidenceRequest = $helpRequest->evidenceRequests()
+            ->where('id', $evidenceRequestId)
+            ->where('status', 'pending')
+            ->first();
+
+        if (!$evidenceRequest) {
+            return response()->json([
+                'message' => 'No pending evidence request was found.',
+            ], 422);
+        }
+
+        $validated = $request->validate(
+            HelpRequestEvidenceRules::rules()
+        );
+
+        $files = $validated['evidences'];
+
+        if (!HelpRequestEvidenceRules::totalSizeIsValid($files)) {
+            return response()->json([
+                'message' => 'The combined evidence file size cannot exceed 35 MB.',
+            ], 422);
+        }
+
+        $uploadedFileIds = [];
+
+        try {
+            DB::transaction(function () use (
+                $files,
+                $helpRequest,
+                $evidenceRequestId,
+                $user,
+                $evidenceService,
+                &$uploadedFileIds
+            ) {
+                $lockedEvidenceRequest = $helpRequest->evidenceRequests()
+                    ->where('id', $evidenceRequestId)
+                    ->where('status', 'pending')
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$lockedEvidenceRequest) {
+                    throw new \RuntimeException(
+                        'This evidence request has already been submitted or is no longer available.'
+                    );
+                }
+
+                foreach ($files as $file) {
+                    $uploaded = $evidenceService->uploadPrivateFile($file);
+
+                    $uploadedFileIds[] = $uploaded['file_id'];
+
+                    HelpRequestEvidence::create([
+                        'help_request_id' => $helpRequest->id,
+                        'uploaded_by' => $user->id,
+                        'evidence_request_id' => $evidenceRequestId,
+                        'source' => HelpRequestEvidence::SOURCE_ADDITIONAL,
+                        'file_name' => $uploaded['file_name'],
+                        'file_id' => $uploaded['file_id'],
+                        'file_path' => $uploaded['file_path'],
+                        'mime_type' => $uploaded['mime_type'],
+                        'file_size' => $uploaded['file_size'],
+                    ]);
+                }
+
+                $lockedEvidenceRequest->update([
+                    'status' => 'submitted',
+                    'submitted_at' => now(),
+                ]);
+            });
+        } catch (Throwable $exception) {
+            foreach ($uploadedFileIds as $fileId) {
+                try {
+                    $evidenceService->deleteFile($fileId);
+                } catch (Throwable $cleanupException) {
+                    report($cleanupException);
+                }
+            }
+
+            report($exception);
+
+            return response()->json([
+                'message' => 'Unable to submit additional evidence. Please try again.',
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => 'Additional evidence submitted successfully.',
+            'evidences' => $helpRequest->evidences()
+                ->where('evidence_request_id', $evidenceRequestId)
+                ->get([
+                    'id',
+                    'help_request_id',
+                    'uploaded_by',
+                    'evidence_request_id',
+                    'source',
+                    'file_name',
+                    'mime_type',
+                    'file_size',
+                    'created_at',
+                ]),
+        ], 201);
+    }
+
+    /*
+|--------------------------------------------------------------------------
+| View Help Request Evidence
+|--------------------------------------------------------------------------
+|
+| Admins can view all Help Request evidence.
+| Individuals can view evidence belonging to their own requests.
+|
+*/
+
+    public function viewEvidence(
+        Request $request,
+        int $id,
+        int $evidenceId,
+        HelpRequestEvidenceService $evidenceService
+    ) {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        $isAdmin = $user->role === 'admin';
+
+        $isOwner = (
+            $user->role === 'individual' &&
+            $helpRequest->user_id === $user->id
+        );
+
+        if (!$isAdmin && !$isOwner) {
+            return response()->json([
+                'message' => 'You are not authorized to view this evidence.',
+            ], 403);
+        }
+
+        $evidence = HelpRequestEvidence::where(
+            'help_request_id',
+            $helpRequest->id
+        )->find($evidenceId);
+
+        if (!$evidence) {
+            return response()->json([
+                'message' => 'Evidence file not found.',
+            ], 404);
+        }
+
+        try {
+            $signedUrl = $evidenceService->generateSignedUrl(
+                $evidence->file_path
+            );
+
+            return response()->json([
+                'url' => $signedUrl,
+                'expires_in' => 300,
+            ], 200);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'message' => 'Unable to generate the evidence viewing link.',
+            ], 500);
+        }
+    }
+
+    /*
     |--------------------------------------------------------------------------
     | Delete Help Request
     |--------------------------------------------------------------------------
@@ -433,22 +808,18 @@ class HelpRequestController extends Controller
     |
     */
 
-    public function destroy(Request $request, int $id)
-    {
+    public function destroy(
+        Request $request,
+        int $id,
+        HelpRequestEvidenceService $evidenceService
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' =>
-                'Only individual users can delete help requests.',
+                'message' => 'Only individual users can delete help requests.',
             ], 403);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Find Request
-        |--------------------------------------------------------------------------
-        */
 
         $helpRequest = HelpRequest::find($id);
 
@@ -458,50 +829,38 @@ class HelpRequestController extends Controller
             ], 404);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Ownership Check
-        |--------------------------------------------------------------------------
-        */
-
         if ($helpRequest->user_id !== $user->id) {
             return response()->json([
-                'message' =>
-                'You are not authorized to delete this help request.',
+                'message' => 'You are not authorized to delete this help request.',
             ], 403);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Only Pending Requests Can Be Deleted
-        |--------------------------------------------------------------------------
-        */
-
         if ($helpRequest->status !== HelpRequest::STATUS_PENDING) {
             return response()->json([
-                'message' =>
-                'This help request can no longer be deleted because it has already been reviewed.',
+                'message' => 'This help request can no longer be deleted because it has already been reviewed.',
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Delete
-        |--------------------------------------------------------------------------
-        |
-        | The database relationship uses cascadeOnDelete() for
-        | help_request_assignments.
-        |
-        | Normally a pending request should not have assignments,
-        | but the database remains responsible for cleanup.
-        |
-        */
+        // Collect ImageKit file IDs before cascading database deletion.
+        $evidenceFileIds = $helpRequest->evidences()
+            ->pluck('file_id')
+            ->all();
 
+        // Delete the request and its related database records.
         $helpRequest->delete();
 
+        // Delete the corresponding private files from ImageKit.
+        foreach ($evidenceFileIds as $fileId) {
+            try {
+                $evidenceService->deleteFile($fileId);
+            } catch (Throwable $exception) {
+                // Do not undo a successful database deletion.
+                report($exception);
+            }
+        }
+
         return response()->json([
-            'message' =>
-            'Help request deleted successfully.',
+            'message' => 'Help request deleted successfully.',
         ], 200);
     }
 }

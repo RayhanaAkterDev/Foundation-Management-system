@@ -15,6 +15,7 @@ use App\Models\VolunteerRequest;
 use App\Models\CampaignVolunteerAssignment;
 use App\Notifications\PlatformNotification;
 use App\Models\HelpRequestDuplicateMatch;
+use App\Models\HelpRequestEvidenceRequest;
 use App\Services\HelpRequestDuplicateDetectionService;
 use App\Services\CampaignUrgencyAiService;
 use ImageKit\ImageKit;
@@ -1386,6 +1387,32 @@ class AdminController extends Controller
             'assignments.organization.user:id,email',
             'assignments.volunteer',
             'assignments.assignedBy',
+
+            'evidenceRequests' => function ($query) {
+                $query->select([
+                    'id',
+                    'help_request_id',
+                    'requested_by',
+                    'message',
+                    'status',
+                    'submitted_at',
+                    'created_at',
+                ])->latest();
+            },
+
+            'evidences' => function ($query) {
+                $query->select([
+                    'id',
+                    'help_request_id',
+                    'uploaded_by',
+                    'evidence_request_id',
+                    'source',
+                    'file_name',
+                    'mime_type',
+                    'file_size',
+                    'created_at',
+                ]);
+            },
         ])
             ->latest()
             ->get();
@@ -1393,6 +1420,56 @@ class AdminController extends Controller
         return response()->json([
             'helpRequests' => $helpRequests,
         ]);
+    }
+
+    /*
+|--------------------------------------------------------------------------
+| Help Requests - Request Additional Evidence
+|--------------------------------------------------------------------------
+*/
+
+    public function requestAdditionalEvidence(
+        Request $request,
+        int $id
+    ) {
+        $admin = $this->authorizeAdmin($request);
+
+        if ($admin instanceof \Illuminate\Http\JsonResponse) {
+            return $admin;
+        }
+
+        $validated = $request->validate([
+            'message' => [
+                'required',
+                'string',
+                'max:5000',
+            ],
+        ]);
+
+        $helpRequest = HelpRequest::findOrFail($id);
+
+        $evidenceRequest = HelpRequestEvidenceRequest::create([
+            'help_request_id' => $helpRequest->id,
+            'requested_by' => $admin->id,
+            'message' => $validated['message'],
+            'status' => 'pending',
+        ]);
+
+        if ($helpRequest->user) {
+            $helpRequest->user->notify(
+                new PlatformNotification(
+                    'Additional evidence requested',
+                    "The admin has requested additional evidence for your help request \"{$helpRequest->title}\". Message: {$validated['message']}",
+                    '/individual/dashboard/help-requests',
+                    'help_request'
+                )
+            );
+        }
+
+        return response()->json([
+            'message' => 'Additional evidence requested successfully.',
+            'evidenceRequest' => $evidenceRequest,
+        ], 201);
     }
 
     public function checkHelpRequestDuplicates(

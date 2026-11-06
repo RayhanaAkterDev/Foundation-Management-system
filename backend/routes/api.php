@@ -320,6 +320,11 @@ Route::middleware('auth:sanctum')->group(function () {
         [HelpRequestController::class, 'update']
     );
 
+    Route::post(
+        '/help-requests/{id}/evidence-requests/{evidenceRequestId}/submit',
+        [HelpRequestController::class, 'submitAdditionalEvidence']
+    );
+
     Route::delete(
         '/help-requests/{id}',
         [HelpRequestController::class, 'destroy']
@@ -531,6 +536,15 @@ Route::middleware('auth:sanctum')->group(function () {
         '/donations/my',
         [DonationController::class, 'myDonations']
     );
+
+    // ---------------------------------------------------------
+    // HELP REQUEST EVIDENCE - SECURE VIEWING
+    // ---------------------------------------------------------
+
+    Route::get(
+        '/help-requests/{id}/evidences/{evidenceId}/view',
+        [HelpRequestController::class, 'viewEvidence']
+    );
 });
 
 // =============================================================
@@ -659,6 +673,11 @@ Route::middleware('auth:sanctum')
         Route::post(
             '/help-requests/{id}/duplicate-check',
             [AdminController::class, 'checkHelpRequestDuplicates']
+        );
+
+        Route::post(
+            '/help-requests/{id}/evidence-requests',
+            [AdminController::class, 'requestAdditionalEvidence']
         );
 
         // =========================================================

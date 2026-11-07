@@ -22,7 +22,7 @@ import LoadingError from '@/components/dashboard/LoadingError';
 import {
     getMyHelpRequests,
     submitAdditionalEvidence,
-    getHelpRequestEvidenceUrl,
+    getHelpRequestEvidencePreview,
 } from './api/helpRequestAPI';
 
 import {
@@ -111,7 +111,7 @@ function Info({ label, value }) {
                 {label}
             </dt>
 
-            <dd className="min-w-0 break-words text-[13px] font-medium! leading-6 text-[#EEF1F5]!">
+            <dd className="min-w-0 wrap-break-word text-[13px] font-medium! leading-6 text-[#EEF1F5]!">
                 {displayValue}
             </dd>
         </div>
@@ -155,79 +155,220 @@ function StatusBadge({ status }) {
 }
 
 // =========================================================
+// Evidence preview modal
+// =========================================================
+
+function EvidencePreviewModal({ fileUrl, mimeType, fileName, onClose }) {
+    const isImage = mimeType.startsWith('image/');
+    const isAudio = mimeType.startsWith('audio/');
+    const isVideo = mimeType.startsWith('video/');
+    const isPdf = mimeType === 'application/pdf';
+
+    return (
+        <div
+            className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 p-3 sm:p-6"
+            onClick={onClose}
+        >
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Preview: ${fileName || 'Evidence file'}`}
+                className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden border border-[#3A4859] bg-[#171D26] shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+            >
+                <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[#303A47] px-4 py-3 sm:px-5">
+                    <p className="min-w-0 break-all text-[13px] font-medium! text-[#EEF1F5]!">
+                        {fileName || 'Evidence preview'}
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Close preview"
+                        className="shrink-0 p-2 text-[#A0ADBD] transition-colors hover:text-white"
+                    >
+                        <X size={19} />
+                    </button>
+                </div>
+
+                <div className="min-h-50 flex-1 overflow-auto bg-[#10151D] p-3 sm:p-5">
+                    {isImage && (
+                        <div className="flex min-h-62.5 items-center justify-center">
+                            <img
+                                src={fileUrl}
+                                alt={fileName || 'Evidence'}
+                                className="max-h-[72vh] max-w-full object-contain"
+                            />
+                        </div>
+                    )}
+
+                    {isPdf && (
+                        <iframe
+                            src={fileUrl}
+                            title={fileName || 'Evidence PDF preview'}
+                            className="h-[72vh] w-full border-0 bg-white"
+                        />
+                    )}
+
+                    {isAudio && (
+                        <div className="flex min-h-62.5 items-center justify-center">
+                            <audio
+                                controls
+                                preload="metadata"
+                                src={fileUrl}
+                                className="w-full max-w-xl"
+                            >
+                                Your browser does not support audio playback.
+                            </audio>
+                        </div>
+                    )}
+
+                    {isVideo && (
+                        <div className="flex min-h-62.5 items-center justify-center">
+                            <video
+                                controls
+                                playsInline
+                                preload="metadata"
+                                src={fileUrl}
+                                className="max-h-[72vh] max-w-full"
+                            >
+                                Your browser does not support video playback.
+                            </video>
+                        </div>
+                    )}
+
+                    {!isImage && !isPdf && !isAudio && !isVideo && (
+                        <p className="py-12 text-center text-[13px] text-[#A0ADBD]">
+                            Preview is not available for this file type.
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// =========================================================
 // Secure evidence file viewing
 // =========================================================
 
 function EvidenceFileRow({ requestId, evidence }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [previewUrl, setPreviewUrl] = useState('');
+    const [previewType, setPreviewType] = useState('');
+
+    const mimeType = String(evidence.mime_type || '').toLowerCase();
+
+    const closePreview = () => {
+        setPreviewUrl('');
+        setPreviewType('');
+    };
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
     const handleView = async () => {
+        if (loading) return;
+
         try {
             setLoading(true);
             setError('');
 
-            const response = await getHelpRequestEvidenceUrl(
+            const blob = await getHelpRequestEvidencePreview(
                 requestId,
                 evidence.id,
             );
 
-            const url =
-                response?.url ||
-                response?.signed_url ||
-                response?.data?.url ||
-                response?.data?.signed_url;
+            const fileUrl = URL.createObjectURL(blob);
 
-            if (!url) {
-                throw new Error(
-                    'The secure evidence link could not be retrieved.',
-                );
+            // DOC and DOCX files use the download fallback.
+            if (
+                mimeType === 'application/msword' ||
+                mimeType ===
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ) {
+                const link = document.createElement('a');
+
+                link.href = fileUrl;
+                link.download = evidence.file_name || 'evidence';
+
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+
+                window.setTimeout(() => {
+                    URL.revokeObjectURL(fileUrl);
+                }, 1000);
+
+                return;
             }
 
-            window.open(url, '_blank', 'noopener,noreferrer');
+            setPreviewType(mimeType);
+            setPreviewUrl(fileUrl);
         } catch (err) {
-            setError(err?.message || 'Unable to open this evidence file.');
+            setError(err?.message || 'Unable to preview this evidence file.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="border-b border-[#303A47] py-3 last:border-b-0">
-            <div className="flex min-w-0 items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
-                    <Paperclip size={15} className="shrink-0 text-[#A0ADBD]" />
+        <>
+            <div className="border-b border-[#303A47] py-3 last:border-b-0">
+                <div className="flex min-w-0 items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <Paperclip
+                            size={15}
+                            className="shrink-0 text-[#A0ADBD]"
+                        />
 
-                    <div className="min-w-0">
-                        <p className="break-all text-[13px] font-medium! text-[#EEF1F5]!">
-                            {evidence.file_name || 'Evidence file'}
-                        </p>
+                        <div className="min-w-0">
+                            <p className="break-all text-[13px] font-medium! text-[#EEF1F5]!">
+                                {evidence.file_name || 'Evidence file'}
+                            </p>
 
-                        <p className="mt-1 text-[11px] text-[#A0ADBD]">
-                            {formatFileSize(evidence.file_size)}
-                            {evidence.created_at
-                                ? ` · ${formatDate(evidence.created_at)}`
-                                : ''}
-                        </p>
+                            <p className="mt-1 text-[11px] text-[#A0ADBD]">
+                                {formatFileSize(evidence.file_size)}
+                                {evidence.created_at
+                                    ? ` · ${formatDate(evidence.created_at)}`
+                                    : ''}
+                            </p>
+                        </div>
                     </div>
+
+                    <button
+                        type="button"
+                        onClick={handleView}
+                        disabled={loading}
+                        className="inline-flex min-h-9 shrink-0 items-center gap-2 border border-[#46566A] bg-[#263343] px-3 text-[12px] font-medium! text-[#EEF1F5]! transition-colors hover:bg-[#304155] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <Eye size={14} />
+                        {loading ? 'Loading...' : 'View'}
+                    </button>
                 </div>
 
-                <button
-                    type="button"
-                    onClick={handleView}
-                    disabled={loading}
-                    className="inline-flex min-h-9 shrink-0 items-center gap-2 border border-[#46566A] bg-[#263343] px-3 text-[12px] font-medium! text-[#EEF1F5]! transition-colors hover:bg-[#304155] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    <Eye size={14} />
-
-                    {loading ? 'Opening...' : 'View'}
-                </button>
+                {error && (
+                    <p role="alert" className="mt-2 text-[12px] text-[#D9A0A8]">
+                        {error}
+                    </p>
+                )}
             </div>
 
-            {error && (
-                <p className="mt-2 text-[12px] text-[#D9A0A8]">{error}</p>
+            {previewUrl && (
+                <EvidencePreviewModal
+                    fileUrl={previewUrl}
+                    mimeType={previewType}
+                    fileName={evidence.file_name}
+                    onClose={closePreview}
+                />
             )}
-        </div>
+        </>
     );
 }
 
@@ -359,7 +500,7 @@ function EvidenceRequestItem({
                 </span>
             </div>
 
-            <p className="mt-2 whitespace-pre-wrap break-words text-[13px] leading-6 text-[#C8D2DF]">
+            <p className="mt-2 whitespace-pre-wrap wrap-break-word text-[13px] leading-6 text-[#C8D2DF]">
                 {evidenceRequest.message}
             </p>
 
@@ -522,7 +663,7 @@ function RequestContent({ request, onEdit, onRefresh }) {
                             Help request #{request.id}
                         </p>
 
-                        <h2 className="break-words text-[20px] font-semibold! leading-snug text-[#EEF1F5]! sm:text-[24px]">
+                        <h2 className="wrap-break-word text-[20px] font-semibold! leading-snug text-[#EEF1F5]! sm:text-[24px]">
                             {request.title || 'Untitled request'}
                         </h2>
 
@@ -530,7 +671,7 @@ function RequestContent({ request, onEdit, onRefresh }) {
                             <span className="inline-flex min-w-0 items-center gap-2">
                                 <MapPin size={14} className="shrink-0" />
 
-                                <span className="break-words">
+                                <span className="wrap-break-word">
                                     {request.district || 'Location unavailable'}
                                 </span>
                             </span>
@@ -572,7 +713,7 @@ function RequestContent({ request, onEdit, onRefresh }) {
                         />
 
                         <div className="px-5 py-5 sm:px-6 sm:py-6">
-                            <p className="whitespace-pre-wrap break-words text-[14px] leading-7 text-[#D2DAE4]">
+                            <p className="whitespace-pre-wrap wrap-break-word text-[14px] leading-7 text-[#D2DAE4]">
                                 {request.description ||
                                     'No description provided.'}
                             </p>
@@ -695,7 +836,7 @@ function RequestContent({ request, onEdit, onRefresh }) {
                                             className="flex min-w-0 flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6"
                                         >
                                             <div className="min-w-0">
-                                                <p className="break-words text-[13px] font-semibold! text-[#EEF1F5]!">
+                                                <p className="wrap-break-word text-[13px] font-semibold! text-[#EEF1F5]!">
                                                     {name}
                                                 </p>
 

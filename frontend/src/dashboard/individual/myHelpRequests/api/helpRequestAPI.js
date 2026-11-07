@@ -1,5 +1,5 @@
 
-import { apiRequest } from '@/api/client';
+import { apiRequest, apiRequestBlob } from '@/api/client';
 
 // =========================================================
 // Get current user's help requests
@@ -104,6 +104,22 @@ export const getHelpRequestEvidenceUrl = async (
 ) => {
     return apiRequest(
         `/help-requests/${id}/evidences/${evidenceId}/view`,
+        {
+            method: 'GET',
+        },
+    );
+};
+
+// =========================================================
+// Get private evidence file for inline preview
+// =========================================================
+
+export const getHelpRequestEvidencePreview = async (
+    id,
+    evidenceId,
+) => {
+    return apiRequestBlob(
+        `/help-requests/${id}/evidences/${evidenceId}/preview`,
         {
             method: 'GET',
         },

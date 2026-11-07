@@ -1446,14 +1446,36 @@ class AdminController extends Controller
             ],
         ]);
 
-        $helpRequest = HelpRequest::findOrFail($id);
+        [$helpRequest, $evidenceRequest] = DB::transaction(function () use (
+            $id,
+            $admin,
+            $validated
+        ) {
+            $helpRequest = HelpRequest::where('id', $id)
+                ->lockForUpdate()
+                ->first();
 
-        $evidenceRequest = HelpRequestEvidenceRequest::create([
-            'help_request_id' => $helpRequest->id,
-            'requested_by' => $admin->id,
-            'message' => $validated['message'],
-            'status' => 'pending',
-        ]);
+            if (!$helpRequest) {
+                abort(response()->json([
+                    'message' => 'Help request not found.',
+                ], 404));
+            }
+
+            if ($helpRequest->status !== HelpRequest::STATUS_PENDING) {
+                abort(response()->json([
+                    'message' =>
+                    'Additional evidence can only be requested for pending help requests.',
+                ], 422));
+            }
+
+            $evidenceRequest = $helpRequest->evidenceRequests()->create([
+                'requested_by' => $admin->id,
+                'message' => $validated['message'],
+                'status' => 'pending',
+            ]);
+
+            return [$helpRequest, $evidenceRequest];
+        });
 
         if ($helpRequest->user) {
             $helpRequest->user->notify(
@@ -1631,21 +1653,6 @@ class AdminController extends Controller
             return $user;
         }
 
-        $helpRequest = HelpRequest::find($id);
-
-        if (!$helpRequest) {
-            return response()->json([
-                'message' => 'Help request not found.',
-            ], 404);
-        }
-
-        if ($helpRequest->status !== HelpRequest::STATUS_PENDING) {
-            return response()->json([
-                'message' =>
-                'Only pending help requests can be reviewed.',
-            ], 422);
-        }
-
         $validated = $request->validate([
             'status' => [
                 'required',
@@ -1659,12 +1666,31 @@ class AdminController extends Controller
             ],
         ]);
 
-        $helpRequest->update([
-            'status' => $validated['status'],
+        $helpRequest = DB::transaction(function () use ($id, $validated) {
+            $helpRequest = HelpRequest::where('id', $id)
+                ->lockForUpdate()
+                ->first();
 
-            'verification_note' =>
-            $validated['verification_note'] ?? null,
-        ]);
+            if (!$helpRequest) {
+                abort(response()->json([
+                    'message' => 'Help request not found.',
+                ], 404));
+            }
+
+            if ($helpRequest->status !== HelpRequest::STATUS_PENDING) {
+                abort(response()->json([
+                    'message' => 'Only pending help requests can be reviewed.',
+                ], 422));
+            }
+
+            $helpRequest->update([
+                'status' => $validated['status'],
+                'verification_note' =>
+                $validated['verification_note'] ?? null,
+            ]);
+
+            return $helpRequest;
+        });
 
         if ($helpRequest->user) {
             $title = $validated['status'] === HelpRequest::STATUS_VERIFIED

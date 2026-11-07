@@ -1,5 +1,5 @@
 
-import { apiRequest } from '@/api/client';
+import { apiRequest, apiRequestBlob } from '@/api/client';
 
 // --------------------------------
 // Help Requests - List
@@ -119,6 +119,22 @@ export const getHelpRequestEvidenceUrl = async (
 ) => {
     return apiRequest(
         `/help-requests/${helpRequestId}/evidences/${evidenceId}/view`,
+        {
+            method: 'GET',
+        },
+    );
+};
+
+// --------------------------------
+// Help Requests - Private Evidence Preview
+// --------------------------------
+
+export const getHelpRequestEvidencePreview = async (
+    helpRequestId,
+    evidenceId,
+) => {
+    return apiRequestBlob(
+        `/help-requests/${helpRequestId}/evidences/${evidenceId}/preview`,
         {
             method: 'GET',
         },

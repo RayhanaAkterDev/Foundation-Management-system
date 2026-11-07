@@ -619,6 +619,12 @@ class HelpRequestController extends Controller
             ], 403);
         }
 
+        if ($helpRequest->status !== HelpRequest::STATUS_PENDING) {
+            return response()->json([
+                'message' => 'Additional evidence can only be submitted for pending help requests.',
+            ], 422);
+        }
+
         $evidenceRequest = $helpRequest->evidenceRequests()
             ->where('id', $evidenceRequestId)
             ->where('status', 'pending')
@@ -653,7 +659,20 @@ class HelpRequestController extends Controller
                 $evidenceService,
                 &$uploadedFileIds
             ) {
-                $lockedEvidenceRequest = $helpRequest->evidenceRequests()
+                $lockedHelpRequest = HelpRequest::where('id', $helpRequest->id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (
+                    !$lockedHelpRequest ||
+                    $lockedHelpRequest->status !== HelpRequest::STATUS_PENDING
+                ) {
+                    throw new \RuntimeException(
+                        'Additional evidence can only be submitted for pending help requests.'
+                    );
+                }
+
+                $lockedEvidenceRequest = $lockedHelpRequest->evidenceRequests()
                     ->where('id', $evidenceRequestId)
                     ->where('status', 'pending')
                     ->lockForUpdate()
@@ -792,6 +811,125 @@ class HelpRequestController extends Controller
 
             return response()->json([
                 'message' => 'Unable to generate the evidence viewing link.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Stream private Help Request evidence for inline preview.
+     *
+     * Admins can preview all evidence.
+     * Individuals can preview evidence belonging to their own requests.
+     */
+    public function previewEvidence(
+        Request $request,
+        int $id,
+        int $evidenceId,
+        HelpRequestEvidenceService $evidenceService
+    ) {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        $isAdmin = $user->role === 'admin';
+
+        $isOwner = (
+            $user->role === 'individual' &&
+            $helpRequest->user_id === $user->id
+        );
+
+        if (!$isAdmin && !$isOwner) {
+            return response()->json([
+                'message' => 'You are not authorized to view this evidence.',
+            ], 403);
+        }
+
+        $evidence = HelpRequestEvidence::where(
+            'help_request_id',
+            $helpRequest->id
+        )->find($evidenceId);
+
+        if (!$evidence) {
+            return response()->json([
+                'message' => 'Evidence file not found.',
+            ], 404);
+        }
+
+        $allowedMimeTypes = HelpRequestEvidenceRules::ALLOWED_MIME_TYPES;
+
+        $mimeType = strtolower(
+            trim($evidence->mime_type ?: 'application/octet-stream')
+        );
+
+        if (!in_array($mimeType, $allowedMimeTypes, true)) {
+            return response()->json([
+                'message' => 'This evidence file type is not supported.',
+            ], 415);
+        }
+
+        $previewableMimeTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'application/pdf',
+            'audio/mpeg',
+            'audio/wav',
+            'audio/x-wav',
+            'audio/mp4',
+            'audio/x-m4a',
+            'video/mp4',
+            'video/quicktime',
+        ];
+
+        $isPreviewable = in_array(
+            $mimeType,
+            $previewableMimeTypes,
+            true
+        );
+
+        $fileName = basename($evidence->file_name ?: 'evidence');
+
+        $fileName = str_replace(
+            ["\r", "\n", '"'],
+            '',
+            $fileName
+        );
+
+        try {
+            $file = $evidenceService->getPrivateFileContents(
+                $evidence->file_path
+            );
+
+            return response(
+                $file['contents'],
+                200,
+                [
+                    'Content-Type' => $mimeType,
+                    'Content-Disposition' => ($isPreviewable ? 'inline' : 'attachment') .
+                        "; filename*=UTF-8''" . rawurlencode($fileName),
+                    'Content-Length' => strlen($file['contents']),
+                    'Cache-Control' => 'private, no-store, max-age=0',
+                    'Pragma' => 'no-cache',
+                    'X-Content-Type-Options' => 'nosniff',
+                ]
+            );
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'message' => 'Unable to retrieve the evidence file.',
             ], 500);
         }
     }

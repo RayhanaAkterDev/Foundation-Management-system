@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     AlertCircle,
     FileText,
@@ -8,14 +8,15 @@ import {
     Send,
     Video,
     LoaderCircle,
-    ExternalLink,
     Clock3,
     CheckCircle2,
+    Eye,
+    X,
 } from 'lucide-react';
 
 import {
     requestAdditionalEvidence,
-    getHelpRequestEvidenceUrl,
+    getHelpRequestEvidencePreview,
 } from '../api/helpRequestAPI';
 
 const PANEL = 'min-w-0 overflow-hidden border border-[#303A47] bg-[#171D26]';
@@ -92,11 +93,125 @@ function SectionHeader({ title, subtitle, count }) {
     );
 }
 
+// =========================================================
+// Evidence preview modal
+// =========================================================
+
+function EvidencePreviewModal({ fileUrl, mimeType, fileName, onClose }) {
+    const isImage = mimeType.startsWith('image/');
+    const isAudio = mimeType.startsWith('audio/');
+    const isVideo = mimeType.startsWith('video/');
+    const isPdf = mimeType === 'application/pdf';
+
+    return (
+        <div
+            className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 p-3 sm:p-6"
+            onClick={onClose}
+        >
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Preview: ${fileName || 'Evidence file'}`}
+                className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden border border-[#3A4859] bg-[#171D26] shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+            >
+                <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[#303A47] px-4 py-3 sm:px-5">
+                    <p className="min-w-0 break-all text-[13px] font-medium! text-[#EEF1F5]!">
+                        {fileName || 'Evidence preview'}
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Close preview"
+                        className="shrink-0 p-2 text-[#A0ADBD] transition-colors hover:text-white"
+                    >
+                        <X size={19} />
+                    </button>
+                </div>
+
+                <div className="min-h-50 flex-1 overflow-auto bg-[#10151D] p-3 sm:p-5">
+                    {isImage && (
+                        <div className="flex min-h-62.5 items-center justify-center">
+                            <img
+                                src={fileUrl}
+                                alt={fileName || 'Evidence'}
+                                className="max-h-[72vh] max-w-full object-contain"
+                            />
+                        </div>
+                    )}
+
+                    {isPdf && (
+                        <iframe
+                            src={fileUrl}
+                            title={fileName || 'Evidence PDF preview'}
+                            className="h-[72vh] w-full border-0 bg-white"
+                        />
+                    )}
+
+                    {isAudio && (
+                        <div className="flex min-h-62.5 items-center justify-center">
+                            <audio
+                                controls
+                                preload="metadata"
+                                src={fileUrl}
+                                className="w-full max-w-xl"
+                            >
+                                Your browser does not support audio playback.
+                            </audio>
+                        </div>
+                    )}
+
+                    {isVideo && (
+                        <div className="flex min-h-62.5 items-center justify-center">
+                            <video
+                                controls
+                                playsInline
+                                preload="metadata"
+                                src={fileUrl}
+                                className="max-h-[72vh] max-w-full"
+                            >
+                                Your browser does not support video playback.
+                            </video>
+                        </div>
+                    )}
+
+                    {!isImage && !isPdf && !isAudio && !isVideo && (
+                        <p className="py-12 text-center text-[13px] text-[#A0ADBD]">
+                            Preview is not available for this file type.
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// =========================================================
+// Secure evidence file viewing
+// =========================================================
+
 function EvidenceFileRow({ requestId, evidence }) {
     const [opening, setOpening] = useState(false);
     const [error, setError] = useState('');
+    const [previewUrl, setPreviewUrl] = useState('');
+    const [previewType, setPreviewType] = useState('');
 
-    const iconType = getFileIcon(evidence.mime_type || '');
+    const mimeType = String(evidence.mime_type || '').toLowerCase();
+    const iconType = getFileIcon(mimeType);
+
+    const closePreview = () => {
+        setPreviewUrl('');
+        setPreviewType('');
+    };
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
     const handleOpen = async () => {
         if (opening) return;
@@ -105,88 +220,117 @@ function EvidenceFileRow({ requestId, evidence }) {
         setError('');
 
         try {
-            const response = await getHelpRequestEvidenceUrl(
+            const blob = await getHelpRequestEvidencePreview(
                 requestId,
                 evidence.id,
             );
 
-            const url =
-                response?.url ||
-                response?.signed_url ||
-                response?.data?.url ||
-                response?.data?.signed_url;
+            const fileUrl = URL.createObjectURL(blob);
 
-            if (!url) {
-                throw new Error('Secure evidence URL was not returned.');
+            // DOC and DOCX files use the download fallback.
+            if (
+                mimeType === 'application/msword' ||
+                mimeType ===
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ) {
+                const link = document.createElement('a');
+
+                link.href = fileUrl;
+                link.download = evidence.file_name || 'evidence';
+
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+
+                window.setTimeout(() => {
+                    URL.revokeObjectURL(fileUrl);
+                }, 1000);
+
+                return;
             }
 
-            window.open(url, '_blank', 'noopener,noreferrer');
+            setPreviewType(mimeType);
+            setPreviewUrl(fileUrl);
         } catch (err) {
-            setError(err?.message || 'Unable to open this evidence file.');
+            setError(err?.message || 'Unable to preview this evidence file.');
         } finally {
             setOpening(false);
         }
     };
 
     return (
-        <div className="min-w-0 border-b border-[#303A47] py-4 last:border-b-0">
-            <div className="flex min-w-0 items-start gap-3">
-                <span className="flex size-9 shrink-0 items-center justify-center border border-[#3A495B] bg-[#253242] text-[#B7C8D9]">
-                    {iconType === 'image' && (
-                        <Image size={17} strokeWidth={1.7} />
-                    )}
-                    {iconType === 'audio' && (
-                        <Music size={17} strokeWidth={1.7} />
-                    )}
-                    {iconType === 'video' && (
-                        <Video size={17} strokeWidth={1.7} />
-                    )}
-                    {iconType === 'document' && (
-                        <FileText size={17} strokeWidth={1.7} />
-                    )}
-                </span>
+        <>
+            <div className="min-w-0 border-b border-[#303A47] py-4 last:border-b-0">
+                <div className="flex min-w-0 items-start gap-3">
+                    <span className="flex size-9 shrink-0 items-center justify-center border border-[#3A495B] bg-[#253242] text-[#B7C8D9]">
+                        {iconType === 'image' && (
+                            <Image size={17} strokeWidth={1.7} />
+                        )}
 
-                <div className="min-w-0 flex-1">
-                    <p className="m-0! wrap-break-word text-[13px] font-medium text-[#E5ECF3]">
-                        {show(evidence.file_name, 'Evidence file')}
-                    </p>
+                        {iconType === 'audio' && (
+                            <Music size={17} strokeWidth={1.7} />
+                        )}
 
-                    <p className="mt-1 mb-0! text-[11px] leading-5 text-[#93A4B6]">
-                        {show(evidence.mime_type, 'Unknown format')}
-                        {' · '}
-                        {formatSize(evidence.file_size)}
-                        {' · '}
-                        {formatDate(evidence.created_at)}
-                    </p>
+                        {iconType === 'video' && (
+                            <Video size={17} strokeWidth={1.7} />
+                        )}
 
-                    {error && (
-                        <p
-                            role="alert"
-                            className="mt-2 mb-0! text-[12px] text-[#E9B8BD]"
-                        >
-                            {error}
-                        </p>
-                    )}
-                </div>
-
-                <button
-                    type="button"
-                    onClick={handleOpen}
-                    disabled={opening}
-                    className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 border border-[#43556A] bg-[#263444] px-3 text-[12px] font-medium text-[#E4EBF3] transition-colors hover:bg-[#34465A] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                    {opening ? (
-                        <LoaderCircle size={14} className="animate-spin" />
-                    ) : (
-                        <ExternalLink size={14} />
-                    )}
-
-                    <span className="hidden sm:inline">
-                        {opening ? 'Opening...' : 'View'}
+                        {iconType === 'document' && (
+                            <FileText size={17} strokeWidth={1.7} />
+                        )}
                     </span>
-                </button>
+
+                    <div className="min-w-0 flex-1">
+                        <p className="m-0! wrap-break-word text-[13px] font-medium text-[#E5ECF3]">
+                            {show(evidence.file_name, 'Evidence file')}
+                        </p>
+
+                        <p className="mt-1 mb-0! text-[11px] leading-5 text-[#93A4B6]">
+                            {show(evidence.mime_type, 'Unknown format')}
+                            {' · '}
+                            {formatSize(evidence.file_size)}
+                            {' · '}
+                            {formatDate(evidence.created_at)}
+                        </p>
+
+                        {error && (
+                            <p
+                                role="alert"
+                                className="mt-2 mb-0! text-[12px] text-[#E9B8BD]"
+                            >
+                                {error}
+                            </p>
+                        )}
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleOpen}
+                        disabled={opening}
+                        className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 border border-[#43556A] bg-[#263444] px-3 text-[12px] font-medium text-[#E4EBF3] transition-colors hover:bg-[#34465A] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        {opening ? (
+                            <LoaderCircle size={14} className="animate-spin" />
+                        ) : (
+                            <Eye size={14} />
+                        )}
+
+                        <span className="hidden sm:inline">
+                            {opening ? 'Loading...' : 'View'}
+                        </span>
+                    </button>
+                </div>
             </div>
-        </div>
+
+            {previewUrl && (
+                <EvidencePreviewModal
+                    fileUrl={previewUrl}
+                    mimeType={previewType}
+                    fileName={evidence.file_name}
+                    onClose={closePreview}
+                />
+            )}
+        </>
     );
 }
 
@@ -228,7 +372,10 @@ function EvidenceRequestItem({ item, requestId, evidences }) {
         (evidence) => Number(evidence.evidence_request_id) === Number(item.id),
     );
 
-    const submitted = item.status === 'submitted';
+    const submitted =
+        String(item.status || '')
+            .trim()
+            .toLowerCase() === 'submitted';
 
     return (
         <article className="border border-[#344150] bg-[#151D27] px-4 py-4 sm:px-5">
@@ -292,6 +439,13 @@ export default function HelpRequestEvidenceSection({ request, onUpdated }) {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    // Normalize the status so case differences or extra spaces
+    // do not prevent the admin evidence request form from appearing.
+    const isPending =
+        String(request.status || '')
+            .trim()
+            .toLowerCase() === 'pending';
+
     const evidences = Array.isArray(request.evidences) ? request.evidences : [];
 
     const originalEvidences = evidences.filter(
@@ -329,6 +483,7 @@ export default function HelpRequestEvidenceSection({ request, onUpdated }) {
 
             setMessage('');
             setSuccess('Additional evidence request sent successfully.');
+
             onUpdated?.();
         } catch (err) {
             setError(
@@ -388,91 +543,96 @@ export default function HelpRequestEvidenceSection({ request, onUpdated }) {
                     )}
                 </div>
 
-                <div className="border-t border-[#303A47] pt-6">
-                    <h3 className="m-0! font-sans! text-[13px]! font-semibold! text-[#E1E9F1]!">
-                        Request additional evidence
-                    </h3>
+                {isPending && (
+                    <div className="border-t border-[#303A47] pt-6">
+                        <h3 className="m-0! font-sans! text-[13px]! font-semibold! text-[#E1E9F1]!">
+                            Request additional evidence
+                        </h3>
 
-                    <p className="mt-2 mb-0! text-[12px] leading-5 text-[#98A8BA]">
-                        Explain what further information or documents the
-                        requester needs to provide. This will not change the
-                        help request's verification or overall status.
-                    </p>
+                        <p className="mt-2 mb-0! text-[12px] leading-5 text-[#98A8BA]">
+                            Explain what further information or documents the
+                            requester needs to provide. This will not change the
+                            help request's verification or overall status.
+                        </p>
 
-                    {(error || success) && (
-                        <div
-                            role={error ? 'alert' : 'status'}
-                            className={`mt-4 flex items-start gap-2 border px-4 py-3 text-[12px] leading-5 ${
-                                error
-                                    ? 'border-[#75464C] bg-[#322126] text-[#E9B8BD]'
-                                    : 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]'
-                            }`}
-                        >
-                            {error ? (
-                                <AlertCircle
-                                    size={15}
-                                    className="mt-0.5 shrink-0"
-                                />
-                            ) : (
-                                <CheckCircle2
-                                    size={15}
-                                    className="mt-0.5 shrink-0"
-                                />
-                            )}
-
-                            <span>{error || success}</span>
-                        </div>
-                    )}
-
-                    <form onSubmit={handleSubmit} className="mt-4 space-y-3">
-                        <label
-                            htmlFor="additional-evidence-message"
-                            className="block text-[12px] font-medium text-[#AAB8C7]"
-                        >
-                            Message to requester
-                        </label>
-
-                        <textarea
-                            id="additional-evidence-message"
-                            value={message}
-                            onChange={(event) => {
-                                setMessage(event.target.value);
-                                setError('');
-                                setSuccess('');
-                            }}
-                            rows={4}
-                            maxLength={5000}
-                            disabled={sending}
-                            placeholder="Describe the additional evidence required..."
-                            className="block w-full min-w-0 resize-y border border-[#394858] bg-[#101720] px-3.5 py-3 text-[13px] leading-6 text-[#E1E8F0] outline-none placeholder:text-[#718196] focus:border-[#637489] disabled:cursor-not-allowed disabled:opacity-60"
-                        />
-
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <span className="text-[11px] tabular-nums text-[#8496A9]">
-                                {message.length}/5000 characters
-                            </span>
-
-                            <button
-                                type="submit"
-                                disabled={sending || !message.trim()}
-                                className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#586678] bg-[#2B3949] px-4 text-[12px] font-semibold text-[#EEF1F5] transition-colors hover:bg-[#37495D] disabled:cursor-not-allowed disabled:opacity-50"
+                        {(error || success) && (
+                            <div
+                                role={error ? 'alert' : 'status'}
+                                className={`mt-4 flex items-start gap-2 border px-4 py-3 text-[12px] leading-5 ${
+                                    error
+                                        ? 'border-[#75464C] bg-[#322126] text-[#E9B8BD]'
+                                        : 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]'
+                                }`}
                             >
-                                {sending ? (
-                                    <LoaderCircle
+                                {error ? (
+                                    <AlertCircle
                                         size={15}
-                                        className="animate-spin"
+                                        className="mt-0.5 shrink-0"
                                     />
                                 ) : (
-                                    <Send size={14} />
+                                    <CheckCircle2
+                                        size={15}
+                                        className="mt-0.5 shrink-0"
+                                    />
                                 )}
 
-                                {sending
-                                    ? 'Sending...'
-                                    : 'Send evidence request'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                                <span>{error || success}</span>
+                            </div>
+                        )}
+
+                        <form
+                            onSubmit={handleSubmit}
+                            className="mt-4 space-y-3"
+                        >
+                            <label
+                                htmlFor="additional-evidence-message"
+                                className="block text-[12px] font-medium text-[#AAB8C7]"
+                            >
+                                Message to requester
+                            </label>
+
+                            <textarea
+                                id="additional-evidence-message"
+                                value={message}
+                                onChange={(event) => {
+                                    setMessage(event.target.value);
+                                    setError('');
+                                    setSuccess('');
+                                }}
+                                rows={4}
+                                maxLength={5000}
+                                disabled={sending}
+                                placeholder="Describe the additional evidence required..."
+                                className="block w-full min-w-0 resize-y border border-[#394858] bg-[#101720] px-3.5 py-3 text-[13px] leading-6 text-[#E1E8F0] outline-none placeholder:text-[#718196] focus:border-[#637489] disabled:cursor-not-allowed disabled:opacity-60"
+                            />
+
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <span className="text-[11px] tabular-nums text-[#8496A9]">
+                                    {message.length}/5000 characters
+                                </span>
+
+                                <button
+                                    type="submit"
+                                    disabled={sending || !message.trim()}
+                                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#586678] bg-[#2B3949] px-4 text-[12px] font-semibold text-[#EEF1F5] transition-colors hover:bg-[#37495D] disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {sending ? (
+                                        <LoaderCircle
+                                            size={15}
+                                            className="animate-spin"
+                                        />
+                                    ) : (
+                                        <Send size={14} />
+                                    )}
+
+                                    {sending
+                                        ? 'Sending...'
+                                        : 'Send evidence request'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
             </div>
         </section>
     );

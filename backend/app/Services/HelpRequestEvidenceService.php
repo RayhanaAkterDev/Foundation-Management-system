@@ -4,6 +4,7 @@ namespace App\Services;
 
 use ImageKit\ImageKit;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use RuntimeException;
 
@@ -114,6 +115,27 @@ class HelpRequestEvidenceService
         }
 
         return $url;
+    }
+
+    /**
+     * Retrieve a private evidence file through its temporary signed URL.
+     */
+    public function getPrivateFileContents(string $filePath): array
+    {
+        $signedUrl = $this->generateSignedUrl($filePath);
+
+        $response = Http::timeout(60)->get($signedUrl);
+
+        if (!$response->successful()) {
+            throw new RuntimeException(
+                'Unable to retrieve the private evidence file.'
+            );
+        }
+
+        return [
+            'contents' => $response->body(),
+            'content_type' => $response->header('Content-Type'),
+        ];
     }
 
     /**

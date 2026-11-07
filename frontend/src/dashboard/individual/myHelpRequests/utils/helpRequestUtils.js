@@ -11,8 +11,19 @@ export const normalizeHelpRequest = (request) => {
 
     const verificationNote = request.verification_note || '';
 
+    const evidenceRequests = Array.isArray(request.evidence_requests)
+        ? request.evidence_requests
+        : Array.isArray(request.evidenceRequests)
+          ? request.evidenceRequests
+          : [];
+
+    const evidences = Array.isArray(request.evidences)
+        ? request.evidences
+        : [];
+
     return {
         ...request,
+
         title: request.title || '',
         description: request.description || '',
         category: request.category || '',
@@ -20,17 +31,31 @@ export const normalizeHelpRequest = (request) => {
         district: request.district || '',
         address: request.address || '',
         status: request.status || '',
+
         verification_note: verificationNote,
         verificationNote,
         notes: verificationNote,
+
         assignments: Array.isArray(request.assignments)
             ? request.assignments
             : [],
+
+        // Normalize both backend snake_case and frontend camelCase.
+        evidenceRequests: evidenceRequests.map((item) => ({
+            ...item,
+            status: String(item?.status || 'pending')
+                .trim()
+                .toLowerCase(),
+        })),
+
+        evidences,
     };
 };
 
 export const normalizeHelpRequests = (requests) =>
-    Array.isArray(requests) ? requests.map(normalizeHelpRequest) : [];
+    Array.isArray(requests)
+        ? requests.map(normalizeHelpRequest)
+        : [];
 
 export const getStatusLabel = (status) =>
     STATUS_LABELS[status] || status || '—';
@@ -54,8 +79,12 @@ export const getAssignmentInfo = (request) => {
 
     const sortedAssignments = [...assignments].sort(
         (a, b) =>
-            (b?.assigned_at ? new Date(b.assigned_at).getTime() : 0) -
-            (a?.assigned_at ? new Date(a.assigned_at).getTime() : 0),
+            (b?.assigned_at
+                ? new Date(b.assigned_at).getTime()
+                : 0) -
+            (a?.assigned_at
+                ? new Date(a.assigned_at).getTime()
+                : 0),
     );
 
     const currentAssignment = sortedAssignments[0];

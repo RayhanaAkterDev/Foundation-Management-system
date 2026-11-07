@@ -545,6 +545,11 @@ Route::middleware('auth:sanctum')->group(function () {
         '/help-requests/{id}/evidences/{evidenceId}/view',
         [HelpRequestController::class, 'viewEvidence']
     );
+
+    Route::get(
+        '/help-requests/{id}/evidences/{evidenceId}/preview',
+        [HelpRequestController::class, 'previewEvidence']
+    );
 });
 
 // =============================================================

@@ -18,7 +18,6 @@ export const apiRequest = async (url, options = {}) => {
         ...(options.headers || {}),
     };
 
-    // Attach authentication only when a token exists.
     if (token) {
         headers.Authorization = `Bearer ${token}`;
     }
@@ -26,12 +25,10 @@ export const apiRequest = async (url, options = {}) => {
     let body = options.body;
 
     if (isFormData) {
-        // Let the browser set the multipart boundary.
         delete headers['Content-Type'];
     } else if (body !== undefined && body !== null) {
         headers['Content-Type'] = 'application/json';
 
-        // Convert JS objects into JSON before sending.
         if (typeof body !== 'string') {
             body = JSON.stringify(body);
         }
@@ -79,4 +76,56 @@ export const apiRequest = async (url, options = {}) => {
     }
 
     return data;
+};
+
+// =========================================================
+// Authenticated binary response (private file preview)
+// =========================================================
+
+export const apiRequestBlob = async (url, options = {}) => {
+    const token = getToken();
+
+    const headers = {
+        Accept: '*/*',
+        ...(options.headers || {}),
+    };
+
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}${url}`, {
+        ...options,
+        headers,
+    });
+
+    if (!response.ok) {
+        const contentType =
+            response.headers.get('content-type') || '';
+
+        let message = 'Unable to retrieve the file.';
+
+        try {
+            if (contentType.includes('application/json')) {
+                const data = await response.json();
+                message = data?.message || message;
+            } else {
+                const responseText = await response.text();
+
+                if (responseText.trim()) {
+                    message = responseText;
+                }
+            }
+        } catch {
+            // Keep the default error message.
+        }
+
+        const error = new Error(message);
+
+        error.status = response.status;
+
+        throw error;
+    }
+
+    return response.blob();
 };

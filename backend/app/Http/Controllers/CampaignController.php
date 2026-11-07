@@ -442,7 +442,7 @@ class CampaignController extends Controller
                         new PlatformNotification(
                             'Campaign created for your help request',
                             "An organization has created the campaign \"{$campaign->title}\" to support your help request \"{$helpRequest->title}\". It is waiting for admin review.",
-                            '/individual/dashboard/help-requests',
+                            "/individual/dashboard/help-requests/{$helpRequest->id}",
                             'campaign'
                         )
                     );

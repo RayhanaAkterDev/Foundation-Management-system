@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
+
 import {
     AlertCircle,
+    CheckCircle2,
+    Clock3,
+    Eye,
     FileText,
     Image,
+    LoaderCircle,
     Music,
     Paperclip,
     Send,
     Video,
-    LoaderCircle,
-    Clock3,
-    CheckCircle2,
-    Eye,
     X,
 } from 'lucide-react';
 
@@ -19,7 +20,7 @@ import {
     getHelpRequestEvidencePreview,
 } from '../api/helpRequestAPI';
 
-const PANEL = 'min-w-0 overflow-hidden border border-[#303A47] bg-[#171D26]';
+const PANEL = 'min-w-0 border border-[#303A47] bg-[#171D26]';
 
 function show(value, fallback = 'Not provided') {
     if (value === null || value === undefined) return fallback;
@@ -32,7 +33,9 @@ function formatSize(bytes) {
     const size = Number(bytes);
 
     if (!Number.isFinite(size) || size < 0) return 'Unknown size';
+
     if (size < 1024) return `${size} B`;
+
     if (size < 1024 * 1024) {
         return `${(size / 1024).toFixed(1)} KB`;
     }
@@ -60,24 +63,41 @@ function getFileIcon(mimeType = '') {
     if (mimeType.startsWith('image/')) return 'image';
     if (mimeType.startsWith('audio/')) return 'audio';
     if (mimeType.startsWith('video/')) return 'video';
+
     return 'document';
+}
+
+function FileIcon({ type }) {
+    const Icon =
+        type === 'image'
+            ? Image
+            : type === 'audio'
+              ? Music
+              : type === 'video'
+                ? Video
+                : FileText;
+
+    return <Icon size={18} strokeWidth={1.7} />;
 }
 
 function SectionHeader({ title, subtitle, count }) {
     return (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#344150] bg-[#202B38] px-5 py-4 sm:px-7">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#344150] bg-[#202B38] px-4 py-4 sm:px-6">
             <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-8 shrink-0 items-center justify-center border border-[#3A495B] bg-[#273646] text-[#C3D0DE]">
+                <span className="flex size-9 shrink-0 items-center justify-center border border-[#3A495B] bg-[#273646] text-[#C3D0DE]">
                     <Paperclip size={16} strokeWidth={1.8} />
                 </span>
 
                 <div className="min-w-0">
-                    <h2 className="m-0! font-sans! text-[14px]! font-semibold! text-[#EEF1F5]!">
+                    <h2
+                        className="m-0! font-sans! text-[14px]! font-semibold! leading-5!"
+                        style={{ color: '#EEF1F5' }}
+                    >
                         {title}
                     </h2>
 
                     {subtitle && (
-                        <p className="mt-1 mb-0! text-[12px] leading-5 text-[#9AAABD]">
+                        <p className="mt-1 mb-0! text-[11px] leading-5 text-[#9AAABD]">
                             {subtitle}
                         </p>
                     )}
@@ -85,17 +105,17 @@ function SectionHeader({ title, subtitle, count }) {
             </div>
 
             {count !== undefined && (
-                <span className="border border-[#435064] bg-[#293747] px-2.5 py-1 text-[12px] font-medium tabular-nums text-[#D4DFEA]">
-                    {count}
+                <span className="border border-[#435064] bg-[#293747] px-2.5 py-1 text-[11px] font-medium tabular-nums text-[#D4DFEA]">
+                    {count} {count === 1 ? 'file' : 'files'}
                 </span>
             )}
         </div>
     );
 }
 
-// =========================================================
-// Evidence preview modal
-// =========================================================
+/* =========================================================
+   EVIDENCE PREVIEW
+========================================================= */
 
 function EvidencePreviewModal({ fileUrl, mimeType, fileName, onClose }) {
     const isImage = mimeType.startsWith('image/');
@@ -105,7 +125,7 @@ function EvidencePreviewModal({ fileUrl, mimeType, fileName, onClose }) {
 
     return (
         <div
-            className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 p-3 sm:p-6"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-3 sm:p-6"
             onClick={onClose}
         >
             <div
@@ -116,9 +136,15 @@ function EvidencePreviewModal({ fileUrl, mimeType, fileName, onClose }) {
                 onClick={(event) => event.stopPropagation()}
             >
                 <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[#303A47] px-4 py-3 sm:px-5">
-                    <p className="min-w-0 break-all text-[13px] font-medium! text-[#EEF1F5]!">
-                        {fileName || 'Evidence preview'}
-                    </p>
+                    <div className="flex min-w-0 items-center gap-3">
+                        <FileText
+                            size={16}
+                            className="shrink-0 text-[#9CB0C5]"
+                        />
+                        <p className="m-0! min-w-0 break-all text-[13px] font-medium text-[#EEF1F5]">
+                            {fileName || 'Evidence preview'}
+                        </p>
+                    </div>
 
                     <button
                         type="button"
@@ -130,9 +156,9 @@ function EvidencePreviewModal({ fileUrl, mimeType, fileName, onClose }) {
                     </button>
                 </div>
 
-                <div className="min-h-50 flex-1 overflow-auto bg-[#10151D] p-3 sm:p-5">
+                <div className="min-h-[200px] flex-1 overflow-auto bg-[#10151D] p-3 sm:p-5">
                     {isImage && (
-                        <div className="flex min-h-62.5 items-center justify-center">
+                        <div className="flex min-h-[250px] items-center justify-center">
                             <img
                                 src={fileUrl}
                                 alt={fileName || 'Evidence'}
@@ -150,7 +176,7 @@ function EvidencePreviewModal({ fileUrl, mimeType, fileName, onClose }) {
                     )}
 
                     {isAudio && (
-                        <div className="flex min-h-62.5 items-center justify-center">
+                        <div className="flex min-h-[250px] items-center justify-center">
                             <audio
                                 controls
                                 preload="metadata"
@@ -163,7 +189,7 @@ function EvidencePreviewModal({ fileUrl, mimeType, fileName, onClose }) {
                     )}
 
                     {isVideo && (
-                        <div className="flex min-h-62.5 items-center justify-center">
+                        <div className="flex min-h-[250px] items-center justify-center">
                             <video
                                 controls
                                 playsInline
@@ -187,9 +213,9 @@ function EvidencePreviewModal({ fileUrl, mimeType, fileName, onClose }) {
     );
 }
 
-// =========================================================
-// Secure evidence file viewing
-// =========================================================
+/* =========================================================
+   EVIDENCE FILE ROW
+========================================================= */
 
 function EvidenceFileRow({ requestId, evidence }) {
     const [opening, setOpening] = useState(false);
@@ -260,37 +286,25 @@ function EvidenceFileRow({ requestId, evidence }) {
 
     return (
         <>
-            <div className="min-w-0 border-b border-[#303A47] py-4 last:border-b-0">
-                <div className="flex min-w-0 items-start gap-3">
-                    <span className="flex size-9 shrink-0 items-center justify-center border border-[#3A495B] bg-[#253242] text-[#B7C8D9]">
-                        {iconType === 'image' && (
-                            <Image size={17} strokeWidth={1.7} />
-                        )}
-
-                        {iconType === 'audio' && (
-                            <Music size={17} strokeWidth={1.7} />
-                        )}
-
-                        {iconType === 'video' && (
-                            <Video size={17} strokeWidth={1.7} />
-                        )}
-
-                        {iconType === 'document' && (
-                            <FileText size={17} strokeWidth={1.7} />
-                        )}
+            <article className="group flex min-w-0 flex-col gap-3 border-b border-[#303A47] py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-3.5">
+                    <span className="flex size-10 shrink-0 items-center justify-center border border-[#3A495B] bg-[#253242] text-[#B7C8D9] transition-colors group-hover:bg-[#304256]">
+                        <FileIcon type={iconType} />
                     </span>
 
-                    <div className="min-w-0 flex-1">
-                        <p className="m-0! wrap-break-word text-[13px] font-medium text-[#E5ECF3]">
+                    <div className="min-w-0">
+                        <p className="m-0! break-all text-[13px] font-semibold text-[#E5ECF3]">
                             {show(evidence.file_name, 'Evidence file')}
                         </p>
 
-                        <p className="mt-1 mb-0! text-[11px] leading-5 text-[#93A4B6]">
-                            {show(evidence.mime_type, 'Unknown format')}
-                            {' · '}
-                            {formatSize(evidence.file_size)}
-                            {' · '}
-                            {formatDate(evidence.created_at)}
+                        <p className="mt-1 mb-0! flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] leading-5 text-[#93A4B6]">
+                            <span>
+                                {show(evidence.mime_type, 'Unknown format')}
+                            </span>
+                            <span className="text-[#526477]">·</span>
+                            <span>{formatSize(evidence.file_size)}</span>
+                            <span className="text-[#526477]">·</span>
+                            <span>{formatDate(evidence.created_at)}</span>
                         </p>
 
                         {error && (
@@ -302,25 +316,23 @@ function EvidenceFileRow({ requestId, evidence }) {
                             </p>
                         )}
                     </div>
-
-                    <button
-                        type="button"
-                        onClick={handleOpen}
-                        disabled={opening}
-                        className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 border border-[#43556A] bg-[#263444] px-3 text-[12px] font-medium text-[#E4EBF3] transition-colors hover:bg-[#34465A] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                        {opening ? (
-                            <LoaderCircle size={14} className="animate-spin" />
-                        ) : (
-                            <Eye size={14} />
-                        )}
-
-                        <span className="hidden sm:inline">
-                            {opening ? 'Loading...' : 'View'}
-                        </span>
-                    </button>
                 </div>
-            </div>
+
+                <button
+                    type="button"
+                    onClick={handleOpen}
+                    disabled={opening}
+                    className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 self-start border border-[#43556A] bg-[#263444] px-3.5 text-[11px] font-semibold text-[#E4EBF3] transition-colors hover:bg-[#34465A] disabled:cursor-not-allowed disabled:opacity-60 sm:self-center"
+                >
+                    {opening ? (
+                        <LoaderCircle size={14} className="animate-spin" />
+                    ) : (
+                        <Eye size={14} />
+                    )}
+
+                    {opening ? 'Loading...' : 'Preview'}
+                </button>
+            </article>
 
             {previewUrl && (
                 <EvidencePreviewModal
@@ -334,26 +346,33 @@ function EvidenceFileRow({ requestId, evidence }) {
     );
 }
 
+/* =========================================================
+   EVIDENCE GROUP
+========================================================= */
+
 function EvidenceGroup({ title, evidences, requestId, emptyMessage }) {
     return (
-        <div>
-            <div className="flex items-center justify-between gap-3">
-                <h3 className="m-0! font-sans! text-[13px]! font-semibold! text-[#E1E9F1]!">
+        <section className="min-w-0">
+            <div className="flex items-center justify-between gap-3 border-b border-[#344150] pb-3">
+                <h3
+                    className="m-0! font-sans! text-[13px]! font-semibold!"
+                    style={{ color: '#E1E9F1' }}
+                >
                     {title}
                 </h3>
 
-                <span className="text-[12px] tabular-nums text-[#95A6B8]">
-                    {evidences.length}{' '}
+                <span className="text-[11px] tabular-nums text-[#95A6B8]">
+                    {String(evidences.length).padStart(2, '0')}{' '}
                     {evidences.length === 1 ? 'file' : 'files'}
                 </span>
             </div>
 
             {evidences.length === 0 ? (
-                <p className="mt-3 mb-0! border border-dashed border-[#394858] px-4 py-4 text-[12px] leading-5 text-[#94A4B5]">
+                <p className="mt-3 mb-0! border border-dashed border-[#394858] bg-[#141B24] px-4 py-4 text-[12px] leading-5 text-[#94A4B5]">
                     {emptyMessage}
                 </p>
             ) : (
-                <div className="mt-3">
+                <div>
                     {evidences.map((evidence) => (
                         <EvidenceFileRow
                             key={evidence.id}
@@ -363,9 +382,13 @@ function EvidenceGroup({ title, evidences, requestId, emptyMessage }) {
                     ))}
                 </div>
             )}
-        </div>
+        </section>
     );
 }
+
+/* =========================================================
+   PREVIOUS EVIDENCE REQUEST
+========================================================= */
 
 function EvidenceRequestItem({ item, requestId, evidences }) {
     const relatedEvidences = evidences.filter(
@@ -378,25 +401,26 @@ function EvidenceRequestItem({ item, requestId, evidences }) {
             .toLowerCase() === 'submitted';
 
     return (
-        <article className="border border-[#344150] bg-[#151D27] px-4 py-4 sm:px-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+        <article className="relative border-l-2 border-[#52677D] py-1 pl-5 sm:pl-6">
+            <span className="absolute -left-[5px] top-1 size-2 rounded-full border border-[#8298AE] bg-[#253242]" />
+
+            <div className="flex flex-wrap items-center gap-3">
                 <p className="m-0! text-[12px] font-semibold text-[#DCE5EF]">
                     Evidence request #{item.id}
                 </p>
 
                 <span
-                    className={`inline-flex items-center gap-1.5 border px-2.5 py-1 text-[11px] font-medium ${
+                    className={`inline-flex items-center gap-1.5 border px-2 py-1 text-[10px] font-medium ${
                         submitted
                             ? 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]'
                             : 'border-[#66583D] bg-[#332D22] text-[#E4C995]'
                     }`}
                 >
                     {submitted ? (
-                        <CheckCircle2 size={12} />
+                        <CheckCircle2 size={11} />
                     ) : (
-                        <Clock3 size={12} />
+                        <Clock3 size={11} />
                     )}
-
                     {submitted ? 'Submitted' : 'Awaiting response'}
                 </span>
             </div>
@@ -414,7 +438,7 @@ function EvidenceRequestItem({ item, requestId, evidences }) {
 
             {submitted && relatedEvidences.length > 0 && (
                 <div className="mt-4 border-t border-[#303A47] pt-3">
-                    <p className="m-0! text-[12px] font-semibold text-[#DCE5EF]">
+                    <p className="m-0! text-[11px] font-semibold uppercase tracking-[0.1em] text-[#AEBECD]">
                         Submitted files
                     </p>
 
@@ -433,14 +457,16 @@ function EvidenceRequestItem({ item, requestId, evidences }) {
     );
 }
 
+/* =========================================================
+   MAIN EVIDENCE COMPONENT
+========================================================= */
+
 export default function HelpRequestEvidenceSection({ request, onUpdated }) {
     const [message, setMessage] = useState('');
     const [sending, setSending] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    // Normalize the status so case differences or extra spaces
-    // do not prevent the admin evidence request form from appearing.
     const isPending =
         String(request.status || '')
             .trim()
@@ -496,14 +522,14 @@ export default function HelpRequestEvidenceSection({ request, onUpdated }) {
     };
 
     return (
-        <section className={PANEL}>
+        <section className={`${PANEL} overflow-hidden`}>
             <SectionHeader
                 title="Evidence and supporting documents"
                 subtitle="Review submitted files and request further evidence"
                 count={evidences.length}
             />
 
-            <div className="space-y-7 px-5 py-6 sm:px-7">
+            <div className="space-y-7 px-4 py-5 sm:px-6 sm:py-6">
                 <EvidenceGroup
                     title="Original evidence"
                     evidences={originalEvidences}
@@ -521,16 +547,28 @@ export default function HelpRequestEvidenceSection({ request, onUpdated }) {
                 </div>
 
                 <div className="border-t border-[#303A47] pt-6">
-                    <h3 className="m-0! font-sans! text-[13px]! font-semibold! text-[#E1E9F1]!">
-                        Previous evidence requests
-                    </h3>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <h3
+                            className="m-0! font-sans! text-[14px]! font-semibold!"
+                            style={{ color: '#E1E9F1' }}
+                        >
+                            Previous evidence requests
+                        </h3>
+
+                        <span className="font-mono text-[11px] text-[#95A6B8]">
+                            {String(evidenceRequests.length).padStart(2, '0')}{' '}
+                            {evidenceRequests.length === 1
+                                ? 'request'
+                                : 'requests'}
+                        </span>
+                    </div>
 
                     {evidenceRequests.length === 0 ? (
-                        <p className="mt-3 mb-0! border border-dashed border-[#394858] px-4 py-4 text-[12px] leading-5 text-[#94A4B5]">
+                        <p className="mt-3 mb-0! border border-dashed border-[#394858] bg-[#141B24] px-4 py-4 text-[12px] leading-5 text-[#94A4B5]">
                             No additional evidence has been requested.
                         </p>
                     ) : (
-                        <div className="mt-3 space-y-3">
+                        <div className="mt-5 space-y-6">
                             {evidenceRequests.map((item) => (
                                 <EvidenceRequestItem
                                     key={item.id}
@@ -545,92 +583,108 @@ export default function HelpRequestEvidenceSection({ request, onUpdated }) {
 
                 {isPending && (
                     <div className="border-t border-[#303A47] pt-6">
-                        <h3 className="m-0! font-sans! text-[13px]! font-semibold! text-[#E1E9F1]!">
-                            Request additional evidence
-                        </h3>
+                        <div className="grid gap-5 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] lg:gap-9">
+                            <div>
+                                <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8295A9]">
+                                    Requester follow-up
+                                </p>
 
-                        <p className="mt-2 mb-0! text-[12px] leading-5 text-[#98A8BA]">
-                            Explain what further information or documents the
-                            requester needs to provide. This will not change the
-                            help request's verification or overall status.
-                        </p>
+                                <h3
+                                    className="m-0! font-sans! text-[18px]! font-semibold! leading-6!"
+                                    style={{ color: '#E8EEF5' }}
+                                >
+                                    Request additional evidence
+                                </h3>
 
-                        {(error || success) && (
-                            <div
-                                role={error ? 'alert' : 'status'}
-                                className={`mt-4 flex items-start gap-2 border px-4 py-3 text-[12px] leading-5 ${
-                                    error
-                                        ? 'border-[#75464C] bg-[#322126] text-[#E9B8BD]'
-                                        : 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]'
-                                }`}
-                            >
-                                {error ? (
-                                    <AlertCircle
-                                        size={15}
-                                        className="mt-0.5 shrink-0"
-                                    />
-                                ) : (
-                                    <CheckCircle2
-                                        size={15}
-                                        className="mt-0.5 shrink-0"
-                                    />
+                                <p className="mt-2 mb-0! text-[12px] leading-6 text-[#98A8BA]">
+                                    Explain what further information or
+                                    documents the requester needs to provide.
+                                    This will not change the help request's
+                                    verification or overall status.
+                                </p>
+                            </div>
+
+                            <div className="min-w-0">
+                                {(error || success) && (
+                                    <div
+                                        role={error ? 'alert' : 'status'}
+                                        className={`mb-4 flex items-start gap-2 border px-4 py-3 text-[12px] leading-5 ${
+                                            error
+                                                ? 'border-[#75464C] bg-[#322126] text-[#E9B8BD]'
+                                                : 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]'
+                                        }`}
+                                    >
+                                        {error ? (
+                                            <AlertCircle
+                                                size={15}
+                                                className="mt-0.5 shrink-0"
+                                            />
+                                        ) : (
+                                            <CheckCircle2
+                                                size={15}
+                                                className="mt-0.5 shrink-0"
+                                            />
+                                        )}
+
+                                        <span>{error || success}</span>
+                                    </div>
                                 )}
 
-                                <span>{error || success}</span>
-                            </div>
-                        )}
-
-                        <form
-                            onSubmit={handleSubmit}
-                            className="mt-4 space-y-3"
-                        >
-                            <label
-                                htmlFor="additional-evidence-message"
-                                className="block text-[12px] font-medium text-[#AAB8C7]"
-                            >
-                                Message to requester
-                            </label>
-
-                            <textarea
-                                id="additional-evidence-message"
-                                value={message}
-                                onChange={(event) => {
-                                    setMessage(event.target.value);
-                                    setError('');
-                                    setSuccess('');
-                                }}
-                                rows={4}
-                                maxLength={5000}
-                                disabled={sending}
-                                placeholder="Describe the additional evidence required..."
-                                className="block w-full min-w-0 resize-y border border-[#394858] bg-[#101720] px-3.5 py-3 text-[13px] leading-6 text-[#E1E8F0] outline-none placeholder:text-[#718196] focus:border-[#637489] disabled:cursor-not-allowed disabled:opacity-60"
-                            />
-
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                                <span className="text-[11px] tabular-nums text-[#8496A9]">
-                                    {message.length}/5000 characters
-                                </span>
-
-                                <button
-                                    type="submit"
-                                    disabled={sending || !message.trim()}
-                                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#586678] bg-[#2B3949] px-4 text-[12px] font-semibold text-[#EEF1F5] transition-colors hover:bg-[#37495D] disabled:cursor-not-allowed disabled:opacity-50"
+                                <form
+                                    onSubmit={handleSubmit}
+                                    className="space-y-3"
                                 >
-                                    {sending ? (
-                                        <LoaderCircle
-                                            size={15}
-                                            className="animate-spin"
-                                        />
-                                    ) : (
-                                        <Send size={14} />
-                                    )}
+                                    <label
+                                        htmlFor="additional-evidence-message"
+                                        className="block text-[11px] font-semibold text-[#C6D2DF]"
+                                    >
+                                        Message to requester
+                                    </label>
 
-                                    {sending
-                                        ? 'Sending...'
-                                        : 'Send evidence request'}
-                                </button>
+                                    <textarea
+                                        id="additional-evidence-message"
+                                        value={message}
+                                        onChange={(event) => {
+                                            setMessage(event.target.value);
+                                            setError('');
+                                            setSuccess('');
+                                        }}
+                                        rows={5}
+                                        maxLength={5000}
+                                        disabled={sending}
+                                        placeholder="Describe the additional evidence required..."
+                                        className="block w-full min-w-0 resize-y border border-[#394858] bg-[#101720] px-4 py-3 text-[13px] leading-6 text-[#E1E8F0] outline-none placeholder:text-[#718196] focus:border-[#71869B] disabled:cursor-not-allowed disabled:opacity-60"
+                                    />
+
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <span className="text-[10px] tabular-nums text-[#8496A9]">
+                                            {message.length}/5000 characters
+                                        </span>
+
+                                        <button
+                                            type="submit"
+                                            disabled={
+                                                sending || !message.trim()
+                                            }
+                                            className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#586678] bg-[#2B3949] px-4 text-[11px] font-semibold text-[#EEF1F5] transition-colors hover:bg-[#37495D] disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            {sending ? (
+                                                <LoaderCircle
+                                                    size={14}
+                                                    className="animate-spin"
+                                                />
+                                            ) : (
+                                                <Send size={13} />
+                                            )}
+
+                                            {sending
+                                                ? 'Sending...'
+                                                : 'Send evidence request'}
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 )}
             </div>

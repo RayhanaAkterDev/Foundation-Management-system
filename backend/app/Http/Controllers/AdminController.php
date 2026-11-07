@@ -1482,7 +1482,7 @@ class AdminController extends Controller
                 new PlatformNotification(
                     'Additional evidence requested',
                     "The admin has requested additional evidence for your help request \"{$helpRequest->title}\". Message: {$validated['message']}",
-                    '/individual/dashboard/help-requests',
+                    "/individual/dashboard/help-requests/{$helpRequest->id}",
                     'help_request'
                 )
             );
@@ -1712,7 +1712,7 @@ class AdminController extends Controller
                 new PlatformNotification(
                     $title,
                     $body,
-                    '/individual/dashboard/help-requests',
+                    "/individual/dashboard/help-requests/{$helpRequest->id}",
                     'help_request'
                 )
             );

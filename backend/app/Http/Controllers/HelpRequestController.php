@@ -267,7 +267,7 @@ class HelpRequestController extends Controller
                 $admin->notify(new PlatformNotification(
                     'New help request submitted',
                     "{$user->name} has submitted a new help request.",
-                    '/admin/dashboard/help-requests',
+                    "/admin/dashboard/help-requests/{$helpRequest->id}",
                     'help_request'
                 ));
             });

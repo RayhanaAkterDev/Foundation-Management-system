@@ -21,7 +21,7 @@ import StatusBadge from '@/components/dashboard/StatusBadge';
 import { checkHelpRequestDuplicates } from '../api/helpRequestAPI';
 import HelpRequestEvidenceSection from './HelpRequestEvidenceSection';
 
-const PANEL = 'min-w-0 overflow-hidden border border-[#303A47] bg-[#171D26]';
+const PANEL = 'min-w-0 border border-[#303A47] bg-[#171D26]';
 
 const STATUS_COLORS = {
     pending: 'border-[#66583D] bg-[#332D22] text-[#E4C995]',
@@ -31,6 +31,13 @@ const STATUS_COLORS = {
     completed: 'border-[#46586D] bg-[#253242] text-[#C0D0E1]',
     rejected: 'border-[#75464C] bg-[#322126] text-[#E9B8BD]',
     cancelled: 'border-[#515967] bg-[#292E37] text-[#C2CAD5]',
+};
+
+const HEADING_STYLE = {
+    color: '#EEF1F5',
+    fontFamily: 'inherit',
+    fontWeight: 650,
+    letterSpacing: '-0.025em',
 };
 
 function show(value, fallback = 'Not provided') {
@@ -53,14 +60,12 @@ function dateText(value, withTime = false) {
 
     if (Number.isNaN(parsed.getTime())) return String(value);
 
-    const options = {
+    return parsed.toLocaleString('en-GB', {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
         ...(withTime ? { hour: 'numeric', minute: '2-digit' } : {}),
-    };
-
-    return parsed.toLocaleString('en-GB', options);
+    });
 }
 
 function getAssignments(request) {
@@ -96,37 +101,32 @@ function getRequester(request) {
     };
 }
 
-function SectionHeader({ icon: Icon, title, subtitle, extra }) {
+function SectionLabel({ children }) {
     return (
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-[#344150] bg-[#202B38] px-5 py-4 sm:px-7 sm:py-5">
-            <div className="flex min-w-0 items-start gap-3">
-                <span className="flex size-8 shrink-0 items-center justify-center border border-[#3A495B] bg-[#273646] text-[#C3D0DE]">
-                    <Icon size={16} strokeWidth={1.8} />
-                </span>
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#8295A9]">
+            {children}
+        </p>
+    );
+}
 
-                <div className="min-w-0">
-                    <h2 className="m-0! font-sans! text-[14px]! font-semibold! leading-5 text-[#EEF1F5]!">
-                        {title}
-                    </h2>
-
-                    {subtitle && (
-                        <p className="mt-1 mb-0! text-[12px] leading-5 text-[#9AAABD]">
-                            {subtitle}
-                        </p>
-                    )}
-                </div>
-            </div>
-
-            {extra}
-        </div>
+function SectionTitle({ children, className = '' }) {
+    return (
+        <h2
+            className={`m-0! font-sans! text-[21px]! leading-tight! sm:text-[24px]! ${className}`}
+            style={HEADING_STYLE}
+        >
+            {children}
+        </h2>
     );
 }
 
 function Info({ title, value, className = '' }) {
     return (
         <div className={`min-w-0 ${className}`}>
-            <dt className="text-[12px] font-medium text-[#8796A8]">{title}</dt>
-            <dd className="mt-1.5 mb-0 wrap-break-word whitespace-pre-wrap text-[14px] leading-6 text-[#E6EBF2]">
+            <dt className="text-[10px] font-semibold uppercase tracking-[0.11em] text-[#8294A7]">
+                {title}
+            </dt>
+            <dd className="mt-1.5 mb-0! wrap-break-word whitespace-pre-wrap text-[13px] leading-5 text-[#E2E9F1]">
                 {show(value)}
             </dd>
         </div>
@@ -137,76 +137,90 @@ function Status({ value }) {
     return <StatusBadge status={value || 'pending'} />;
 }
 
+/* =========================================================
+   CASE HEADER
+========================================================= */
+
 function Identity({ request, requester, onEdit }) {
-    const [imageFailed, setImageFailed] = useState(false);
     const status = String(request.status || 'pending').toLowerCase();
 
     return (
-        <section className={PANEL}>
-            <div className="flex flex-col gap-5 px-5 py-5 sm:px-7 sm:py-6 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex min-w-0 items-start gap-4">
-                    <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden border border-[#3A495B] bg-[#253242] text-[#C3D0DE] sm:size-14">
-                        {requester.image && !imageFailed ? (
-                            <img
-                                src={requester.image}
-                                alt={requester.name}
-                                onError={() => setImageFailed(true)}
-                                className="size-full object-cover"
-                            />
-                        ) : (
-                            <FileText size={23} strokeWidth={1.5} />
-                        )}
+        <section className="relative overflow-hidden border-y border-[#303A47] bg-[#151C25]">
+            <div className="pointer-events-none absolute -right-8 -top-12 select-none font-sans text-[170px] font-bold leading-none tracking-[-0.1em] text-white/[0.018]">
+                #{request.id}
+            </div>
+
+            <div className="relative grid gap-6 px-5 py-7 sm:px-8 sm:py-8 xl:grid-cols-[minmax(0,1fr)_250px] xl:gap-10">
+                <div className="min-w-0">
+                    <div className="mb-5 flex flex-wrap items-center gap-2.5">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9AADC0]">
+                            Case file
+                        </span>
+
+                        <span className="text-[#566A7F]">/</span>
+
+                        <span className="font-mono text-[11px] text-[#B4C3D2]">
+                            HR-{show(request.id)}
+                        </span>
+
+                        <span
+                            className={`inline-flex min-h-7 items-center gap-2 border px-2.5 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                                STATUS_COLORS[status] ||
+                                'border-[#465363] bg-[#253242] text-[#D5DFE9]'
+                            }`}
+                        >
+                            <span className="size-1.5 rounded-full bg-current" />
+                            {titleCase(status)}
+                        </span>
                     </div>
 
-                    <div className="min-w-0">
-                        <p className="m-0! text-[12px] font-medium text-[#94A3B4]">
-                            Help request #{show(request.id)}
-                        </p>
+                    <h1
+                        className="m-0! max-w-4xl wrap-break-word font-sans! text-[27px]! font-semibold! leading-[1.2]! tracking-[-0.035em]! sm:text-[36px]! xl:text-[42px]!"
+                        style={{ color: '#F0F3F7', fontFamily: 'inherit' }}
+                    >
+                        {show(request.title, 'Untitled help request')}
+                    </h1>
 
-                        <h1 className="mt-2 mb-0! wrap-break-word font-sans! text-[19px]! font-semibold! leading-[1.45] tracking-[-0.02em] text-[#F0F3F7]! sm:text-[23px]!">
-                            {show(request.title, 'Untitled help request')}
-                        </h1>
+                    <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 text-[12px] text-[#A6B5C5]">
+                        <span className="inline-flex items-center gap-2">
+                            <UserRound size={14} />
+                            {requester.name}
+                        </span>
 
-                        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-[#AAB8C7]">
+                        {request.district && (
                             <span className="inline-flex items-center gap-2">
-                                <UserRound size={14} />
-                                {requester.name}
+                                <MapPin size={14} />
+                                {request.district}
                             </span>
+                        )}
 
-                            {request.district && (
-                                <span className="inline-flex items-center gap-2">
-                                    <MapPin size={14} />
-                                    {request.district}
-                                </span>
-                            )}
-
-                            {request.created_at && (
-                                <span className="inline-flex items-center gap-2">
-                                    <CalendarDays size={14} />
-                                    {dateText(request.created_at)}
-                                </span>
-                            )}
-                        </div>
+                        {request.created_at && (
+                            <span className="inline-flex items-center gap-2">
+                                <CalendarDays size={14} />
+                                Submitted {dateText(request.created_at)}
+                            </span>
+                        )}
                     </div>
                 </div>
 
-                <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
-                    <span
-                        className={`inline-flex min-h-9 items-center gap-2 border px-3 text-[12px] font-medium ${
-                            STATUS_COLORS[status] ||
-                            'border-[#465363] bg-[#253242] text-[#D5DFE9]'
-                        }`}
-                    >
-                        <span className="size-1.5 rounded-full bg-current" />
-                        {titleCase(status)}
-                    </span>
+                <div className="flex flex-row items-center justify-between gap-5 border-t border-[#303A47] pt-5 xl:flex-col xl:items-end xl:justify-between xl:border-l xl:border-t-0 xl:pl-7 xl:pt-1">
+                    <div className="max-w-[230px] xl:text-right">
+                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.13em] text-[#8FA3B8]">
+                            Administrative review
+                        </p>
+
+                        <p className="mb-0 text-[12px] leading-5 text-[#AAB8C7]">
+                            Review the submitted information, supporting
+                            documents and coordination history.
+                        </p>
+                    </div>
 
                     <button
                         type="button"
                         onClick={onEdit}
-                        className="inline-flex min-h-9 items-center justify-center gap-2 border border-[#586678] bg-[#2B3949] px-3.5 text-[12px] font-medium text-[#EEF1F5] transition-colors hover:bg-[#37495D]"
+                        className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 border border-[#586A7D] bg-[#2B3949] px-4 text-[12px] font-semibold text-[#EEF1F5] transition-colors hover:bg-[#37495D]"
                     >
-                        <Pencil size={14} strokeWidth={1.8} />
+                        <Pencil size={14} />
                         Edit request
                     </button>
                 </div>
@@ -215,12 +229,61 @@ function Identity({ request, requester, onEdit }) {
     );
 }
 
+/* =========================================================
+   REQUEST INFORMATION
+========================================================= */
+
+function RequestInformation({ request }) {
+    const address = request.address || request.location;
+
+    return (
+        <section className="min-w-0">
+            <div className="flex items-center justify-between gap-4 border-b border-[#344150] pb-4">
+                <div>
+                    <SectionLabel>01 / Submitted information</SectionLabel>
+                    <SectionTitle>The request</SectionTitle>
+                </div>
+
+                <FileText size={19} className="shrink-0 text-[#8296AA]" />
+            </div>
+
+            <div className="py-7 sm:py-8">
+                <p className="m-0! max-w-4xl wrap-break-word whitespace-pre-line text-[15px] leading-[1.9] text-[#DCE4ED] sm:text-[16px]">
+                    {show(
+                        request.description,
+                        'No request description has been provided.',
+                    )}
+                </p>
+            </div>
+
+            <dl className="grid grid-cols-2 gap-x-5 gap-y-5 border-y border-[#303A47] bg-[#141B24] px-4 py-5 sm:grid-cols-3 sm:px-5 xl:grid-cols-5">
+                <Info title="Request ID" value={`#${show(request.id)}`} />
+                <Info title="Category" value={titleCase(request.category)} />
+                <Info
+                    title="Urgency"
+                    value={titleCase(request.urgency || request.priority)}
+                />
+                <Info title="District" value={request.district} />
+                <Info
+                    title="Full address"
+                    value={address}
+                    className="col-span-2 sm:col-span-1"
+                />
+            </dl>
+        </section>
+    );
+}
+
+/* =========================================================
+   REQUESTER
+========================================================= */
+
 function RequesterLink({ requester }) {
     const [imageFailed, setImageFailed] = useState(false);
 
     const content = (
         <>
-            <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden border border-[#3A495B] bg-[#253242] text-[#B7C8D9]">
+            <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#3A495B] bg-[#253242] text-[#B7C8D9]">
                 {requester.image && !imageFailed ? (
                     <img
                         src={requester.image}
@@ -229,32 +292,28 @@ function RequesterLink({ requester }) {
                         className="size-full object-cover"
                     />
                 ) : (
-                    <UserRound size={19} strokeWidth={1.7} />
+                    <UserRound size={18} strokeWidth={1.7} />
                 )}
             </span>
 
             <span className="min-w-0 flex-1">
-                <span className="block truncate text-[14px] font-semibold text-[#E7EDF4]">
+                <span className="block truncate text-[12px] font-semibold text-[#E7EDF4]">
                     {requester.name}
                 </span>
-                <span className="mt-1 block truncate text-[13px] text-[#98A8BA]">
+                <span className="mt-1 block truncate text-[11px] text-[#98A8BA]">
                     {show(requester.email)}
                 </span>
             </span>
 
             {requester.id != null && (
-                <ArrowUpRight
-                    size={17}
-                    strokeWidth={1.7}
-                    className="shrink-0 text-[#91A4B8] transition-colors group-hover:text-[#EEF1F5]"
-                />
+                <ArrowUpRight size={15} className="shrink-0 text-[#91A4B8]" />
             )}
         </>
     );
 
     if (requester.id == null) {
         return (
-            <div className="flex min-w-0 items-center gap-3 border border-[#344150] bg-[#151D27] px-4 py-3">
+            <div className="flex min-w-0 items-center gap-3 border border-[#344150] bg-[#151D27] px-3 py-3">
                 {content}
             </div>
         );
@@ -264,159 +323,137 @@ function RequesterLink({ requester }) {
         <Link
             to={`/admin/dashboard/users/${requester.id}`}
             title="View requester details"
-            className="group flex min-w-0 items-center gap-3 border border-[#344150] bg-[#151D27] px-4 py-3 transition-colors hover:border-[#526276] hover:bg-[#1D2936]"
+            className="group flex min-w-0 items-center gap-3 border border-[#344150] bg-[#151D27] px-3 py-3 transition-colors hover:border-[#526276] hover:bg-[#1D2936]"
         >
             {content}
         </Link>
     );
 }
 
-function RequestInformation({ request, requester }) {
-    const address = request.address || request.location;
-
-    return (
-        <section className="min-w-0 overflow-hidden border border-[#354354] bg-[#1A222D]">
-            <SectionHeader
-                icon={FileText}
-                title="About this request"
-                subtitle="Request details and assistance requirements"
-            />
-
-            <div className="px-5 py-6 sm:px-7 sm:py-7">
-                <p className="m-0! wrap-break-word whitespace-pre-line text-[14px] leading-[1.95] text-[#D4DDE7]">
-                    {show(
-                        request.description,
-                        'No request description has been provided.',
-                    )}
-                </p>
-
-                <div className="mt-7 border-t border-[#344150] pt-6">
-                    <h3 className="m-0! font-sans! text-[14px]! font-semibold! text-[#E8EDF3]!">
-                        Request information
-                    </h3>
-
-                    <dl className="mt-5 grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
-                        <Info
-                            title="Category"
-                            value={titleCase(request.category)}
-                        />
-                        <Info
-                            title="Urgency"
-                            value={titleCase(
-                                request.urgency || request.priority,
-                            )}
-                        />
-                        <Info title="Request ID" value={request.id} />
-                        <Info title="District" value={request.district} />
-                        <Info
-                            title="Address"
-                            value={address}
-                            className="sm:col-span-2"
-                        />
-                    </dl>
-                </div>
-
-                <div className="mt-7 border-t border-[#344150] pt-6">
-                    <h3 className="m-0! font-sans! text-[14px]! font-semibold! text-[#E8EDF3]!">
-                        Requester information
-                    </h3>
-
-                    <div className="mt-4">
-                        <RequesterLink requester={requester} />
-                    </div>
-
-                    <div className="mt-5 border-t border-[#344150] pt-5">
-                        <Info
-                            title="Contact number"
-                            value={request.contact_phone}
-                        />
-                    </div>
-                </div>
-            </div>
-        </section>
-    );
-}
+/* =========================================================
+   CASE CONTEXT SIDEBAR
+========================================================= */
 
 function OverviewRow({ title, children }) {
     return (
-        <div className="flex min-w-0 items-start justify-between gap-4 border-b border-[#303A47] py-4 last:border-b-0">
-            <dt className="shrink-0 text-[13px] text-[#9EADBD]">{title}</dt>
-            <dd className="m-0! min-w-0 wrap-break-word text-right text-[13px] font-medium text-[#E2EAF1]">
+        <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[#303A47] py-3 last:border-b-0">
+            <dt className="shrink-0 text-[11px] text-[#9EADBD]">{title}</dt>
+            <dd className="m-0! min-w-0 wrap-break-word text-right text-[12px] font-medium text-[#E2EAF1]">
                 {children}
             </dd>
         </div>
     );
 }
 
-function RequestOverview({ request, assignmentCount }) {
+function RequestOverview({ request, requester, assignmentCount }) {
     return (
-        <section className={PANEL}>
-            <SectionHeader
-                icon={ClipboardList}
-                title="Request overview"
-                subtitle="Status and request classification"
-            />
+        <aside className="min-w-0">
+            <div className="border-t-2 border-[#71869B] pt-4">
+                <SectionLabel>02 / Case context</SectionLabel>
+                <h2
+                    className="m-0! font-sans! text-[19px]! font-semibold! text-[#EAF0F6]!"
+                    style={HEADING_STYLE}
+                >
+                    At a glance
+                </h2>
 
-            <div className="bg-[#0E1219] px-5 py-3 sm:px-6">
-                <dl>
+                <dl className="mt-4">
                     <OverviewRow title="Request status">
                         <Status value={request.status} />
                     </OverviewRow>
+
                     <OverviewRow title="Verification">
                         <Status value={request.verification_status} />
                     </OverviewRow>
+
                     <OverviewRow title="Category">
                         {titleCase(request.category)}
                     </OverviewRow>
+
                     <OverviewRow title="Urgency level">
                         {titleCase(request.urgency || request.priority)}
                     </OverviewRow>
+
                     <OverviewRow title="Assignments">
-                        {assignmentCount}
+                        <span className="font-mono text-[15px] font-semibold text-[#E8EEF5]">
+                            {assignmentCount}
+                        </span>
                     </OverviewRow>
                 </dl>
-            </div>
 
-            {request.verification_note && (
-                <div className="border-t border-[#303A47] bg-[#151C25] px-5 py-5 sm:px-6">
-                    <div className="flex items-center gap-2">
-                        <AlertCircle size={15} className="text-[#A7B8CA]" />
-                        <h3 className="m-0! font-sans! text-[13px]! font-semibold! text-[#E6EDF5]!">
-                            Verification note
-                        </h3>
+                {request.verification_note && (
+                    <div className="mt-5 border-l-2 border-[#71869B] bg-[#19232E] px-4 py-3.5">
+                        <div className="flex items-center gap-2">
+                            <AlertCircle size={14} className="text-[#A7B8CA]" />
+                            <h3
+                                className="m-0! font-sans! text-[12px]! font-semibold! text-[#E6EDF5]!"
+                                style={{ color: '#E6EDF5' }}
+                            >
+                                Verification note
+                            </h3>
+                        </div>
+
+                        <p className="mt-2 mb-0! wrap-break-word whitespace-pre-wrap text-[12px] leading-5 text-[#B3C0CE]">
+                            {request.verification_note}
+                        </p>
                     </div>
+                )}
 
-                    <p className="mt-3 mb-0! wrap-break-word whitespace-pre-wrap text-[13px] leading-6 text-[#B3C0CE]">
-                        {request.verification_note}
-                    </p>
+                <div className="mt-6 border-t border-[#303A47] pt-5">
+                    <SectionLabel>Submitted by</SectionLabel>
+                    <RequesterLink requester={requester} />
+
+                    <div className="mt-4">
+                        <Info
+                            title="Contact number"
+                            value={request.contact_phone}
+                        />
+                    </div>
                 </div>
-            )}
-        </section>
+
+                <div className="mt-6 border-t border-[#303A47] pt-5">
+                    <SectionLabel>Record dates</SectionLabel>
+
+                    <div className="space-y-3">
+                        <div className="flex items-start gap-2.5">
+                            <CalendarDays
+                                size={14}
+                                className="mt-0.5 shrink-0 text-[#8295A9]"
+                            />
+                            <div>
+                                <p className="mb-0.5 text-[10px] uppercase tracking-[0.1em] text-[#8294A7]">
+                                    Submitted
+                                </p>
+                                <p className="mb-0 text-[11px] text-[#DCE5EF]">
+                                    {dateText(request.created_at, true)}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-2.5">
+                            <Clock3
+                                size={14}
+                                className="mt-0.5 shrink-0 text-[#8295A9]"
+                            />
+                            <div>
+                                <p className="mb-0.5 text-[10px] uppercase tracking-[0.1em] text-[#8294A7]">
+                                    Last modified
+                                </p>
+                                <p className="mb-0 text-[11px] text-[#DCE5EF]">
+                                    {dateText(request.updated_at, true)}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
     );
 }
 
-function RecordHistory({ request }) {
-    return (
-        <section className={PANEL}>
-            <SectionHeader
-                icon={Clock3}
-                title="Record history"
-                subtitle="Creation and last modification"
-            />
-
-            <dl className="grid grid-cols-1 gap-5 px-5 py-6 sm:grid-cols-2 sm:px-6 lg:grid-cols-1">
-                <Info
-                    title="Submitted"
-                    value={dateText(request.created_at, true)}
-                />
-                <Info
-                    title="Last updated"
-                    value={dateText(request.updated_at, true)}
-                />
-            </dl>
-        </section>
-    );
-}
+/* =========================================================
+   ASSIGNMENT HISTORY
+========================================================= */
 
 function getAssignmentOrganization(assignment) {
     const organization =
@@ -441,78 +478,72 @@ function getAssignmentOrganization(assignment) {
 
 function AssignmentHistory({ assignments }) {
     return (
-        <section className={PANEL}>
-            <SectionHeader
-                icon={UsersRound}
-                title="Assignment history"
-                subtitle="Organizations and teams connected to this request"
-                extra={
-                    <span className="border border-[#435064] bg-[#293747] px-2.5 py-1 text-[12px] font-medium tabular-nums text-[#D4DFEA]">
-                        {assignments.length}{' '}
-                        {assignments.length === 1
-                            ? 'assignment'
-                            : 'assignments'}
-                    </span>
-                }
-            />
-
-            {assignments.length === 0 ? (
-                <div className="flex min-h-40 flex-col items-center justify-center px-5 py-8 text-center">
-                    <Building2
-                        size={25}
-                        strokeWidth={1.5}
-                        className="text-[#8294A7]"
-                    />
-                    <p className="mt-3 mb-0! text-[14px] font-medium text-[#DCE5EF]">
-                        No assignments recorded
-                    </p>
-                    <p className="mt-1 mb-0! text-[13px] text-[#91A0B0]">
-                        This help request has not been assigned yet.
+        <section className="min-w-0 border-t border-[#344150] pt-7">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <SectionLabel>04 / Coordination</SectionLabel>
+                    <SectionTitle>Assignment history</SectionTitle>
+                    <p className="mt-2 mb-0 text-[12px] text-[#95A7BA]">
+                        Organizations and teams connected to this request.
                     </p>
                 </div>
+
+                <span className="font-mono text-[11px] text-[#B7C7D7]">
+                    {String(assignments.length).padStart(2, '0')} assignments
+                </span>
+            </div>
+
+            {assignments.length === 0 ? (
+                <div className="mt-5 flex items-center gap-4 border-y border-[#303A47] py-6">
+                    <Building2 size={22} className="shrink-0 text-[#8294A7]" />
+                    <div>
+                        <p className="mb-1 text-[13px] font-semibold text-[#DCE5EF]">
+                            No assignments recorded
+                        </p>
+                        <p className="mb-0 text-[12px] text-[#91A0B0]">
+                            This help request has not been assigned yet.
+                        </p>
+                    </div>
+                </div>
             ) : (
-                <div className="divide-y divide-[#303A47]">
+                <div className="mt-5 divide-y divide-[#303A47] border-y border-[#303A47]">
                     {assignments.map((assignment, index) => {
                         const organization =
                             getAssignmentOrganization(assignment);
 
                         return (
-                            <div
+                            <article
                                 key={assignment.id ?? index}
-                                className="flex min-w-0 flex-col gap-4 px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-7"
+                                className="flex min-w-0 flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"
                             >
                                 <div className="flex min-w-0 items-start gap-3">
-                                    <span className="flex size-9 shrink-0 items-center justify-center border border-[#3A495B] bg-[#253242] text-[#B7C8D9]">
-                                        <Building2
-                                            size={17}
-                                            strokeWidth={1.7}
-                                        />
+                                    <span className="flex size-9 shrink-0 items-center justify-center bg-[#253242] text-[#B7C8D9]">
+                                        <Building2 size={17} />
                                     </span>
 
                                     <div className="min-w-0">
                                         {organization.id != null ? (
                                             <Link
                                                 to={`/admin/dashboard/organizations/${organization.id}`}
-                                                className="group inline-flex max-w-full items-center gap-1.5 text-left text-[14px] font-semibold text-[#DCE8F5] transition-colors hover:text-white"
+                                                className="group inline-flex max-w-full items-center gap-1.5 text-[13px] font-semibold text-[#DCE8F5] hover:text-white"
                                                 title="View organization details"
                                             >
-                                                <span className="wrap-break-word underline decoration-[#70869C] underline-offset-4 group-hover:decoration-white">
+                                                <span className="wrap-break-word underline decoration-[#70869C] underline-offset-4">
                                                     {organization.name}
                                                 </span>
                                                 <ArrowUpRight
                                                     size={14}
-                                                    className="shrink-0 text-[#94A9BE] group-hover:text-white"
+                                                    className="shrink-0"
                                                 />
                                             </Link>
                                         ) : (
-                                            <p className="m-0! wrap-break-word text-[14px] font-semibold text-[#E7EDF4]">
+                                            <p className="mb-0 wrap-break-word text-[13px] font-semibold text-[#E7EDF4]">
                                                 {organization.name}
                                             </p>
                                         )}
 
-                                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#94A3B4]">
-                                            <span className="inline-flex items-center gap-1.5">
-                                                <CalendarDays size={13} />
+                                        <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[#94A3B4]">
+                                            <span>
                                                 {dateText(
                                                     assignment.assigned_at ||
                                                         assignment.created_at,
@@ -527,19 +558,19 @@ function AssignmentHistory({ assignments }) {
                                         </div>
 
                                         {assignment.rejection_note && (
-                                            <p className="mt-3 mb-0! wrap-break-word whitespace-pre-wrap text-[13px] leading-6 text-[#D6A9AC]">
+                                            <p className="mt-2 mb-0! wrap-break-word whitespace-pre-wrap text-[12px] leading-5 text-[#D6A9AC]">
                                                 {assignment.rejection_note}
                                             </p>
                                         )}
                                     </div>
                                 </div>
 
-                                <div className="shrink-0 self-start">
+                                <div className="shrink-0 self-start sm:pl-4">
                                     <Status
                                         value={assignment.status || 'pending'}
                                     />
                                 </div>
-                            </div>
+                            </article>
                         );
                     })}
                 </div>
@@ -548,31 +579,30 @@ function AssignmentHistory({ assignments }) {
     );
 }
 
+/* =========================================================
+   DUPLICATE ANALYSIS
+========================================================= */
+
 function DuplicateAnalysis({ request, result, loading, error, onCheck }) {
     const payload = result?.data ?? result;
     const matches = Array.isArray(payload?.matches) ? payload.matches : [];
 
     return (
-        <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#171D26]">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#303A47] px-5 py-5 sm:px-7">
-                <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex size-10 shrink-0 items-center justify-center bg-[#263444] text-[#C4D4E5]">
-                        <Search size={19} />
-                    </span>
-                    <div className="min-w-0">
-                        <h2 className="m-0! font-sans! text-[15px]! font-semibold! text-[#EEF1F5]!">
-                            Duplicate request analysis
-                        </h2>
-                        <p className="mt-1 mb-0! text-[12px] text-[#98A8BA]">
-                            Related requests for administrative review
-                        </p>
-                    </div>
+        <section className="min-w-0 border-t border-[#344150] pt-7">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <SectionLabel>03 / Review assistance</SectionLabel>
+                    <SectionTitle>Duplicate request analysis</SectionTitle>
+                    <p className="mt-2 mb-0 text-[12px] text-[#95A7BA]">
+                        Compare this request with potentially related records.
+                    </p>
                 </div>
+
                 <button
                     type="button"
                     onClick={onCheck}
                     disabled={loading || !request.id}
-                    className="inline-flex min-h-10 items-center gap-2 border border-[#43556A] bg-[#263444] px-4 text-[12px] font-semibold text-[#E4EBF3] hover:bg-[#34465A] disabled:opacity-60"
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 border border-[#43556A] bg-[#263444] px-4 text-[12px] font-semibold text-[#E4EBF3] transition-colors hover:bg-[#34465A] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     <RefreshCw
                         size={14}
@@ -586,229 +616,216 @@ function DuplicateAnalysis({ request, result, loading, error, onCheck }) {
                 </button>
             </div>
 
-            <div className="px-5 py-5 sm:px-7 sm:py-6">
+            <div className="mt-5 border-y border-[#303A47]">
                 {error && (
-                    <div className="mb-5 flex items-start gap-2 border border-[#75464C] bg-[#322126] px-4 py-3 text-[13px] text-[#E9B8BD]">
-                        <AlertTriangle size={17} className="shrink-0" />
+                    <div className="my-4 flex items-start gap-2 border border-[#75464C] bg-[#322126] px-4 py-3 text-[12px] text-[#E9B8BD]">
+                        <AlertTriangle size={16} className="shrink-0" />
                         {error}
                     </div>
                 )}
+
                 {loading && (
                     <div className="flex items-center gap-3 py-8 text-[13px] text-[#B8C9D9]">
-                        <RefreshCw size={18} className="animate-spin" />
+                        <RefreshCw size={17} className="animate-spin" />
                         Comparing existing requests...
                     </div>
                 )}
+
                 {!loading && result && (
                     <>
-                        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3 py-4">
                             <div>
-                                <p className="m-0! text-[14px] font-semibold text-[#E9F0F7]">
+                                <p className="mb-1 text-[13px] font-semibold text-[#E9F0F7]">
                                     {matches.length
                                         ? `${matches.length} possible ${matches.length === 1 ? 'match' : 'matches'}`
                                         : 'No potential matches'}
                                 </p>
-                                <p className="mt-1 mb-0! text-[12px] text-[#94A5B8]">
+                                <p className="mb-0 text-[11px] text-[#94A5B8]">
                                     {matches.length
-                                        ? 'Select a request title to inspect the original record'
-                                        : 'No related records were identified'}
+                                        ? 'Select a request title to inspect its original record.'
+                                        : 'No related records were identified.'}
                                 </p>
                             </div>
-                            <span className="text-[11px] uppercase tracking-wider text-[#91A3B6]">
+
+                            <span className="text-[10px] uppercase tracking-[0.12em] text-[#91A3B6]">
                                 Analysis complete
                             </span>
                         </div>
+
                         {matches.length > 0 && (
-                            <div className="overflow-hidden border border-[#394858] bg-[#101720]">
-                                <div className="flex items-center justify-between border-b border-[#394858] bg-[#243344] px-4 py-3 sm:px-5">
-                                    <span className="text-[11px] font-semibold uppercase tracking-[0.11em] text-[#D0DFEF]">
-                                        Potentially related requests
-                                    </span>
-                                    <span className="bg-[#364C61] px-2.5 py-1 text-[12px] font-semibold tabular-nums text-[#F0F5FA]">
-                                        {matches.length}
-                                    </span>
-                                </div>
-                                <div className="divide-y divide-[#394858]">
-                                    {matches.map((match, index) => {
-                                        const score = Math.max(
-                                            0,
-                                            Math.min(
-                                                100,
-                                                Number(
-                                                    match.similarity_score ?? 0,
-                                                ) || 0,
-                                            ),
-                                        );
-                                        const reasons = Array.isArray(
-                                            match.match_reasons,
-                                        )
-                                            ? match.match_reasons
-                                            : [];
-                                        return (
-                                            <article
-                                                key={match.id ?? index}
-                                                className="group relative min-w-0 bg-[#19232E] transition-colors hover:bg-[#202E3D]"
-                                            >
-                                                <div className="flex min-w-0 flex-col sm:flex-row">
-                                                    <div className="flex min-w-0 flex-1 gap-3.5 px-4 py-5 sm:gap-4 sm:px-5">
-                                                        <span className="flex size-9 shrink-0 items-center justify-center border border-[#4D6378] bg-[#30465B] text-[13px] font-semibold tabular-nums text-[#E9F1FA]">
-                                                            {String(
-                                                                index + 1,
-                                                            ).padStart(2, '0')}
+                            <div className="divide-y divide-[#394858] border-t border-[#394858]">
+                                {matches.map((match, index) => {
+                                    const score = Math.max(
+                                        0,
+                                        Math.min(
+                                            100,
+                                            Number(
+                                                match.similarity_score ?? 0,
+                                            ) || 0,
+                                        ),
+                                    );
+
+                                    const reasons = Array.isArray(
+                                        match.match_reasons,
+                                    )
+                                        ? match.match_reasons
+                                        : [];
+
+                                    return (
+                                        <article
+                                            key={match.id ?? index}
+                                            className="grid min-w-0 gap-4 bg-[#19232E] px-4 py-5 transition-colors hover:bg-[#202E3D] sm:grid-cols-[minmax(0,1fr)_130px] sm:px-5"
+                                        >
+                                            <div className="flex min-w-0 gap-3">
+                                                <span className="flex size-8 shrink-0 items-center justify-center bg-[#30465B] text-[11px] font-semibold tabular-nums text-[#E9F1FA]">
+                                                    {String(index + 1).padStart(
+                                                        2,
+                                                        '0',
+                                                    )}
+                                                </span>
+
+                                                <div className="min-w-0">
+                                                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-[#99ACC0]">
+                                                        Request #
+                                                        {show(match.id)}
+                                                        {' / '}
+                                                        {titleCase(
+                                                            match.status,
+                                                        )}
+                                                    </p>
+
+                                                    <Link
+                                                        to={`/admin/dashboard/help-requests/${match.id}`}
+                                                        className="inline-flex max-w-full items-start gap-1.5 text-[14px] font-semibold leading-6 text-[#EAF1F8] underline decoration-[#7896B4] underline-offset-4 hover:text-[#B9D8F4]"
+                                                    >
+                                                        <span className="wrap-break-word">
+                                                            {show(
+                                                                match.title,
+                                                                'Untitled help request',
+                                                            )}
                                                         </span>
-                                                        <div className="min-w-0 flex-1">
-                                                            <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#99ACC0]">
-                                                                <span className="font-semibold uppercase tracking-[0.07em]">
-                                                                    Request #
-                                                                    {show(
-                                                                        match.id,
-                                                                    )}
-                                                                </span>
-                                                                <span className="text-[#607589]">
-                                                                    /
-                                                                </span>
-                                                                <span>
-                                                                    {titleCase(
-                                                                        match.status,
-                                                                    )}
-                                                                </span>
-                                                            </div>
-                                                            <h3 className="mt-2 mb-0! font-sans! text-[15px]! font-semibold! leading-6">
-                                                                <Link
-                                                                    to={`/admin/dashboard/help-requests/${match.id}`}
-                                                                    className="inline-flex max-w-full items-start gap-1.5 text-[#EAF1F8] underline decoration-[#7896B4] underline-offset-4 hover:text-[#B9D8F4] hover:decoration-[#B9D8F4] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A8C7E3]"
-                                                                >
-                                                                    <span className="min-w-0 wrap-break-word">
-                                                                        {show(
-                                                                            match.title,
-                                                                            'Untitled help request',
-                                                                        )}
+                                                        <ArrowUpRight
+                                                            size={14}
+                                                            className="mt-1 shrink-0"
+                                                        />
+                                                    </Link>
+
+                                                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5 text-[11px] text-[#AEBECE]">
+                                                        <span className="inline-flex items-center gap-1.5">
+                                                            <UserRound
+                                                                size={12}
+                                                            />
+                                                            {show(
+                                                                match.user
+                                                                    ?.name,
+                                                                'Unknown requester',
+                                                            )}
+                                                        </span>
+
+                                                        <span className="inline-flex items-center gap-1.5">
+                                                            <ClipboardList
+                                                                size={12}
+                                                            />
+                                                            {titleCase(
+                                                                match.category,
+                                                            )}
+                                                        </span>
+
+                                                        <span className="inline-flex items-center gap-1.5">
+                                                            <MapPin size={12} />
+                                                            {show(
+                                                                match.district,
+                                                            )}
+                                                        </span>
+
+                                                        <span className="inline-flex items-center gap-1.5">
+                                                            <CalendarDays
+                                                                size={12}
+                                                            />
+                                                            {dateText(
+                                                                match.created_at,
+                                                            )}
+                                                        </span>
+                                                    </div>
+
+                                                    {reasons.length > 0 && (
+                                                        <div className="mt-3 flex flex-wrap gap-2">
+                                                            {reasons.map(
+                                                                (
+                                                                    reason,
+                                                                    reasonIndex,
+                                                                ) => (
+                                                                    <span
+                                                                        key={`${match.id}-${reasonIndex}`}
+                                                                        className="bg-[#29394A] px-2 py-1 text-[10px] leading-5 text-[#C3D3E3]"
+                                                                    >
+                                                                        {reason}
                                                                     </span>
-                                                                    <ArrowUpRight
-                                                                        size={
-                                                                            16
-                                                                        }
-                                                                        className="mt-1 shrink-0"
-                                                                    />
-                                                                </Link>
-                                                            </h3>
-                                                            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-[#AEBECE]">
-                                                                <span className="inline-flex items-center gap-1.5">
-                                                                    <UserRound
-                                                                        size={
-                                                                            13
-                                                                        }
-                                                                    />
-                                                                    {show(
-                                                                        match
-                                                                            .user
-                                                                            ?.name,
-                                                                        'Unknown requester',
-                                                                    )}
-                                                                </span>
-                                                                <span className="inline-flex items-center gap-1.5">
-                                                                    <ClipboardList
-                                                                        size={
-                                                                            13
-                                                                        }
-                                                                    />
-                                                                    {titleCase(
-                                                                        match.category,
-                                                                    )}
-                                                                </span>
-                                                                <span className="inline-flex items-center gap-1.5">
-                                                                    <MapPin
-                                                                        size={
-                                                                            13
-                                                                        }
-                                                                    />
-                                                                    {show(
-                                                                        match.district,
-                                                                    )}
-                                                                </span>
-                                                                <span className="inline-flex items-center gap-1.5">
-                                                                    <CalendarDays
-                                                                        size={
-                                                                            13
-                                                                        }
-                                                                    />
-                                                                    {dateText(
-                                                                        match.created_at,
-                                                                    )}
-                                                                </span>
-                                                            </div>
-                                                            {reasons.length >
-                                                                0 && (
-                                                                <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                                                                    {reasons.map(
-                                                                        (
-                                                                            reason,
-                                                                            reasonIndex,
-                                                                        ) => (
-                                                                            <span
-                                                                                key={`${match.id}-${reasonIndex}`}
-                                                                                className="bg-[#29394A] px-2 py-1 text-[11px] leading-5 text-[#C3D3E3]"
-                                                                            >
-                                                                                {
-                                                                                    reason
-                                                                                }
-                                                                            </span>
-                                                                        ),
-                                                                    )}
-                                                                </div>
+                                                                ),
                                                             )}
                                                         </div>
-                                                    </div>
-                                                    <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[#344557] bg-[#223244] px-4 py-3 sm:w-32 sm:flex-col sm:items-start sm:justify-center sm:border-t-0 sm:border-l sm:px-4">
-                                                        <span className="text-[11px] text-[#A4B9CB]">
-                                                            Similarity
-                                                        </span>
-                                                        <span className="text-[25px] font-semibold leading-none tabular-nums text-[#EDF4FB]">
-                                                            {Math.round(score)}%
-                                                        </span>
-                                                        <div className="h-1.5 w-20 overflow-hidden rounded-full bg-[#3B4D60] sm:w-full">
-                                                            <div
-                                                                className="h-full rounded-full bg-[#9ABCD4]"
-                                                                style={{
-                                                                    width: `${score}%`,
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    </div>
+                                                    )}
                                                 </div>
-                                            </article>
-                                        );
-                                    })}
-                                </div>
+                                            </div>
+
+                                            <div className="flex items-center justify-between gap-3 border-t border-[#344557] pt-3 sm:flex-col sm:items-start sm:justify-center sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+                                                <span className="text-[10px] uppercase tracking-[0.1em] text-[#A4B9CB]">
+                                                    Similarity
+                                                </span>
+
+                                                <span className="font-mono text-[23px] font-semibold leading-none tabular-nums text-[#EDF4FB]">
+                                                    {Math.round(score)}%
+                                                </span>
+
+                                                <div className="h-1.5 w-full overflow-hidden bg-[#3B4D60]">
+                                                    <div
+                                                        className="h-full bg-[#9ABCD4]"
+                                                        style={{
+                                                            width: `${score}%`,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </article>
+                                    );
+                                })}
                             </div>
                         )}
                     </>
                 )}
+
                 {!loading && !result && !error && (
-                    <div className="py-9 text-center">
-                        <Search size={24} className="mx-auto text-[#8296AA]" />
-                        <p className="mt-3 mb-0! text-[14px] font-medium text-[#E5ECF4]">
-                            No analysis has been run
-                        </p>
-                        <p className="mt-1 mb-0! text-[12px] text-[#98A8BA]">
-                            Check for potentially related help requests.
-                        </p>
+                    <div className="flex items-center gap-4 py-7">
+                        <Search size={22} className="shrink-0 text-[#8296AA]" />
+                        <div>
+                            <p className="mb-1 text-[13px] font-semibold text-[#E5ECF4]">
+                                No analysis has been run
+                            </p>
+                            <p className="mb-0 text-[12px] text-[#98A8BA]">
+                                Check for potentially related help requests.
+                            </p>
+                        </div>
                     </div>
                 )}
-                <div className="mt-5 flex items-start gap-2 border-t border-[#303A47] pt-4 text-[12px] leading-5 text-[#94A5B7]">
-                    <AlertCircle size={15} className="mt-0.5 shrink-0" />
-                    <p className="m-0!">
-                        Similarity is a review aid, not evidence of fraud or
-                        duplication. Analysis does not verify, reject, or change
-                        any request.
-                    </p>
-                </div>
+            </div>
+
+            <div className="mt-4 flex items-start gap-2 text-[11px] leading-5 text-[#94A5B7]">
+                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                <p className="m-0!">
+                    Similarity is a review aid, not evidence of fraud or
+                    duplication. Analysis does not verify, reject, or change any
+                    request.
+                </p>
             </div>
         </section>
     );
 }
 
-export default function HelpRequestDetailsView({ request, onEdit, onRefresh  }) {
+/* =========================================================
+   MAIN COMPONENT
+========================================================= */
+
+export default function HelpRequestDetailsView({ request, onEdit, onRefresh }) {
     const requester = getRequester(request);
     const assignments = getAssignments(request);
 
@@ -837,20 +854,29 @@ export default function HelpRequestDetailsView({ request, onEdit, onRefresh  }) 
     };
 
     return (
-        <main className="min-w-0 space-y-5 font-sans">
+        <main className="min-w-0 space-y-7 pb-8 font-sans">
             <Identity request={request} requester={requester} onEdit={onEdit} />
 
-            <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_290px] xl:grid-cols-[minmax(0,1fr)_350px]">
-                <div className="min-w-0 space-y-5">
-                    <RequestInformation
-                        request={request}
-                        requester={requester}
-                    />
+            <div className="grid min-w-0 items-start gap-8 2xl:grid-cols-[minmax(0,1fr)_280px] 2xl:gap-12">
+                <div className="min-w-0 space-y-8">
+                    <RequestInformation request={request} />
 
-                    <HelpRequestEvidenceSection
-                        request={request}
-                        onUpdated={onRefresh}
-                    />
+                    <section className="min-w-0 border-t border-[#344150] pt-7">
+                        <SectionLabel>02 / Supporting material</SectionLabel>
+                        <SectionTitle>
+                            Evidence & supporting documents
+                        </SectionTitle>
+                        <p className="mt-2 mb-0 text-[12px] text-[#95A7BA]">
+                            Submitted files, follow-up requests and responses.
+                        </p>
+
+                        <div className="mt-5">
+                            <HelpRequestEvidenceSection
+                                request={request}
+                                onUpdated={onRefresh}
+                            />
+                        </div>
+                    </section>
 
                     <DuplicateAnalysis
                         request={request}
@@ -863,13 +889,13 @@ export default function HelpRequestDetailsView({ request, onEdit, onRefresh  }) 
                     <AssignmentHistory assignments={assignments} />
                 </div>
 
-                <aside className="min-w-0 space-y-5">
+                <div className="min-w-0 2xl:sticky 2xl:top-5">
                     <RequestOverview
                         request={request}
+                        requester={requester}
                         assignmentCount={assignments.length}
                     />
-                    <RecordHistory request={request} />
-                </aside>
+                </div>
             </div>
         </main>
     );

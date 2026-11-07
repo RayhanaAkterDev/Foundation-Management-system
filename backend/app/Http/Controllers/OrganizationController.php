@@ -219,7 +219,7 @@ class OrganizationController extends Controller
                 new PlatformNotification(
                     'Help request accepted',
                     "An organization has accepted your help request \"{$helpRequest->title}\".",
-                    '/individual/dashboard/help-requests',
+                    "/individual/dashboard/help-requests/{$helpRequest->id}",
                     'help_request'
                 )
             );

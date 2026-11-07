@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class HelpRequestEvidence extends Model
 {
+    protected $table = 'help_request_evidences';
+
     /*
     |--------------------------------------------------------------------------
     | Evidence Sources

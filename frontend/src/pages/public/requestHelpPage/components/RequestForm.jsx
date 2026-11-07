@@ -17,6 +17,25 @@ import {
     createHelpRequest,
 } from '@/dashboard/individual/myHelpRequests/api/helpRequestAPI';
 
+const MAX_FILES = 5;
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const MAX_TOTAL_SIZE = 35 * 1024 * 1024;
+
+const ALLOWED_EXTENSIONS = [
+    'jpg',
+    'jpeg',
+    'png',
+    'webp',
+    'pdf',
+    'doc',
+    'docx',
+    'mp3',
+    'wav',
+    'm4a',
+    'mp4',
+    'mov',
+];
+
 const toBangla = (value) =>
     String(value).replace(/\d/g, (digit) => '০১২৩৪৫৬৭৮৯'[Number(digit)]);
 
@@ -49,6 +68,17 @@ const getCategoryName = (category) =>
           category?.slug ||
           '';
 
+const formatFileSize = (bytes) => {
+    if (bytes < 1024 * 1024) {
+        return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+};
+
+const getFileExtension = (fileName) =>
+    fileName.split('.').pop()?.toLowerCase() || '';
+
 const fieldClass =
     'mt-3 w-full rounded-xl border border-[#d5e3dc] bg-[#fbfdfc] px-4 py-4 font-bengali text-[15px] text-[#0f172a] outline-none transition-colors focus:border-[#0f766e] focus:bg-white focus:ring-4 focus:ring-[#0f766e]/[0.08] disabled:opacity-60';
 
@@ -62,7 +92,12 @@ const RequestForm = ({ setSuccess }) => {
     const authToken = getStoredToken();
     const isLoggedIn = Boolean(user && authToken);
 
-    const [form, setForm] = useState({ description: '' });
+    const [form, setForm] = useState({
+        description: '',
+        contact_phone: user?.phone || '',
+    });
+
+    const [evidences, setEvidences] = useState([]);
     const [analysis, setAnalysis] = useState(null);
     const [categories, setCategories] = useState([]);
     const [analyzing, setAnalyzing] = useState(false);
@@ -123,6 +158,88 @@ const RequestForm = ({ setSuccess }) => {
         }
     };
 
+    const handleEvidenceChange = (event) => {
+        const selectedFiles = Array.from(event.target.files || []);
+
+        if (!selectedFiles.length) return;
+
+        const combinedFiles = [...evidences, ...selectedFiles];
+
+        if (combinedFiles.length > MAX_FILES) {
+            setError((prev) => ({
+                ...prev,
+                evidences: `সর্বোচ্চ ${MAX_FILES}টি ফাইল সংযুক্ত করতে পারবেন।`,
+            }));
+
+            event.target.value = '';
+            return;
+        }
+
+        const invalidFile = selectedFiles.find((file) => {
+            const extension = getFileExtension(file.name);
+            return !ALLOWED_EXTENSIONS.includes(extension);
+        });
+
+        if (invalidFile) {
+            setError((prev) => ({
+                ...prev,
+                evidences: `"${invalidFile.name}" ফাইলের ফরম্যাট সমর্থিত নয়।`,
+            }));
+
+            event.target.value = '';
+            return;
+        }
+
+        const oversizedFile = combinedFiles.find(
+            (file) => file.size > MAX_FILE_SIZE,
+        );
+
+        if (oversizedFile) {
+            setError((prev) => ({
+                ...prev,
+                evidences: 'প্রতিটি ফাইলের আকার সর্বোচ্চ ২০ MB হতে পারবে।',
+            }));
+
+            event.target.value = '';
+            return;
+        }
+
+        const totalSize = combinedFiles.reduce(
+            (total, file) => total + file.size,
+            0,
+        );
+
+        if (totalSize > MAX_TOTAL_SIZE) {
+            setError((prev) => ({
+                ...prev,
+                evidences: 'সব ফাইলের মোট আকার সর্বোচ্চ ৩৫ MB হতে পারবে।',
+            }));
+
+            event.target.value = '';
+            return;
+        }
+
+        setEvidences(combinedFiles);
+
+        setError((prev) => ({
+            ...prev,
+            evidences: '',
+            submit: '',
+        }));
+
+        event.target.value = '';
+    };
+
+    const removeEvidence = (index) => {
+        setEvidences((prev) => prev.filter((_, i) => i !== index));
+
+        setError((prev) => ({
+            ...prev,
+            evidences: '',
+            submit: '',
+        }));
+    };
+
     const handleAnalysisChange = (field, value) => {
         setAnalysis((prev) => (prev ? { ...prev, [field]: value } : prev));
 
@@ -159,6 +276,7 @@ const RequestForm = ({ setSuccess }) => {
         setAnalyzing(true);
 
         try {
+            // AI receives only the description.
             const response = await analyzeHelpRequest(description);
             const result = response?.analysis || null;
 
@@ -201,10 +319,11 @@ const RequestForm = ({ setSuccess }) => {
         const district = analysis.district?.trim() || '';
         const address = analysis.address?.trim() || '';
         const urgency = analysis.urgency?.trim() || '';
+        const contactPhone = form.contact_phone.trim();
 
         const validationErrors = {};
 
-        if (!title) validationErrors.title = 'একটি শিরোনাম দিন.';
+        if (!title) validationErrors.title = 'একটি শিরোনাম দিন।';
         if (!description)
             validationErrors.description = 'আপনার পরিস্থিতি লিখুন।';
         if (!category) validationErrors.category = 'একটি বিভাগ নির্বাচন করুন।';
@@ -212,6 +331,18 @@ const RequestForm = ({ setSuccess }) => {
         if (!address) validationErrors.address = 'ঠিকানা লিখুন।';
         if (!urgency)
             validationErrors.urgency = 'জরুরিতার মাত্রা নির্বাচন করুন।';
+
+        if (!contactPhone) {
+            validationErrors.contact_phone =
+                'অনুগ্রহ করে আপনার যোগাযোগের নম্বর দিন।';
+        } else if (contactPhone.length > 11) {
+            validationErrors.contact_phone =
+                'যোগাযোগের নম্বর সর্বোচ্চ ১১ অক্ষরের হতে পারবে।';
+        }
+
+        if (evidences.length === 0) {
+            validationErrors.evidences = 'অন্তত একটি প্রমাণপত্র সংযুক্ত করুন।';
+        }
 
         if (Object.keys(validationErrors).length > 0) {
             setError(validationErrors);
@@ -222,14 +353,21 @@ const RequestForm = ({ setSuccess }) => {
         setSubmitting(true);
 
         try {
-            await createHelpRequest({
-                title,
-                description,
-                category,
-                district,
-                address,
-                urgency,
+            const formData = new FormData();
+
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('category', category);
+            formData.append('district', district);
+            formData.append('address', address);
+            formData.append('urgency', urgency);
+            formData.append('contact_phone', contactPhone);
+
+            evidences.forEach((file) => {
+                formData.append('evidences[]', file);
             });
+
+            await createHelpRequest(formData);
 
             if (typeof setSuccess === 'function') {
                 setSuccess(true);
@@ -549,6 +687,126 @@ const RequestForm = ({ setSuccess }) => {
                             সম্ভাব্য সময়সীমা: {toBangla(analysis.deadline)}
                         </p>
                     )}
+
+                    {/* CONTACT NUMBER */}
+
+                    <div className="mt-10 border-t border-[#e5ece8] pt-8">
+                        <label
+                            htmlFor="help-contact-phone"
+                            className={labelClass}
+                        >
+                            যোগাযোগের নম্বর
+                        </label>
+
+                        <input
+                            id="help-contact-phone"
+                            name="contact_phone"
+                            type="tel"
+                            inputMode="tel"
+                            maxLength={11}
+                            value={form.contact_phone}
+                            onChange={handleChange}
+                            disabled={submitting}
+                            placeholder="আপনার যোগাযোগের মোবাইল নম্বর"
+                            className={fieldClass}
+                        />
+
+                        <p className="mt-2 text-[12px] leading-[1.8] text-[#64748b]">
+                            প্রয়োজন হলে আপনার প্রোফাইলের নম্বর পরিবর্তন করে
+                            এখানে অন্য একটি যোগাযোগের নম্বর দিতে পারেন।
+                        </p>
+
+                        {error.contact_phone && (
+                            <p role="alert" className={errorClass}>
+                                {error.contact_phone}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* EVIDENCE UPLOAD */}
+
+                    <div className="mt-10 border-t border-[#e5ece8] pt-8">
+                        <label htmlFor="help-evidences" className={labelClass}>
+                            প্রমাণপত্র সংযুক্ত করুন
+                        </label>
+
+                        <p className="mt-2 text-[12px] leading-[1.9] text-[#64748b]">
+                            আপনার আবেদনের সঙ্গে সম্পর্কিত ছবি, নথি, অডিও বা
+                            ভিডিও সংযুক্ত করুন।
+                        </p>
+
+                        <input
+                            id="help-evidences"
+                            type="file"
+                            multiple
+                            accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.mp3,.wav,.m4a,.mp4,.mov"
+                            onChange={handleEvidenceChange}
+                            disabled={submitting}
+                            className="mt-4 block w-full cursor-pointer rounded-xl border border-[#d5e3dc] bg-[#fbfdfc] p-3 text-[13px] text-[#334155] file:mr-4 file:rounded-lg file:border-0 file:bg-[#0f766e] file:px-4 file:py-2.5 file:text-[12px] file:font-semibold file:text-white hover:file:bg-[#115e59] disabled:opacity-60"
+                        />
+
+                        <p className="mt-3 text-[11px] leading-[1.9] text-[#94a3b8]">
+                            সমর্থিত ফরম্যাট: JPG, PNG, WebP, PDF, DOC, DOCX,
+                            MP3, WAV, M4A, MP4 ও MOV।
+                            <br />
+                            সর্বোচ্চ ৫টি ফাইল · প্রতিটি সর্বোচ্চ ২০ MB · মোট
+                            সর্বোচ্চ ৩৫ MB।
+                        </p>
+
+                        {error.evidences && (
+                            <p role="alert" className={errorClass}>
+                                {error.evidences}
+                            </p>
+                        )}
+
+                        {evidences.length > 0 && (
+                            <div className="mt-5 space-y-3">
+                                <p className="text-[12px] font-semibold text-[#142a27]">
+                                    নির্বাচিত ফাইল ({toBangla(evidences.length)}
+                                    /৫)
+                                </p>
+
+                                {evidences.map((file, index) => (
+                                    <div
+                                        key={`${file.name}-${index}`}
+                                        className="flex items-center justify-between gap-3 rounded-lg bg-[#f5f8f6] px-4 py-3"
+                                    >
+                                        <div className="min-w-0">
+                                            <p className="truncate text-[13px] font-medium text-[#334155]">
+                                                {file.name}
+                                            </p>
+
+                                            <p className="mt-1 text-[11px] text-[#94a3b8]">
+                                                {formatFileSize(file.size)}
+                                            </p>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                removeEvidence(index)
+                                            }
+                                            disabled={submitting}
+                                            aria-label={`${file.name} সরান`}
+                                            className="shrink-0 text-[12px] font-semibold text-red-600 hover:text-red-700 disabled:opacity-50"
+                                        >
+                                            সরান
+                                        </button>
+                                    </div>
+                                ))}
+
+                                <p className="text-[11px] text-[#94a3b8]">
+                                    মোট আকার:{' '}
+                                    {formatFileSize(
+                                        evidences.reduce(
+                                            (total, file) => total + file.size,
+                                            0,
+                                        ),
+                                    )}
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 

@@ -19,6 +19,7 @@ import {
 
 import StatusBadge from '@/components/dashboard/StatusBadge';
 import { checkHelpRequestDuplicates } from '../api/helpRequestAPI';
+import HelpRequestEvidenceSection from './HelpRequestEvidenceSection';
 
 const PANEL = 'min-w-0 overflow-hidden border border-[#303A47] bg-[#171D26]';
 
@@ -322,6 +323,13 @@ function RequestInformation({ request, requester }) {
 
                     <div className="mt-4">
                         <RequesterLink requester={requester} />
+                    </div>
+
+                    <div className="mt-5 border-t border-[#344150] pt-5">
+                        <Info
+                            title="Contact number"
+                            value={request.contact_phone}
+                        />
                     </div>
                 </div>
             </div>
@@ -800,7 +808,7 @@ function DuplicateAnalysis({ request, result, loading, error, onCheck }) {
     );
 }
 
-export default function HelpRequestDetailsView({ request, onEdit }) {
+export default function HelpRequestDetailsView({ request, onEdit, onRefresh  }) {
     const requester = getRequester(request);
     const assignments = getAssignments(request);
 
@@ -837,6 +845,11 @@ export default function HelpRequestDetailsView({ request, onEdit }) {
                     <RequestInformation
                         request={request}
                         requester={requester}
+                    />
+
+                    <HelpRequestEvidenceSection
+                        request={request}
+                        onUpdated={onRefresh}
                     />
 
                     <DuplicateAnalysis

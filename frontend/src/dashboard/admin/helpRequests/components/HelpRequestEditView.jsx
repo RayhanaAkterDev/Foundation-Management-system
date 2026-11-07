@@ -5,6 +5,7 @@ import {
     Save,
     LoaderCircle,
     AlertCircle,
+    Phone,
 } from 'lucide-react';
 
 import DashboardInput from '@/components/dashboard/DashboardInput';
@@ -28,27 +29,20 @@ const URGENCY_LEVELS = [
 const SELECT_CLASS = `
     block h-11 w-full min-w-0
     appearance-auto rounded-[4px]
-
     border border-[#29313D]
     bg-[#151B23]
     px-3.5
-
     font-sans text-[14px] font-normal
     text-[#D8DEE7]
-
     shadow-[inset_0_1px_3px_rgba(0,0,0,0.18)]
     outline-none
-
     transition-[background-color,border-color,box-shadow]
     duration-150
-
     hover:border-[#3C4654]
     hover:bg-[#171E27]
-
     focus:border-[#637489]
     focus:bg-[#1A222D]
     focus:ring-0
-
     disabled:cursor-not-allowed
     disabled:opacity-50
 `;
@@ -81,7 +75,7 @@ function SelectField({
         <div className="min-w-0">
             <label
                 htmlFor={id}
-                className="mb-[7px] block font-sans! text-[13px] font-medium! leading-5 text-[#9BA7B6]!"
+                className="mb-1.75 block font-sans! text-[13px] font-medium! leading-5 text-[#9BA7B6]!"
             >
                 {label}
                 <span aria-hidden="true" className="ml-1 text-[#8793A2]!">
@@ -110,6 +104,40 @@ function SelectField({
                     </option>
                 ))}
             </select>
+        </div>
+    );
+}
+
+function ReadOnlyContactNumber({ value }) {
+    return (
+        <div className="min-w-0">
+            <label
+                htmlFor="help-request-contact-phone"
+                className="mb-1.75 block font-sans! text-[13px] font-medium! leading-5 text-[#9BA7B6]!"
+            >
+                Contact Number
+            </label>
+
+            <div className="relative">
+                <Phone
+                    size={16}
+                    strokeWidth={1.7}
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8292A4]"
+                />
+
+                <input
+                    id="help-request-contact-phone"
+                    type="text"
+                    value={value || 'Not provided'}
+                    readOnly
+                    disabled
+                    className="block h-11 w-full min-w-0 rounded-sm border border-[#29313D] bg-[#151B23] pl-10 pr-3.5 font-sans text-[14px] text-[#AEBAC8] outline-none disabled:cursor-not-allowed disabled:opacity-100"
+                />
+            </div>
+
+            <p className="mt-2 mb-0! text-[11px] leading-5 text-[#8290A0]">
+                Saved contact information. This field cannot be edited here.
+            </p>
         </div>
     );
 }
@@ -276,7 +304,7 @@ export default function HelpRequestEditView({
                     </div>
                 </section>
 
-                <aside className="min-w-0 overflow-hidden border border-[#303A47] bg-[#0E1219] h-[546px]">
+                <aside className="min-w-0 overflow-hidden border border-[#303A47] bg-[#0E1219]">
                     <PanelHeading icon={MapPin} title="Location" />
 
                     <div className="space-y-6 px-5 py-6 sm:px-6">
@@ -300,7 +328,7 @@ export default function HelpRequestEditView({
                             id="help-request-address"
                             name="address"
                             label="Address"
-                            rows={12}
+                            rows={5}
                             maxLength={1000}
                             value={form.address}
                             disabled={saving}
@@ -310,6 +338,12 @@ export default function HelpRequestEditView({
                             }
                             className="min-h-28"
                         />
+
+                        <div className="border-t border-[#2C3643] pt-5">
+                            <ReadOnlyContactNumber
+                                value={request.contact_phone}
+                            />
+                        </div>
                     </div>
                 </aside>
             </div>

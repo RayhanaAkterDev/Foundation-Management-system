@@ -9,13 +9,22 @@ import {
     ClipboardList,
     Building2,
     Clock3,
+    Upload,
+    Eye,
+    X,
+    Paperclip,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
 import LoadingUI from '@/components/dashboard/LoadingUI';
 import LoadingError from '@/components/dashboard/LoadingError';
 
-import { getMyHelpRequests } from './api/helpRequestAPI';
+import {
+    getMyHelpRequests,
+    submitAdditionalEvidence,
+    getHelpRequestEvidenceUrl,
+} from './api/helpRequestAPI';
+
 import {
     normalizeHelpRequests,
     getAssignmentInfo,
@@ -32,6 +41,25 @@ const COLORS = {
     muted: '#A0ADBD',
 };
 
+const MAX_FILES = 5;
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
+const MAX_TOTAL_SIZE = 35 * 1024 * 1024;
+
+const ALLOWED_EXTENSIONS = [
+    'jpg',
+    'jpeg',
+    'png',
+    'webp',
+    'pdf',
+    'doc',
+    'docx',
+    'mp3',
+    'wav',
+    'm4a',
+    'mp4',
+    'mov',
+];
+
 const formatDate = (value) => {
     if (!value) return '—';
 
@@ -44,6 +72,23 @@ const formatDate = (value) => {
         month: 'long',
         year: 'numeric',
     });
+};
+
+const formatFileSize = (bytes) => {
+    if (!Number.isFinite(Number(bytes))) return 'Unknown size';
+
+    const size = Number(bytes);
+
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) {
+        return `${(size / 1024).toFixed(1)} KB`;
+    }
+
+    return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+};
+
+const getFileExtension = (fileName) => {
+    return fileName.split('.').pop()?.toLowerCase() || '';
 };
 
 const STATUS_TONES = {
@@ -109,7 +154,329 @@ function StatusBadge({ status }) {
     );
 }
 
-function RequestContent({ request, onEdit }) {
+// =========================================================
+// Secure evidence file viewing
+// =========================================================
+
+function EvidenceFileRow({ requestId, evidence }) {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleView = async () => {
+        try {
+            setLoading(true);
+            setError('');
+
+            const response = await getHelpRequestEvidenceUrl(
+                requestId,
+                evidence.id,
+            );
+
+            const url =
+                response?.url ||
+                response?.signed_url ||
+                response?.data?.url ||
+                response?.data?.signed_url;
+
+            if (!url) {
+                throw new Error(
+                    'The secure evidence link could not be retrieved.',
+                );
+            }
+
+            window.open(url, '_blank', 'noopener,noreferrer');
+        } catch (err) {
+            setError(err?.message || 'Unable to open this evidence file.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="border-b border-[#303A47] py-3 last:border-b-0">
+            <div className="flex min-w-0 items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                    <Paperclip size={15} className="shrink-0 text-[#A0ADBD]" />
+
+                    <div className="min-w-0">
+                        <p className="break-all text-[13px] font-medium! text-[#EEF1F5]!">
+                            {evidence.file_name || 'Evidence file'}
+                        </p>
+
+                        <p className="mt-1 text-[11px] text-[#A0ADBD]">
+                            {formatFileSize(evidence.file_size)}
+                            {evidence.created_at
+                                ? ` · ${formatDate(evidence.created_at)}`
+                                : ''}
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={handleView}
+                    disabled={loading}
+                    className="inline-flex min-h-9 shrink-0 items-center gap-2 border border-[#46566A] bg-[#263343] px-3 text-[12px] font-medium! text-[#EEF1F5]! transition-colors hover:bg-[#304155] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    <Eye size={14} />
+
+                    {loading ? 'Opening...' : 'View'}
+                </button>
+            </div>
+
+            {error && (
+                <p className="mt-2 text-[12px] text-[#D9A0A8]">{error}</p>
+            )}
+        </div>
+    );
+}
+
+// =========================================================
+// Additional evidence submission
+// =========================================================
+
+function EvidenceRequestItem({
+    requestId,
+    evidenceRequest,
+    evidences,
+    onSubmitted,
+}) {
+    const [files, setFiles] = useState([]);
+    const [error, setError] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const isPending = evidenceRequest.status === 'pending';
+
+    const handleFileChange = (event) => {
+        const selectedFiles = Array.from(event.target.files || []);
+
+        event.target.value = '';
+
+        if (!selectedFiles.length) return;
+
+        setError('');
+
+        const combinedFiles = [...files, ...selectedFiles];
+
+        if (combinedFiles.length > MAX_FILES) {
+            setError(`You can upload a maximum of ${MAX_FILES} files.`);
+            return;
+        }
+
+        for (const file of selectedFiles) {
+            const extension = getFileExtension(file.name);
+
+            if (!ALLOWED_EXTENSIONS.includes(extension)) {
+                setError(`File type not allowed: ${file.name}`);
+                return;
+            }
+
+            if (file.size > MAX_FILE_SIZE) {
+                setError(`${file.name} exceeds the 20 MB file limit.`);
+                return;
+            }
+        }
+
+        const totalSize = combinedFiles.reduce(
+            (total, file) => total + file.size,
+            0,
+        );
+
+        if (totalSize > MAX_TOTAL_SIZE) {
+            setError('The combined file size cannot exceed 35 MB.');
+            return;
+        }
+
+        setFiles(combinedFiles);
+    };
+
+    const removeFile = (indexToRemove) => {
+        setFiles((current) =>
+            current.filter((_, index) => index !== indexToRemove),
+        );
+
+        setError('');
+    };
+
+    const handleSubmit = async () => {
+        if (!files.length) {
+            setError('Please select at least one evidence file.');
+            return;
+        }
+
+        try {
+            setSubmitting(true);
+            setError('');
+
+            const formData = new FormData();
+
+            files.forEach((file) => {
+                formData.append('evidences[]', file);
+            });
+
+            await submitAdditionalEvidence(
+                requestId,
+                evidenceRequest.id,
+                formData,
+            );
+
+            setFiles([]);
+
+            await onSubmitted();
+        } catch (err) {
+            const validationErrors = err?.errors
+                ? Object.values(err.errors).flat().join(' ')
+                : '';
+
+            setError(
+                validationErrors ||
+                    err?.message ||
+                    'Unable to submit additional evidence.',
+            );
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="border-b border-[#303A47] py-5 last:border-b-0">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[13px] font-semibold! text-[#EEF1F5]!">
+                    Evidence request #{evidenceRequest.id}
+                </p>
+
+                <span
+                    className={`inline-flex border px-2.5 py-1 text-[11px] capitalize ${
+                        isPending
+                            ? 'border-[#51412A] bg-[#292116] text-[#D9B77D]'
+                            : 'border-[#305043] bg-[#182B24] text-[#9BD1B2]'
+                    }`}
+                >
+                    {String(evidenceRequest.status || 'pending').replaceAll(
+                        '_',
+                        ' ',
+                    )}
+                </span>
+            </div>
+
+            <p className="mt-2 whitespace-pre-wrap break-words text-[13px] leading-6 text-[#C8D2DF]">
+                {evidenceRequest.message}
+            </p>
+
+            <p className="mt-2 text-[11px] text-[#A0ADBD]">
+                Requested on {formatDate(evidenceRequest.created_at)}
+            </p>
+
+            {evidences.length > 0 && (
+                <div className="mt-4">
+                    <p className="mb-1 text-[12px] font-semibold! text-[#EEF1F5]!">
+                        Submitted additional evidence
+                    </p>
+
+                    {evidences.map((evidence) => (
+                        <EvidenceFileRow
+                            key={evidence.id}
+                            requestId={requestId}
+                            evidence={evidence}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {isPending && (
+                <div className="mt-4 border-t border-[#303A47] pt-4">
+                    <label
+                        htmlFor={`evidence-upload-${evidenceRequest.id}`}
+                        className="mb-2 block text-[12px] font-medium! text-[#D2DAE4]"
+                    >
+                        Upload requested evidence
+                    </label>
+
+                    <input
+                        id={`evidence-upload-${evidenceRequest.id}`}
+                        type="file"
+                        multiple
+                        accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.mp3,.wav,.m4a,.mp4,.mov"
+                        onChange={handleFileChange}
+                        disabled={submitting}
+                        className="block w-full text-[12px] text-[#A0ADBD] file:mr-3 file:border file:border-[#46566A] file:bg-[#263343] file:px-3 file:py-2 file:text-[12px] file:font-medium! file:text-[#EEF1F5] hover:file:bg-[#304155] disabled:opacity-50"
+                    />
+
+                    <p className="mt-2 text-[11px] leading-5 text-[#A0ADBD]">
+                        JPG, PNG, WebP, PDF, DOC, DOCX, MP3, WAV, M4A, MP4 or
+                        MOV. Maximum 5 files, 20 MB each and 35 MB total.
+                    </p>
+
+                    {files.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                            {files.map((file, index) => (
+                                <div
+                                    key={`${file.name}-${index}`}
+                                    className="flex min-w-0 items-center justify-between gap-3 border border-[#303A47] bg-[#202A36] px-3 py-2"
+                                >
+                                    <div className="min-w-0">
+                                        <p className="break-all text-[12px] text-[#D2DAE4]">
+                                            {file.name}
+                                        </p>
+
+                                        <p className="mt-1 text-[11px] text-[#A0ADBD]">
+                                            {formatFileSize(file.size)}
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => removeFile(index)}
+                                        disabled={submitting}
+                                        aria-label={`Remove ${file.name}`}
+                                        className="shrink-0 p-1 text-[#A0ADBD] transition-colors hover:text-[#D9A0A8] disabled:opacity-50"
+                                    >
+                                        <X size={15} />
+                                    </button>
+                                </div>
+                            ))}
+
+                            <p className="text-right text-[11px] text-[#A0ADBD]">
+                                Total:{' '}
+                                {formatFileSize(
+                                    files.reduce(
+                                        (total, file) => total + file.size,
+                                        0,
+                                    ),
+                                )}
+                            </p>
+                        </div>
+                    )}
+
+                    {error && (
+                        <p className="mt-3 text-[12px] leading-5 text-[#D9A0A8]">
+                            {error}
+                        </p>
+                    )}
+
+                    <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={submitting || files.length === 0}
+                        className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 border border-[#42645D] bg-[#18332F] px-4 text-[12px] font-semibold! text-[#B8D8CE]! transition-colors hover:bg-[#21443E] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <Upload size={14} />
+
+                        {submitting
+                            ? 'Submitting...'
+                            : 'Submit additional evidence'}
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// =========================================================
+// Main request content
+// =========================================================
+
+function RequestContent({ request, onEdit, onRefresh }) {
     const assignmentInfo = getAssignmentInfo(request);
 
     const assignment = assignmentInfo?.currentAssignment;
@@ -124,6 +491,16 @@ function RequestContent({ request, onEdit }) {
     const assignments = Array.isArray(request.assignments)
         ? request.assignments
         : [];
+
+    const evidences = Array.isArray(request.evidences) ? request.evidences : [];
+
+    const evidenceRequests = Array.isArray(request.evidenceRequests)
+        ? request.evidenceRequests
+        : [];
+
+    const originalEvidences = evidences.filter(
+        (item) => item.source === 'original',
+    );
 
     return (
         <div className="space-y-5 lg:space-y-6">
@@ -230,10 +607,71 @@ function RequestContent({ request, onEdit }) {
                                         label="Address"
                                         value={request.address}
                                     />
+
+                                    <Info
+                                        label="Contact Number"
+                                        value={request.contact_phone}
+                                    />
                                 </dl>
                             </div>
                         </div>
                     </section>
+
+                    {/* Original evidence */}
+                    <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#1A212B]">
+                        <SectionHeader
+                            icon={Paperclip}
+                            title="Original evidence"
+                            subtitle="Files submitted with your original request"
+                        />
+
+                        <div className="px-5 py-3 sm:px-6">
+                            {originalEvidences.length > 0 ? (
+                                originalEvidences.map((evidence) => (
+                                    <EvidenceFileRow
+                                        key={evidence.id}
+                                        requestId={request.id}
+                                        evidence={evidence}
+                                    />
+                                ))
+                            ) : (
+                                <p className="py-3 text-[13px] text-[#A0ADBD]">
+                                    No original evidence files found.
+                                </p>
+                            )}
+                        </div>
+                    </section>
+
+                    {/* Additional evidence requests */}
+                    {evidenceRequests.length > 0 && (
+                        <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#1A212B]">
+                            <SectionHeader
+                                icon={Upload}
+                                title="Additional evidence"
+                                subtitle="Evidence requests and responses from the admin"
+                            />
+
+                            <div className="px-5 py-2 sm:px-6">
+                                {evidenceRequests.map((evidenceRequest) => {
+                                    const relatedEvidences = evidences.filter(
+                                        (item) =>
+                                            Number(item.evidence_request_id) ===
+                                            Number(evidenceRequest.id),
+                                    );
+
+                                    return (
+                                        <EvidenceRequestItem
+                                            key={evidenceRequest.id}
+                                            requestId={request.id}
+                                            evidenceRequest={evidenceRequest}
+                                            evidences={relatedEvidences}
+                                            onSubmitted={onRefresh}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    )}
 
                     {/* Assignment history */}
                     {assignments.length > 0 && (
@@ -348,6 +786,10 @@ function RequestContent({ request, onEdit }) {
         </div>
     );
 }
+
+// =========================================================
+// Help Request Details page
+// =========================================================
 
 export default function HelpRequestDetails() {
     const params = useParams();
@@ -504,8 +946,8 @@ export default function HelpRequestDetails() {
 
             <RequestContent
                 request={request}
-                requestId={id}
                 onEdit={handleEdit}
+                onRefresh={handleRetry}
             />
         </div>
     );

@@ -1,3 +1,4 @@
+
 import { apiRequest } from '@/api/client';
 
 // =========================================================
@@ -30,7 +31,10 @@ export const getHelpRequest = async (id) => {
 export const createHelpRequest = async (data) => {
     return apiRequest('/help-requests', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body:
+            data instanceof FormData
+                ? data
+                : JSON.stringify(data),
     });
 };
 
@@ -70,4 +74,38 @@ export const deleteHelpRequest = async (id) => {
     return apiRequest(`/help-requests/${id}`, {
         method: 'DELETE',
     });
+};
+
+// =========================================================
+// Submit additional evidence requested by admin
+// =========================================================
+
+export const submitAdditionalEvidence = async (
+    id,
+    evidenceRequestId,
+    formData,
+) => {
+    return apiRequest(
+        `/help-requests/${id}/evidence-requests/${evidenceRequestId}/submit`,
+        {
+            method: 'POST',
+            body: formData,
+        },
+    );
+};
+
+// =========================================================
+// Get secure evidence viewing URL
+// =========================================================
+
+export const getHelpRequestEvidenceUrl = async (
+    id,
+    evidenceId,
+) => {
+    return apiRequest(
+        `/help-requests/${id}/evidences/${evidenceId}/view`,
+        {
+            method: 'GET',
+        },
+    );
 };

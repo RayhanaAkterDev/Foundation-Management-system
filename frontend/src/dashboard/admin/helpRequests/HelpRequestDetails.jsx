@@ -226,6 +226,7 @@ function HelpRequestDetails() {
                     request={request}
                     onEdit={() => navigate(`${BASE}/${requestId}/edit`)}
                     onBack={handleBack}
+                    onRefresh={handleRetry}
                 />
             )}
 

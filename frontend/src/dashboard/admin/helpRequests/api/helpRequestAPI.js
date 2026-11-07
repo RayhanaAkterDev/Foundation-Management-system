@@ -1,11 +1,12 @@
-import { apiRequest } from "@/api/client";
+
+import { apiRequest } from '@/api/client';
 
 // --------------------------------
 // Help Requests - List
 // --------------------------------
 
 export const fetchHelpRequests = async () => {
-  return apiRequest("/admin/help-requests");
+    return apiRequest('/admin/help-requests');
 };
 
 // --------------------------------
@@ -13,7 +14,7 @@ export const fetchHelpRequests = async () => {
 // --------------------------------
 
 export const fetchHelpRequest = async (helpRequestId) => {
-  return apiRequest(`/admin/help-requests/${helpRequestId}`);
+    return apiRequest(`/admin/help-requests/${helpRequestId}`);
 };
 
 // --------------------------------
@@ -21,24 +22,21 @@ export const fetchHelpRequest = async (helpRequestId) => {
 // --------------------------------
 
 export const updateHelpRequest = async (helpRequestId, requestData) => {
-  if (!helpRequestId) {
-    throw new Error("Help request ID is required.");
-  }
+    if (!helpRequestId) {
+        throw new Error('Help request ID is required.');
+    }
 
-  return apiRequest(`/admin/help-requests/${helpRequestId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      title: requestData.title,
-      description: requestData.description,
-      category: requestData.category,
-      urgency: requestData.urgency,
-      district: requestData.district,
-      address: requestData.address ?? null,
-    }),
-  });
+    return apiRequest(`/admin/help-requests/${helpRequestId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            title: requestData.title,
+            description: requestData.description,
+            category: requestData.category,
+            urgency: requestData.urgency,
+            district: requestData.district,
+            address: requestData.address ?? null,
+        }),
+    });
 };
 
 // --------------------------------
@@ -46,17 +44,20 @@ export const updateHelpRequest = async (helpRequestId, requestData) => {
 // --------------------------------
 
 export const updateHelpRequestVerification = async (
-  helpRequestId,
-  status,
-  verificationNote = null,
+    helpRequestId,
+    status,
+    verificationNote = null,
 ) => {
-  return apiRequest(`/admin/help-requests/${helpRequestId}/verification`, {
-    method: "PATCH",
-    body: JSON.stringify({
-      status,
-      verification_note: verificationNote,
-    }),
-  });
+    return apiRequest(
+        `/admin/help-requests/${helpRequestId}/verification`,
+        {
+            method: 'PATCH',
+            body: JSON.stringify({
+                status,
+                verification_note: verificationNote,
+            }),
+        },
+    );
 };
 
 // --------------------------------
@@ -64,23 +65,64 @@ export const updateHelpRequestVerification = async (
 // --------------------------------
 
 export const updateHelpRequestUrgency = async (helpRequestId, urgency) => {
-  return apiRequest(`/admin/help-requests/${helpRequestId}/urgency`, {
-    method: "PATCH",
-    body: JSON.stringify({
-      urgency,
-    }),
-  });
+    return apiRequest(`/admin/help-requests/${helpRequestId}/urgency`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+            urgency,
+        }),
+    });
 };
 
 // --------------------------------
 // Help Requests - Assignment
 // --------------------------------
 
-export const assignHelpRequest = async (helpRequestId, assignmentData) => {
-  return apiRequest(`/admin/help-requests/${helpRequestId}/assignment`, {
-    method: "PATCH",
-    body: JSON.stringify(assignmentData),
-  });
+export const assignHelpRequest = async (
+    helpRequestId,
+    assignmentData,
+) => {
+    return apiRequest(
+        `/admin/help-requests/${helpRequestId}/assignment`,
+        {
+            method: 'PATCH',
+            body: JSON.stringify(assignmentData),
+        },
+    );
+};
+
+// --------------------------------
+// Help Requests - Request Additional Evidence
+// --------------------------------
+
+export const requestAdditionalEvidence = async (
+    helpRequestId,
+    message,
+) => {
+    return apiRequest(
+        `/admin/help-requests/${helpRequestId}/evidence-requests`,
+        {
+            method: 'POST',
+            body: JSON.stringify({
+                message,
+            }),
+        },
+    );
+};
+
+// --------------------------------
+// Help Requests - Secure Evidence Viewing
+// --------------------------------
+
+export const getHelpRequestEvidenceUrl = async (
+    helpRequestId,
+    evidenceId,
+) => {
+    return apiRequest(
+        `/help-requests/${helpRequestId}/evidences/${evidenceId}/view`,
+        {
+            method: 'GET',
+        },
+    );
 };
 
 // --------------------------------
@@ -88,7 +130,7 @@ export const assignHelpRequest = async (helpRequestId, assignmentData) => {
 // --------------------------------
 
 export const fetchOrganizations = async () => {
-  return apiRequest("/admin/organizations");
+    return apiRequest('/admin/organizations');
 };
 
 // --------------------------------
@@ -96,14 +138,18 @@ export const fetchOrganizations = async () => {
 // --------------------------------
 
 export const fetchVolunteers = async () => {
-  return apiRequest("/admin/volunteers");
+    return apiRequest('/admin/volunteers');
 };
+
+// --------------------------------
+// Help Requests - Duplicate Check
+// --------------------------------
 
 export const checkHelpRequestDuplicates = async (helpRequestId) => {
     return apiRequest(
         `/admin/help-requests/${helpRequestId}/duplicate-check`,
         {
-            method: "POST",
-        }
+            method: 'POST',
+        },
     );
 };
